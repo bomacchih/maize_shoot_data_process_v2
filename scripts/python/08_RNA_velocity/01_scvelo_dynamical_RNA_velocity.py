@@ -5,11 +5,12 @@ Expected project structure
 --------------------------
 data/
 ├── raw/
-│   ├── UL01/outs/velocyto/*.loom
-│   ├── UL02/outs/velocyto/*.loom
-│   ├── UL04/outs/velocyto/*.loom
-│   ├── VR01/outs/velocyto/*.loom
-│   └── ... one sample directory for each of the 14 samples
+│   └── loom/
+│       ├── XGE20_UL01_B73V5S210_short_MTCL.loom
+│       ├── XGE20_UL02_B73V5S210_short_MTCL.loom
+│       ├── XGE20_UL04_B73V5S210_short_MTCL.loom
+│       ├── XGE21_VR01_B73V5S210_short_MTCL.loom
+│       └── ... one loom file for each of the 14 samples
 ├── metadata/metadata.csv
 └── processed/
 
@@ -78,7 +79,15 @@ def parse_arguments() -> argparse.Namespace:
         description="Run dynamical scVelo analysis for maize developing leaves."
     )
     parser.add_argument("--project-root", type=Path, default=root)
-    parser.add_argument("--raw-dir", type=Path, default=None)
+    parser.add_argument(
+        "--raw-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Directory containing the loom files. Defaults to data/raw/loom. "
+            "Legacy per-sample subdirectories are also supported."
+        ),
+    )
     parser.add_argument("--metadata", type=Path, default=None)
     parser.add_argument("--processed-dir", type=Path, default=None)
     parser.add_argument("--figure-dir", type=Path, default=None)
@@ -137,13 +146,21 @@ def parse_arguments() -> argparse.Namespace:
             "value. This diagnostic does not remove spots."
         ),
     )
+    parser.add_argument(
+        "--validate-files-only",
+        action="store_true",
+        help=(
+            "Validate the 14 loom filenames and metadata coverage, then exit "
+            "without loading loom matrices or running scVelo."
+        ),
+    )
     return parser.parse_args()
 
 
 def configure_paths(args: argparse.Namespace) -> argparse.Namespace:
     root = args.project_root.resolve()
     args.project_root = root
-    args.raw_dir = (args.raw_dir or root / "data" / "raw").resolve()
+    args.raw_dir = (args.raw_dir or root / "data" / "raw" / "loom").resolve()
     args.metadata = (
         args.metadata or root / "data" / "metadata" / "metadata.csv"
     ).resolve()
@@ -174,25 +191,32 @@ def configure_logging(table_dir: Path) -> None:
 
 
 def find_one_loom(raw_dir: Path, sample_id: str) -> Path:
-    """Find exactly one loom file for a sample without hard-coded absolute paths."""
-    sample_dir = raw_dir / sample_id
+    """Find exactly one sample loom in the flat or legacy directory layout."""
+    if not raw_dir.is_dir():
+        raise FileNotFoundError(f"Loom directory not found: {raw_dir}")
+
     candidates: list[Path] = []
 
-    if sample_dir.is_dir():
-        candidates.extend(sample_dir.rglob("*.loom"))
+    # Canonical layout: all loom files are directly under data/raw/loom/.
+    candidates.extend(
+        path for path in raw_dir.glob("*.loom") if sample_id.lower() in path.name.lower()
+    )
 
+    # Backward compatibility: allow data/raw/<sample>/.../*.loom or another
+    # nested archive layout when --raw-dir points to a parent directory.
     if not candidates:
         candidates.extend(
             path
             for path in raw_dir.rglob("*.loom")
-            if sample_id.lower() in str(path).lower()
+            if sample_id.lower() in path.name.lower()
         )
 
     candidates = sorted({path.resolve() for path in candidates})
     if len(candidates) == 0:
         raise FileNotFoundError(
             f"No loom file found for {sample_id} under {raw_dir}. "
-            f"Expected a path such as data/raw/{sample_id}/outs/velocyto/*.loom."
+            "Expected a filename containing the sample ID, such as "
+            f"data/raw/loom/XGE20_{sample_id}_B73V5S210_short_MTCL.loom."
         )
     if len(candidates) > 1:
         formatted = "\n  ".join(str(path) for path in candidates)
@@ -263,6 +287,27 @@ def load_metadata(metadata_path: Path) -> pd.DataFrame:
     if metadata.empty:
         raise ValueError("No SAM/P1_P2/P3/P4/P5 spots remained after metadata filtering.")
     return metadata
+
+
+def validate_input_files(raw_dir: Path, metadata: pd.DataFrame) -> None:
+    """Validate the inexpensive parts of the input contract before analysis."""
+    for sample_id in SAMPLE_TO_SUFFIX:
+        loom_path = find_one_loom(raw_dir, sample_id)
+        if loom_path.stat().st_size == 0:
+            raise ValueError(f"Loom file is empty: {loom_path}")
+
+        target_spots = int((metadata["sample_id"] == sample_id).sum())
+        if target_spots == 0:
+            raise ValueError(
+                f"metadata.csv has no retained SAM/P1_P2/P3/P4/P5 spots for {sample_id}."
+            )
+        logging.info(
+            "Validated %s: %s (%d bytes; %d target metadata spots)",
+            sample_id,
+            loom_path.name,
+            loom_path.stat().st_size,
+            target_spots,
+        )
 
 
 def load_and_subset_looms(
@@ -556,6 +601,11 @@ def main() -> None:
     logging.info("Metadata: %s", args.metadata)
 
     metadata = load_metadata(args.metadata)
+    if args.validate_files_only:
+        validate_input_files(args.raw_dir, metadata)
+        logging.info("File-level RNA-velocity input validation completed successfully.")
+        return
+
     adata, matching = load_and_subset_looms(args.raw_dir, metadata)
     logging.info(
         "Combined dataset before velocity preprocessing: %d spots x %d genes",
