@@ -14,8 +14,8 @@
 # The curated metadata.csv is used to retain only unambiguous SAM, P1_P2, P3,
 # P4, and P5 tissue spots. Each individual Seurat object is converted to a
 # Monocle 3 cell_data_set, the 14 objects are combined once, and Monocle then
-# performs PCA preprocessing, section alignment, UMAP reduction, graph learning,
-# and pseudotime ordering from a SAM-enriched root principal node.
+# performs PCA preprocessing, physical-section alignment, UMAP reduction, graph
+# learning, and pseudotime ordering from a SAM-enriched root principal node.
 
 suppressPackageStartupMessages({
   library(Seurat)
@@ -95,7 +95,10 @@ domain_colors <- c(
 
 umi_cutoff <- 100
 num_dim <- 100
-alignment_column <- "section"
+# section_id uniquely identifies each physical section (for example UL01_S1).
+# Do not use `section`, which contains repeated serial-position labels such as
+# Section1 across different capture areas and may encode biological position.
+alignment_column <- "section_id"
 umap_n_neighbors <- 15L
 umap_min_dist <- 0.1
 random_seed <- 2026L
@@ -323,7 +326,10 @@ write.csv(
 cds <- combine_cds(
   cds_list,
   keep_all_genes = TRUE,
-  cell_names_unique = FALSE,
+  # Barcodes were already made globally unique as <barcode>-1_1_<sample number>.
+  # TRUE preserves those names. FALSE would append _<sample_id> and break the
+  # authoritative metadata lookup below.
+  cell_names_unique = TRUE,
   sample_col_name = "sample_id_from_combine",
   keep_reduced_dims = FALSE,
   verbose = TRUE
@@ -334,6 +340,15 @@ gc(verbose = FALSE)
 
 if (anyDuplicated(colnames(cds))) {
   stop("Duplicated spot names were found after combine_cds().")
+}
+
+missing_combined_metadata <- setdiff(colnames(cds), rownames(metadata))
+if (length(missing_combined_metadata) > 0L) {
+  stop(
+    length(missing_combined_metadata),
+    " combined spot barcode(s) are absent from metadata.csv; examples: ",
+    paste(head(missing_combined_metadata, 5L), collapse = ", ")
+  )
 }
 
 # Reapply the authoritative curated metadata after combination. This does not
