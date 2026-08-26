@@ -1,0 +1,3 @@
+"plot_library","n_cells","nFeature_RNA_median","nFeature_RNA_q05","nFeature_RNA_q95","nCount_RNA_median","nCount_RNA_q05","nCount_RNA_q95","percent.mt_median","percent.mt_q05","percent.mt_q95","percent.pl_median","percent.pl_q05","percent.pl_q95"
+"S6_01",725,3733,741.2,7510.4,9142,886.6,32738.4,0.411997363216875,0.136129243511189,2.84971241549973,0,0,0.0657515245320679
+"S6_02",337,4542,511.4,10846.6,9599,587,64628.8,0.465549348230912,0.132088295961331,3.15572649439561,0.0042618479372656,0,0.103226047772438

@@ -1,0 +1,11 @@
+R
+
+sample_id<-readRDS("data/processed/sample_id.rds")
+source("scripts/R/03_add_metadata/01_add_spot_metadata_from_csv.R")
+
+# add all annotated metadata to each data
+# including "sample_id"
+            "domains"
+            "section"
+            "sample"
+            "ms_ve"

@@ -1,0 +1,4 @@
+PCs tested: 1-50
+Automatic elbow candidate: 5
+PCs used for Harmony: 30
+Selection method: Bio-protocol setting

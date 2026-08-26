@@ -1,0 +1,44 @@
+# Large datasets and generated analysis objects
+data/raw/*
+!data/raw/note.txt
+data/processed/*
+*.rds
+*.RDS
+*.h5
+*.h5ad
+*.loom
+*.bam
+*.bai
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.cloupe
+
+# R and RStudio workspace files
+.RData
+.Rhistory
+.Ruserdata
+.Rproj.user/
+renv/library/
+renv/staging/
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Temporary/editor/operating-system files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs that can contain local absolute paths
+*.log

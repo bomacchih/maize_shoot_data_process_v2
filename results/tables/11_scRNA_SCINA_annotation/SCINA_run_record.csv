@@ -1,0 +1,7 @@
+"field","value"
+"input","sce_ref.rds"
+"SCINA_was_run","FALSE"
+"annotation_column","celltype_scina_histo"
+"UMAP_reduction","UMAP.HARMONY"
+"seed","1"
+"posterior_cutoff","0.5"

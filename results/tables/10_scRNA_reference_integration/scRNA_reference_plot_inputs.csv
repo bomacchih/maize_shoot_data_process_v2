@@ -1,0 +1,6 @@
+"field","value"
+"input","sce_ref.rds"
+"library_column","batch"
+"cluster_column","harmony_clusters"
+"UMAP_reduction","UMAP.HARMONY"
+"QC_fields","nFeature_RNA,nCount_RNA,percent.mt,percent.pl"

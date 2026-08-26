@@ -1,0 +1,147 @@
+# Mapping scRNA-seq cell types onto maize Visium sections
+
+This workflow combines Seurat anchor transfer with section-wise SPOTlight deconvolution. It is implemented in:
+
+[`04_map_scRNA_to_Visium_SPOTlight_Seurat_v5.R`](../scripts/R/10_scRNA_reference_integration/04_map_scRNA_to_Visium_SPOTlight_Seurat_v5.R)
+
+Selected vascular and SAM plots can be regenerated without rerunning deconvolution using:
+
+[`05_plot_SPOTlight_celltypes_Visium_Seurat_v5.R`](../scripts/R/10_scRNA_reference_integration/05_plot_SPOTlight_celltypes_Visium_Seurat_v5.R)
+
+## Inputs
+
+- Annotated scRNA-seq reference: `data/processed/sc_merged_filter_SCT2_inte_SCINA.rds`
+- Combined Visium object: `data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds`
+
+Because both objects are large, the recommended procedure is to load them in RStudio as `sc_reference` and `visium_query` before sourcing the script. The workflow writes a new output object and does not overwrite either input.
+
+## Hard cell-type transfer
+
+The annotated scRNA-seq object is used as the reference and the Visium object as the query. Cells labeled `Unknown` are excluded from reference construction. The script:
+
+1. Uses the SCT assays of the reference and query.
+2. Creates a reference UMAP model from the reference PCA or Harmony reduction.
+3. Identifies transfer anchors with `FindTransferAnchors()` using the first 30 dimensions.
+4. Calls `MapQuery()` with the SCINA cell-type labels as reference data.
+5. Stores the hard assignments in `predicted.celltype` and the associated transfer score in `predicted.celltype.score`.
+
+The transferred labels can be plotted on either the projected reference UMAP or the existing Harmony UMAP of the Visium object.
+
+## SPOTlight reference preparation
+
+The scRNA count matrix is converted to a `SingleCellExperiment` and log-normalized for marker and variance modeling. Marker and HVG preparation is performed once:
+
+- Mitochondrial, plastid, and ribosomal genes are excluded using gene lists when supplied and conservative name patterns otherwise.
+- Approximately 3,000 HVGs are selected with `modelGeneVar()` and `getTopHVGs()`.
+- Cell-type markers are ranked using the first available AUC or effect-size statistic returned by `scoreMarkers()`.
+- At most 100 markers are retained per cell type.
+- The reference is downsampled reproducibly to no more than 100 cells per cell type.
+
+The retained markers and HVGs are written to `results/tables/12_scRNA_Visium_mapping/`.
+
+## Section-wise soft deconvolution
+
+The combined Visium dataset is separated using `section_id`. SPOTlight is then run independently for every section using raw counts from the Visium RNA or Spatial assay. Only genes shared between the scRNA reference and the section are used.
+
+For each section, SPOTlight performs seeded NMF to learn non-negative cell-type signatures, followed by non-negative least squares to estimate cell-type proportions for every spot. After removing any residual column, the retained cell-type proportions are normalized to sum to 1.
+
+To test one section before launching the complete analysis, change:
+
+```r
+sections_to_run <- c("VR03_S2")
+```
+
+Set `sections_to_run <- NULL` for all sections.
+
+## Metadata added to the Visium object
+
+Each cell-type proportion is stored using the prefix `SPOT_`, for example:
+
+- `SPOT_Vascular_tissue`
+- `SPOT_Shoot_apical_meristem`
+- `SPOT_Mesophyll`
+
+The following diagnostic fields are also added:
+
+- `SPOT_top_type`: cell type with the highest estimated proportion
+- `SPOT_top_prop`: maximum estimated proportion
+- `SPOT_high_purity`: `TRUE` when the maximum proportion is at least 0.60
+- `SPOT_entropy`: Shannon entropy of the proportion vector
+- `SPOT_entropy_normalized`: Shannon entropy divided by the theoretical maximum
+
+High-purity spots can be used for domain-specific differential-expression analysis, while all spots—including mixed spots—remain available for studying tissue interfaces.
+
+## Reliability assessment
+
+For spots with both results, the workflow compares the SPOTlight argmax call with the hard label transferred using Seurat anchors. It writes the per-spot comparison and the overall agreement rate.
+
+An optional marker file can be provided at:
+
+`data/metadata/scRNA_reference/independent_celltype_module_markers.csv`
+
+This file must contain `gene_id` and `cell_type`. When present, the workflow calculates independent module scores and their Spearman correlations with the corresponding SPOTlight proportions.
+
+## Visualization
+
+The workflow generates:
+
+- One spatial scatter-pie plot per section in `results/figures/12_scRNA_Visium_mapping/section_scatterpies/`
+- Cell-type proportion maps on the Visium Harmony UMAP
+- Original-study threshold overlays on the UMAP
+
+The original-study visualization thresholds are:
+
+- Vascular-enriched spots: `SPOT_Vascular_tissue > 0.10`
+- SAM-enriched spots: `SPOT_SAM_tissue > 0.05`, or the equivalent `SPOT_Shoot_apical_meristem > 0.05`
+
+These thresholds are intended for visualization. They should not replace the 0.60 high-purity criterion used for downstream domain-specific testing.
+
+### Figure B and C plots from the existing processed subset
+
+The following plots were generated from `XGE202122_S5_subset_embleaf_harmony_join.rds`, which contains 6,392 Visium spots and the previously estimated proportions for 12 cell types. They document the expected plotting outputs without rerunning the complete section-wise deconvolution.
+
+![SPOTlight deconvolution across four VR03 sections](../results/figures/12_scRNA_Visium_mapping/selected_celltypes/Figure_B_VR03_section_scatterpies.png)
+
+**Figure B. SPOTlight deconvolution across four consecutive sections from sample VR03.** Sections are labeled S1–S4. Each Visium spot is shown as a pie chart; sectors represent the estimated proportions of bundle sheath, leaf epidermis, guard cell, leaf primordium, leaf rim, mesophyll, pavement cell A, shoot apical meristem, and shoot system epidermis. The spatial maps show coherent localization patterns, with vascular-associated types aligned with vein corridors, epidermal and rim types enriched in outer domains, and primordium-associated cells localized to developing leaf margins.
+
+![SPOTlight-estimated cell-type proportions on the Visium Harmony UMAP](../results/figures/12_scRNA_Visium_mapping/selected_celltypes/Figure_C_SPOTlight_proportion_UMAPs.png)
+
+**Figure C. SPOTlight-estimated cell-type proportions on the Visium Harmony UMAP.** The continuous color scale ranges from light gray (0) to deeper red (higher proportion). Panels show `Vascular_tissue`, `Leaf_rim`, `Shoot_system_epidermis`, `Leaf_primordium`, `Pavement_cell_N`, `Leaf_guard_cell`, `Bundle_sheath`, `Mesophyll`, `Leaf_epidermis`, `Leaf_subsidiary_cell`, `Shoot_apical_meristem`, and `Pavement_cell_A`. Because the proportions at each 55-µm spot sum to 1, SPOTlight captures graded cell-type mixtures that complement the single best label assigned by Seurat.
+
+![Vascular and SAM threshold overlays](../results/figures/12_scRNA_Visium_mapping/selected_celltypes/selected_SPOTlight_thresholds_UMAP.png)
+
+**Original-study threshold overlays.** Spots exceeding `SPOT_Vascular_tissue > 0.10` or `SPOT_Shoot_apical_meristem > 0.05` are highlighted in red on the Visium Harmony UMAP; all other spots are shown in gray.
+
+## Output object
+
+The mapped and deconvolved Visium object is written to:
+
+`data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds`
+
+The original active identities are restored before the output is saved.
+
+## Run
+
+From the repository root in RStudio:
+
+```r
+sc_reference <- readRDS(
+  "data/processed/sc_merged_filter_SCT2_inte_SCINA.rds"
+)
+visium_query <- readRDS(
+  "data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds"
+)
+source(
+  "scripts/R/10_scRNA_reference_integration/04_map_scRNA_to_Visium_SPOTlight_Seurat_v5.R"
+)
+```
+
+## Session information
+
+After a successful run, the runtime record is written to:
+
+`results/sessionInfo/12_scRNA_Visium_mapping_sessionInfo.txt`
+
+```r
+sessionInfo()
+```

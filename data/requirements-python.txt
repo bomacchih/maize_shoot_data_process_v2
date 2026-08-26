@@ -1,0 +1,16 @@
+# Direct/runtime dependencies for scripts/python/08_RNA_velocity/
+# Pin exact versions after the complete pipeline has been validated.
+anndata
+h5py
+loompy
+matplotlib
+numpy
+pandas
+scanpy
+scikit-learn
+scipy
+scvelo
+umap-learn
+
+# Optional: required only with --use-harmony
+# harmonypy
