@@ -19,7 +19,7 @@ DQ01, DQ02, DQ03, DQ04, DQ06, DQ07, DQ08
 Curated analyses retain tissue-covered, non-overlapping spots assigned to one of seven structural domains:
 
 ```text
-SAM → P1_P2 → P3 → P4 → P5 → co_v → coleoptile
+SAM → P1_P2 → P3 → P4 → P5 → (co_v + coleoptile)
 ```
 
 The first five domains are used for developmental trajectory, RNA-velocity, and pseudotime analyses. The sample order also determines merged barcode suffixes (`_1_1` through `_1_14`); changing it will break correspondence with the curated metadata.
