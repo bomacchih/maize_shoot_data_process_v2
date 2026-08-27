@@ -20,6 +20,8 @@ library(Seurat)
 
 # Keep all temporary objects inside a local environment.
 # Keep temporary objects inside a local environment.
+# rds deposited in Zenodo is old version; require new imported seurat data from raw files.
+
 local({
 
     # Find loaded Seurat objects.
