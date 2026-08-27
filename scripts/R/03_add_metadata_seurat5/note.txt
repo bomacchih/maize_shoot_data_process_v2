@@ -7,5 +7,5 @@ source("scripts/R/03_add_metadata/01_add_spot_metadata_from_csv.R")
 # including "sample_id"
             "domains"
             "section"
-            "sample"
+            "section_id"
             "ms_ve"
