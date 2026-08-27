@@ -1,4 +1,9 @@
 #!/usr/bin/env Rscript
+# The Seurat RDS file downloaded from Zenodo uses an older SeuratObject
+# data structure in which the spatial image lacks the "misc" slot.
+# Run this update before importing metadata; otherwise, metadata transfer
+# and removal of spots with missing metadata may fail.
+
 
 library(Seurat)
 library(SeuratObject)
