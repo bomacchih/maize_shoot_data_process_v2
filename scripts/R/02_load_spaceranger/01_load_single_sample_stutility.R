@@ -32,7 +32,7 @@ sample_dir <- file.path("data", "raw", sample_id, "outs")
 
 samples <- file.path(sample_dir, "filtered_feature_bc_matrix.h5")
 imgs <- file.path(sample_dir, "spatial", "tissue_hires_image.png")
-spotfiles <- file.path(sample_dir, "spatial", "tissue_positions_list.csv")
+spotfiles <- file.path(sample_dir, "spatial", "tissue_positions.csv")
 json <- file.path(sample_dir, "spatial", "scalefactors_json.json")
 
 infoTable <- data.frame(
