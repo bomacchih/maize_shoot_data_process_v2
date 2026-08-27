@@ -75,6 +75,7 @@ Large sequencing files, Space Ranger outputs, loom files, Seurat objects, and ot
 | Processed spatial transcriptomics data | GEO [GSE196882](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE196882) |
 | Maize shoot scRNA-seq reference | SRA [SRR11943512](https://www.ncbi.nlm.nih.gov/sra/?term=SRR11943512) and [SRR11943513](https://www.ncbi.nlm.nih.gov/sra/?term=SRR11943513) |
 | Napari interactive-viewer datasets | Zenodo [16933147](https://zenodo.org/records/16933147) |
+| RDS, loom, .cloude, web summary datasets | Zenodo [22058284](https://zenodo.org/records/22058284) |
 
 See [data/DATASETS.md](data/DATASETS.md) for required filenames, expected locations, availability, external-data locations, and missing inputs. Reviewer links and private repository tokens must never be committed to Git.
 
