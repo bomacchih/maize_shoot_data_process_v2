@@ -40,7 +40,7 @@ se <- Load10X_Spatial(
 se$sample_id <- sample_id
 se$orig.ident <- sample_id
 
-dir.create(file.path("data", "processed"), recursive = TRUE, showWarnings = FALSE)
+# dir.create(file.path("data", "processed"), recursive = TRUE, showWarnings = FALSE)
 
 saveRDS(
     se,
