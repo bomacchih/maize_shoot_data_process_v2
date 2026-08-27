@@ -1,1 +1,37 @@
+library(Seurat)
+library(SeuratObject)
 
+# Preserve the current active identities.
+idents_before <- Idents(VR03_seurat_v5)
+
+# Update each stored spatial image.
+for (image_name in names(VR03_seurat_v5@images)) {
+    VR03_seurat_v5@images[[image_name]] <-
+        SeuratObject::UpdateSlots(
+            VR03_seurat_v5@images[[image_name]]
+        )
+}
+
+# Update the complete Seurat object.
+VR03_seurat_v5 <-
+    SeuratObject::UpdateSlots(VR03_seurat_v5)
+
+VR03_seurat_v5 <-
+    SeuratObject::UpdateSeuratObject(VR03_seurat_v5)
+
+# Confirm that active identities were not changed.
+stopifnot(
+    identical(
+        as.character(Idents(VR03_seurat_v5)),
+        as.character(idents_before)
+    )
+)
+
+# Check the repaired object.
+validObject(VR03_seurat_v5)
+names(VR03_seurat_v5@images)
+
+SpatialDimPlot(
+    VR03_seurat_v5,
+    images = names(VR03_seurat_v5@images)[1]
+)
