@@ -49,7 +49,7 @@ se <- InputFromTable(
     platform = "Visium"
 )
 
-# dir.create(file.path("data", "processed"), recursive = TRUE, showWarnings = FALSE)
+dir.create(file.path("data", "processed"), recursive = TRUE, showWarnings = FALSE)
 
 saveRDS(
     se,
