@@ -26,7 +26,7 @@ The following public records provide the source data used by this project. Revie
 | Maize shoot scRNA-seq reference library | NCBI SRA **SRR11943512** | <https://www.ncbi.nlm.nih.gov/sra/?term=SRR11943512> |
 | Maize shoot scRNA-seq reference library | NCBI SRA **SRR11943513** | <https://www.ncbi.nlm.nih.gov/sra/?term=SRR11943513> |
 | Processed datasets for the Napari interactive viewer | Zenodo record **16933147** | <https://zenodo.org/records/16933147> |
-| Processed rds, loom, web summary, cloupe | Zenodo record **22058284** | <https://zenodo.org/records/22058248> |
+| Processed rds, loom, web summary, cloupe | Zenodo record **22058284** | <https://zenodo.org/records/22058284> |
 
 The GitHub repository contains analysis code and small metadata/reference files. Large processed objects and archived pipeline outputs should be obtained from the accessions above or from the accompanying processed-data archive rather than committed to Git.
 
