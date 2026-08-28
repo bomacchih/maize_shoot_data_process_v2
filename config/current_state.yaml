@@ -300,7 +300,19 @@ scina:
   source_rds: marker_list2.rds
   source_md5: 497fe45631f35884eff358e98bbdd56f
   upstream_source_workbook: Supplementary_Tables_20251104.xlsx
+  upstream_source_workbook_md5: 3d0c20648b193de5f1919ad7127f3b70
   upstream_source_sheet: Supplementary Table 9
+  upstream_comparison:
+    raw_gene_cell_type_rows: 8080
+    duplicate_gene_cell_type_rows: 1227
+    unique_gene_cell_type_pairs: 6853
+    unique_genes: 5289
+    genes_shared_across_cell_types: 1195
+    cell_type_exclusive_genes: 4094
+    curated_exclusive_subset_genes: 3997
+    exclusive_genes_omitted_from_curated_rds: 97
+    omitted_genes_present_in_both_feature_spaces: 26
+    curated_subset_preserves_source_order: true
   source_cell_types: 14
   marker_assignments: 3997
   unique_marker_genes: 3997
@@ -312,6 +324,7 @@ scina:
     combined_scrna_reference: 3997_of_3997
     representative_visium_object_UL01: 3997_of_3997
   conversion_script: scripts/R/10_scRNA_reference_integration/00_prepare_SCINA_marker_table.R
+  supplementary_table_comparison_script: scripts/python/compare_supplementary_table9_markers.py
   maximum_markers_per_cell_type: 100
   posterior_cutoff: 0.5
   random_seed: 1

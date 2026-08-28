@@ -116,6 +116,12 @@ provenance <- c(
   paste0("marker_assignments=", nrow(marker_table)),
   paste0("unique_genes=", length(gene_membership)),
   paste0("shared_genes=", shared_gene_count),
+  "upstream_source_workbook=Supplementary_Tables_20251104.xlsx",
+  "upstream_source_sheet=Supplementary Table 9",
+  paste0(
+    "comparison_script=",
+    "scripts/python/compare_supplementary_table9_markers.py"
+  ),
   "marker_rank_semantics=position_within_source_list",
   "cell_type_normalization=non_alphanumeric_punctuation_replaced_with_underscore"
 )
@@ -124,4 +130,3 @@ writeLines(provenance, provenance_file, useBytes = TRUE)
 message("Wrote ", nrow(marker_table), " markers for ", length(marker_list),
         " cell types to ", output_csv)
 message("Provenance: ", provenance_file)
-

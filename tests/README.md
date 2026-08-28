@@ -61,6 +61,18 @@ The check fails for blank or duplicated markers, unstable maize gene IDs,
 markers assigned to more than one cell type, or markers absent from either
 feature space.
 
+Compare the committed marker file directly with Supplementary Table 9 using
+only the Python standard library:
+
+```bash
+python scripts/python/compare_supplementary_table9_markers.py \
+  <path-to-Supplementary_Tables_20251104.xlsx> \
+  data/metadata/scRNA_reference/SCINA_marker_table.csv
+```
+
+This confirms that every retained marker is an exclusive Supplementary Table
+9 assignment and that its source order is preserved after filtering.
+
 ## Seurat object validation
 
 Run this only after activating the documented R environment:

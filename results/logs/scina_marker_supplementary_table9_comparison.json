@@ -1,0 +1,33 @@
+{
+  "comparison_passed": true,
+  "marker_cell_types": 14,
+  "marker_counts_by_cell_type": {
+    "Bundle_sheath": 519,
+    "G2_M_phase": 105,
+    "Leaf_epidermis": 33,
+    "Leaf_guard_cell": 45,
+    "Leaf_primordium": 86,
+    "Leaf_rim": 9,
+    "Leaf_subsidiary_cell": 68,
+    "Mesophyll": 2675,
+    "Pavement_cell_A": 37,
+    "Pavement_cell_N": 53,
+    "S_phase": 68,
+    "Shoot_apical_meristem": 59,
+    "Shoot_system_epidermis": 68,
+    "Vascular_tissue": 172
+  },
+  "marker_pairs_absent_from_table9": 0,
+  "marker_pairs_not_celltype_exclusive_in_table9": 0,
+  "marker_rows": 3997,
+  "marker_source_order_preserved": true,
+  "source_sheet": "Supplementary Table 9",
+  "table9_duplicate_pair_rows": 1227,
+  "table9_exclusive_genes": 4094,
+  "table9_exclusive_pairs_not_in_marker_file": 97,
+  "table9_genes_shared_across_cell_types": 1195,
+  "table9_malformed_rows": 0,
+  "table9_raw_rows": 8080,
+  "table9_unique_gene_celltype_pairs": 6853,
+  "table9_unique_genes": 5289
+}
