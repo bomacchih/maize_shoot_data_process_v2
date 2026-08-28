@@ -48,9 +48,12 @@ dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(log_dir, recursive = TRUE, showWarnings = FALSE)
 
 combined <- readRDS(input_file)
+# SummarizedExperiment also exports Assays() and may mask Seurat's accessor in
+# an interactive session, so explicitly use the SeuratObject implementation.
+assay_names <- SeuratObject::Assays(combined)
 stopifnot(
     inherits(combined, "Seurat"),
-    "SCT" %in% Assays(combined),
+    "SCT" %in% assay_names,
     "harmony_clusters" %in% colnames(combined[[]]),
     is.factor(combined$harmony_clusters)
 )
