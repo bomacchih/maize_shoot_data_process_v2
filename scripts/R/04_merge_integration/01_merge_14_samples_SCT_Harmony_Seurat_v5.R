@@ -35,6 +35,13 @@
 #
 # UL03 and DQ05 are not included because individual RDS files were not
 # provided for these capture areas.
+#
+# Main outputs:
+#   data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
+#   results/figures/PCA_elbow_plot.png
+#   results/figures/PCA_Harmony_before_after_UMAP.png
+#   results/figures/Harmony_UMAP_by_domain.png
+#   results/figures/Harmony_UMAP_domains_by_sample.png
 
 suppressPackageStartupMessages({
     library(Seurat)
@@ -59,6 +66,19 @@ sample_ids <- c(
 
 allowed_domains <- c(
     "SAM", "P1_P2", "P3", "P4", "P5", "coleoptile", "co_v"
+)
+sample_domain_levels <- unlist(
+    lapply(sample_ids, function(sample_id) {
+        paste(sample_id, allowed_domains, sep = "_")
+    }),
+    use.names = FALSE
+)
+domain_colours <- setNames(
+    c(
+        "#1B9E77", "#D95F02", "#7570B3", "#E7298A",
+        "#66A61E", "#E6AB02", "#A6761D"
+    ),
+    allowed_domains
 )
 
 rds_files <- file.path(
@@ -100,7 +120,11 @@ seurat_list <- lapply(seq_along(sample_ids), function(i) {
     object <- UpdateSeuratObject(object)
 
     # Standardize older objects that used the default Spatial assay name.
-    if (!"RNA" %in% Assays(object) && "Spatial" %in% Assays(object)) {
+    # SummarizedExperiment also exports Assays(), and it can mask the Seurat
+    # method in an interactive session. Namespace this call so that it always
+    # returns the character vector of Seurat assay names.
+    assay_names <- SeuratObject::Assays(object)
+    if (!"RNA" %in% assay_names && "Spatial" %in% assay_names) {
         object <- RenameAssays(object, Spatial = "RNA")
     }
 
@@ -208,8 +232,28 @@ for (i in seq_along(metadata_target_columns)) {
     combined[[metadata_target_columns[i]]] <- metadata_aligned[[i]]
 }
 combined$domains <- factor(
-    combined$domains,
+    as.character(combined$domains),
     levels = allowed_domains
+)
+
+fixed_level_factor_columns <- c("sample_id", "sample_domain")
+missing_fixed_level_factor_columns <- setdiff(
+    fixed_level_factor_columns,
+    colnames(combined[[]])
+)
+if (length(missing_fixed_level_factor_columns) > 0L) {
+    stop(
+        "Metadata columns requested as fixed-level factors are missing: ",
+        paste(missing_fixed_level_factor_columns, collapse = ", ")
+    )
+}
+combined$sample_id <- factor(
+    as.character(combined$sample_id),
+    levels = sample_ids
+)
+combined$sample_domain <- factor(
+    as.character(combined$sample_domain),
+    levels = sample_domain_levels
 )
 
 factor_metadata_columns <- c(
@@ -236,6 +280,12 @@ stopifnot(
     ncol(combined) == nrow(domain_metadata),
     !anyNA(combined$domains),
     all(as.character(combined$domains) %in% allowed_domains),
+    is.factor(combined$sample_id),
+    is.factor(combined$sample_domain),
+    !anyNA(combined$sample_id),
+    !anyNA(combined$sample_domain),
+    identical(levels(combined$sample_id), sample_ids),
+    identical(levels(combined$sample_domain), sample_domain_levels),
     all(metadata_target_columns %in% colnames(combined[[]])),
     all(vapply(
         factor_metadata_columns,
@@ -256,7 +306,6 @@ rm(seurat_list)
 gc()
 
 DefaultAssay(combined) <- "RNA"
-combined$sample_id <- factor(combined$sample_id, levels = sample_ids)
 
 # The Bio-protocol removes genes with fewer than 100 reads across the combined
 # dataset. Sum the split Seurat v5 count layers without joining or duplicating
@@ -453,6 +502,65 @@ ggplot2::ggsave(
     bg = "white"
 )
 
+# Confirm that Harmony preserves interpretable anatomical structure. A global
+# domain plot shows the shared embedding, while the split view reveals whether
+# the same domains occupy comparable regions in each capture area.
+harmony_by_domain <- DimPlot(
+    combined,
+    reduction = "umap_harmony",
+    group.by = "domains",
+    cols = domain_colours,
+    order = allowed_domains,
+    label = TRUE,
+    repel = TRUE,
+    pt.size = 0.2,
+    shuffle = TRUE,
+    seed = random_seed
+) +
+    ggplot2::ggtitle("Harmony UMAP by anatomical domain") +
+    ggplot2::theme(
+        plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
+    )
+ggplot2::ggsave(
+    filename = file.path("results", "figures", "Harmony_UMAP_by_domain.png"),
+    plot = harmony_by_domain,
+    width = 8,
+    height = 6,
+    dpi = 300,
+    bg = "white"
+)
+
+harmony_domains_by_sample <- DimPlot(
+    combined,
+    reduction = "umap_harmony",
+    group.by = "domains",
+    split.by = "sample_id",
+    cols = domain_colours,
+    order = allowed_domains,
+    ncol = 4,
+    pt.size = 0.15,
+    shuffle = TRUE,
+    seed = random_seed
+)
+harmony_domains_by_sample <- (
+    harmony_domains_by_sample +
+        plot_annotation(title = "Harmony UMAP domains in each sample")
+) &
+    ggplot2::theme(
+        plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"),
+        legend.position = "bottom"
+    )
+ggplot2::ggsave(
+    filename = file.path(
+        "results", "figures", "Harmony_UMAP_domains_by_sample.png"
+    ),
+    plot = harmony_domains_by_sample,
+    width = 16,
+    height = 13,
+    dpi = 300,
+    bg = "white"
+)
+
 stopifnot(
     validObject(combined),
     ncol(Embeddings(combined, reduction = "pca")) == n_pcs_use,
@@ -461,6 +569,12 @@ stopifnot(
     all(c("percent.mito", "percent.pltd") %in% colnames(combined[[]])),
     all(metadata_target_columns %in% colnames(combined[[]])),
     identical(as.character(combined$Barcode), colnames(combined)),
+    is.factor(combined$sample_id),
+    is.factor(combined$sample_domain),
+    !anyNA(combined$sample_id),
+    !anyNA(combined$sample_domain),
+    identical(levels(combined$sample_id), sample_ids),
+    identical(levels(combined$sample_domain), sample_domain_levels),
     all(vapply(
         factor_metadata_columns,
         function(x) is.factor(combined[[x, drop = TRUE]]),

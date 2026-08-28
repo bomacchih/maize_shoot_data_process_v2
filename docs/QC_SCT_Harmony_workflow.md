@@ -53,10 +53,12 @@ results/
 ├── figures/
 │   ├── QC_spot_gene_histograms.png
 │   ├── QC_violin_by_sample.png
-│   └── QC_features_vs_counts.png
+│   ├── QC_features_vs_counts.png
+│   └── QC_sample_domain_spot_counts.png
 └── tables/
     ├── QC_sample_summary.csv
-    └── QC_gene_summary.csv
+    ├── QC_gene_summary.csv
+    └── QC_sample_domain_spot_counts.csv
 ```
 
 `QC_spot_gene_histograms.png` contains:
@@ -86,6 +88,32 @@ results/
 
 **Figure 3. Relationship between library complexity and detected features.** Each point represents one tissue-covered spot. The plot is used to identify spots with unusually low gene detection, low UMI counts, or atypical count-to-feature relationships.
 
+### Retained spots by sample and anatomical domain
+
+The factor levels defined for `sample_id`, `domains`, and `sample_domain` are
+used to build a complete 14-sample by 7-domain count matrix. This keeps the
+axes in a stable biological order and displays zero-count combinations rather
+than silently dropping them.
+
+```r
+sample_domain_counts <- as.data.frame(table(
+  sample_id = spot_qc$sample_id,
+  domains = spot_qc$domains
+))
+names(sample_domain_counts)[3] <- "n_spots"
+
+ggplot(sample_domain_counts, aes(sample_id, domains, fill = n_spots)) +
+  geom_tile(colour = "white") +
+  geom_text(aes(label = ifelse(n_spots > 0, n_spots, ""))) +
+  scale_fill_gradient(low = "#F7FBFF", high = "#08519C") +
+  labs(x = "Sample", y = "Anatomical domain") +
+  theme_classic()
+```
+
+![Retained spots by sample and anatomical domain](../results/figures/QC_sample_domain_spot_counts.png)
+
+**Figure 4. Retained spot counts across samples and anatomical domains.** Each tile gives the number of curated tissue spots retained for one sample-domain combination. The numerical values are also written to `results/tables/QC_sample_domain_spot_counts.csv`.
+
 ## 2. Apply the gene-level QC rule and integrate datasets
 
 Run:
@@ -108,7 +136,8 @@ The integration script performs the following steps:
 10. Generates an uncorrected PCA-based UMAP.
 11. Runs Seurat v5 `IntegrateLayers()` with `HarmonyIntegration` using PCs 1-30.
 12. Generates a Harmony-based UMAP and a before-versus-after integration figure.
-13. Validates and saves the combined Seurat object.
+13. Plots the Harmony embedding by anatomical domain globally and separately for each sample.
+14. Validates and saves the combined Seurat object.
 
 ## Computational resources and troubleshooting
 
@@ -192,7 +221,7 @@ results/
 
 ![PCA elbow plot used to select the retained dimensions](../results/figures/PCA_elbow_plot.png)
 
-**Figure 4. PCA elbow diagnostic.** Variance explained is shown for PCs 1-50. The blue dotted line marks the automatically detected strongest elbow, whereas the red dashed line marks PC 30, the number of PCs retained to reproduce the Bio-protocol workflow.
+**Figure 5. PCA elbow diagnostic.** Variance explained is shown for PCs 1-50. The blue dotted line marks the automatically detected strongest elbow, whereas the red dashed line marks PC 30, the number of PCs retained to reproduce the Bio-protocol workflow.
 
 ## Before and after Harmony integration
 
@@ -205,7 +234,45 @@ Both panels are colored by `sample_id`. Better mixing after Harmony is consisten
 
 ![UMAP before and after SCTransform and Harmony integration](../results/figures/PCA_Harmony_before_after_UMAP.png)
 
-**Figure 5. Sample distributions before and after Harmony integration.** (A) UMAP generated from the uncorrected PCA representation after SCTransform normalization. (B) UMAP generated from the Harmony-integrated representation using PCs 1-30. Spots are colored by capture-area identity. Increased mixing of samples after integration is consistent with reduced sample-associated effects.
+**Figure 6. Sample distributions before and after Harmony integration.** (A) UMAP generated from the uncorrected PCA representation after SCTransform normalization. (B) UMAP generated from the Harmony-integrated representation using PCs 1-30. Spots are colored by capture-area identity. Increased mixing of samples after integration is consistent with reduced sample-associated effects.
+
+## Anatomical-domain diagnostics after Harmony
+
+Sample mixing should not be evaluated by itself. The corrected embedding must
+also preserve interpretable anatomical structure. The integration script uses
+one fixed seven-color palette for both the global and sample-split views.
+
+```r
+domain_colours <- setNames(
+  c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
+    "#66A61E", "#E6AB02", "#A6761D"),
+  allowed_domains
+)
+
+DimPlot(
+  combined,
+  reduction = "umap_harmony",
+  group.by = "domains",
+  cols = domain_colours,
+  label = TRUE
+)
+
+DimPlot(
+  combined,
+  reduction = "umap_harmony",
+  group.by = "domains",
+  split.by = "sample_id",
+  cols = domain_colours,
+  ncol = 4
+)
+```
+
+Running the complete integration script writes these diagnostics to:
+
+- `results/figures/Harmony_UMAP_by_domain.png`, containing all retained spots in the shared corrected embedding;
+- `results/figures/Harmony_UMAP_domains_by_sample.png`, containing the common embedding split by `sample_id` while retaining the same domain colors and coordinate system.
+
+These figures should be interpreted together with spatial location and marker-gene expression. They will be embedded here after the resource-intensive integration workflow has been rerun and the generated files have been verified.
 
 ## Final output
 

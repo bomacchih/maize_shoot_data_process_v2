@@ -13,8 +13,10 @@
 #   results/figures/QC_spot_gene_histograms.png
 #   results/figures/QC_violin_by_sample.png
 #   results/figures/QC_features_vs_counts.png
+#   results/figures/QC_sample_domain_spot_counts.png
 #   results/tables/QC_sample_summary.csv
 #   results/tables/QC_gene_summary.csv
+#   results/tables/QC_sample_domain_spot_counts.csv
 
 suppressPackageStartupMessages({
     library(Seurat)
@@ -31,6 +33,12 @@ sample_ids <- c(
 
 allowed_domains <- c(
     "SAM", "P1_P2", "P3", "P4", "P5", "coleoptile", "co_v"
+)
+sample_domain_levels <- unlist(
+    lapply(sample_ids, function(sample_id) {
+        paste(sample_id, allowed_domains, sep = "_")
+    }),
+    use.names = FALSE
 )
 
 rds_files <- file.path(
@@ -66,7 +74,11 @@ plastid_genes <- scan(
 
 seurat_list <- lapply(seq_along(sample_ids), function(i) {
     object <- UpdateSeuratObject(readRDS(rds_files[i]))
-    if (!"RNA" %in% Assays(object) && "Spatial" %in% Assays(object)) {
+    # SummarizedExperiment also exports Assays(), and it can mask the Seurat
+    # method in an interactive session. Namespace this call so that it always
+    # returns the character vector of Seurat assay names.
+    assay_names <- SeuratObject::Assays(object)
+    if (!"RNA" %in% assay_names && "Spatial" %in% assay_names) {
         object <- RenameAssays(object, Spatial = "RNA")
     }
 
@@ -153,8 +165,28 @@ for (i in seq_along(metadata_target_columns)) {
     combined[[metadata_target_columns[i]]] <- metadata_aligned[[i]]
 }
 combined$domains <- factor(
-    combined$domains,
+    as.character(combined$domains),
     levels = allowed_domains
+)
+
+fixed_level_factor_columns <- c("sample_id", "sample_domain")
+missing_fixed_level_factor_columns <- setdiff(
+    fixed_level_factor_columns,
+    colnames(combined[[]])
+)
+if (length(missing_fixed_level_factor_columns) > 0L) {
+    stop(
+        "Metadata columns requested as fixed-level factors are missing: ",
+        paste(missing_fixed_level_factor_columns, collapse = ", ")
+    )
+}
+combined$sample_id <- factor(
+    as.character(combined$sample_id),
+    levels = sample_ids
+)
+combined$sample_domain <- factor(
+    as.character(combined$sample_domain),
+    levels = sample_domain_levels
 )
 
 factor_metadata_columns <- c(
@@ -181,6 +213,12 @@ stopifnot(
     ncol(combined) == nrow(domain_metadata),
     !anyNA(combined$domains),
     all(as.character(combined$domains) %in% allowed_domains),
+    is.factor(combined$sample_id),
+    is.factor(combined$sample_domain),
+    !anyNA(combined$sample_id),
+    !anyNA(combined$sample_domain),
+    identical(levels(combined$sample_id), sample_ids),
+    identical(levels(combined$sample_domain), sample_domain_levels),
     all(metadata_target_columns %in% colnames(combined[[]])),
     all(vapply(
         factor_metadata_columns,
@@ -204,7 +242,6 @@ dir.create(file.path("results", "tables"), recursive = TRUE, showWarnings = FALS
 
 spot_qc <- combined[[]]
 spot_qc$spot_barcode <- rownames(spot_qc)
-spot_qc$sample_id <- factor(spot_qc$sample_id, levels = sample_ids)
 
 sample_summary <- do.call(rbind, lapply(sample_ids, function(sample_id) {
     x <- spot_qc[spot_qc$sample_id == sample_id, , drop = FALSE]
@@ -339,6 +376,78 @@ qc_scatter <- ggplot(
 ggsave(
     file.path("results", "figures", "QC_features_vs_counts.png"),
     qc_scatter, width = 8, height = 6, dpi = 300, bg = "white"
+)
+
+# Summarize the retained spots for every sample-domain combination. The
+# complete factor levels retain zero-count combinations and keep the sample
+# and anatomical-domain order stable across runs.
+sample_domain_counts <- as.data.frame(
+    table(
+        sample_id = spot_qc$sample_id,
+        domains = spot_qc$domains
+    ),
+    stringsAsFactors = FALSE,
+    responseName = "n_spots"
+)
+sample_domain_counts$sample_id <- factor(
+    sample_domain_counts$sample_id,
+    levels = sample_ids
+)
+sample_domain_counts$domains <- factor(
+    sample_domain_counts$domains,
+    levels = allowed_domains
+)
+sample_domain_counts$sample_domain <- factor(
+    paste(
+        sample_domain_counts$sample_id,
+        sample_domain_counts$domains,
+        sep = "_"
+    ),
+    levels = sample_domain_levels
+)
+stopifnot(
+    nrow(sample_domain_counts) == length(sample_domain_levels),
+    !anyNA(sample_domain_counts$sample_domain),
+    sum(sample_domain_counts$n_spots) == nrow(spot_qc)
+)
+write.csv(
+    sample_domain_counts,
+    file.path("results", "tables", "QC_sample_domain_spot_counts.csv"),
+    row.names = FALSE
+)
+
+qc_sample_domain_heatmap <- ggplot(
+    sample_domain_counts,
+    aes(x = sample_id, y = domains, fill = n_spots)
+) +
+    geom_tile(colour = "white", linewidth = 0.4) +
+    geom_text(
+        aes(label = ifelse(n_spots > 0L, format(n_spots, big.mark = ","), "")),
+        size = 3
+    ) +
+    scale_fill_gradient(
+        low = "#F7FBFF",
+        high = "#08519C",
+        name = "Retained\nspots"
+    ) +
+    scale_y_discrete(limits = rev(allowed_domains)) +
+    labs(
+        title = "Retained tissue spots by sample and anatomical domain",
+        x = "Sample",
+        y = "Anatomical domain"
+    ) +
+    theme_classic(base_size = 11) +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(face = "bold")
+    )
+ggsave(
+    file.path("results", "figures", "QC_sample_domain_spot_counts.png"),
+    qc_sample_domain_heatmap,
+    width = 10,
+    height = 5.5,
+    dpi = 300,
+    bg = "white"
 )
 
 message("QC complete: ", nrow(spot_qc), " spots and ", nrow(gene_qc), " genes.")

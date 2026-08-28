@@ -185,8 +185,21 @@ for (i in seq_along(metadata_target_columns)) {
 }
 
 combined$domains <- factor(
-  combined$domains,
+  as.character(combined$domains),
   levels = allowed_domains
+)
+
+combined$sample_id <- factor(
+  as.character(combined$sample_id),
+  levels = sample_ids
+)
+
+sample_domain_levels <- unlist(lapply(sample_ids, function(sample_id) {
+  paste(sample_id, allowed_domains, sep = "_")
+}))
+combined$sample_domain <- factor(
+  as.character(combined$sample_domain),
+  levels = sample_domain_levels
 )
 ```
 
@@ -223,7 +236,7 @@ All 14 columns currently present in `metadata.csv` are aligned by `Barcode` and 
 
 The newly merged object already has a current `orig.ident` field. Therefore, the historical CSV value is retained as `orig.ident_metadata_csv` instead of overwriting the current sample identity. The scripts use the same collision-safe rule for RNA- and SCT-derived count columns if those columns are added to a future version of `metadata.csv`: current pipeline-derived values retain their canonical names, and historical CSV values receive the `_metadata_csv` suffix.
 
-The following imported annotation fields are explicitly stored as factors:
+The following additional imported annotation fields are also explicitly stored as factors:
 
 ```r
 factor_metadata_columns <- c(
@@ -321,6 +334,33 @@ FeatureScatter(
 ![Relationship between detected genes and total counts](../results/figures/QC_features_vs_counts.png)
 
 The positive relationship between mapped counts and detected genes is expected. Strongly separated sample-specific trends should be investigated before integration.
+
+### Retained spots by sample and anatomical domain
+
+The QC workflow also counts retained spots for every combination of
+`sample_id` and `domains`. Because these columns are factors with explicit
+levels, samples and domains remain in the same order in every run and absent
+combinations are represented by zero.
+
+```r
+sample_domain_counts <- as.data.frame(table(
+  sample_id = spot_qc$sample_id,
+  domains = spot_qc$domains
+))
+names(sample_domain_counts)[3] <- "n_spots"
+
+ggplot(sample_domain_counts, aes(sample_id, domains, fill = n_spots)) +
+  geom_tile(colour = "white") +
+  geom_text(aes(label = ifelse(n_spots > 0, n_spots, ""))) +
+  scale_fill_gradient(low = "#F7FBFF", high = "#08519C") +
+  labs(x = "Sample", y = "Anatomical domain") +
+  theme_classic()
+```
+
+![Retained spots by sample and anatomical domain](../results/figures/QC_sample_domain_spot_counts.png)
+
+The corresponding numerical table is available at
+[`results/tables/QC_sample_domain_spot_counts.csv`](../results/tables/QC_sample_domain_spot_counts.csv).
 
 ### QC summary tables
 
@@ -470,6 +510,47 @@ combined <- RunUMAP(
 
 Before integration, several samples occupy distinct regions of the PCA-based UMAP. After SCTransform normalization and Harmony integration, spots from different samples are more evenly represented across the shared embedding. The corrected embedding should be evaluated together with spatial location, structural-domain annotations, and marker-gene expression to ensure that biological differences were not removed.
 
+### Anatomical domains after integration
+
+The corrected UMAP is plotted by `domains` both globally and separately for
+each `sample_id`. A fixed color mapping makes the two views directly
+comparable. The 98-level `sample_domain` factor is retained for grouping and
+tabulation, but is not assigned 98 separate colors because that would be
+visually uninterpretable.
+
+```r
+domain_colours <- setNames(
+  c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
+    "#66A61E", "#E6AB02", "#A6761D"),
+  allowed_domains
+)
+
+DimPlot(
+  combined,
+  reduction = "umap_harmony",
+  group.by = "domains",
+  cols = domain_colours,
+  label = TRUE
+)
+
+DimPlot(
+  combined,
+  reduction = "umap_harmony",
+  group.by = "domains",
+  split.by = "sample_id",
+  cols = domain_colours,
+  ncol = 4
+)
+```
+
+Running the complete integration script writes:
+
+- `results/figures/Harmony_UMAP_by_domain.png`;
+- `results/figures/Harmony_UMAP_domains_by_sample.png`.
+
+These files will be embedded here after the resource-intensive integration
+workflow has been rerun and the resulting figures have been verified.
+
 ---
 
 ## Save the integrated object
@@ -509,7 +590,7 @@ The verified output object contains:
 | Active identity levels | 33 (`0–32`) |
 | Reductions | `pca`, `umap_pca`, `harmony`, `umap_harmony` |
 
-The object contains all 14 imported CSV fields plus current pipeline metadata, including `old_colname`, `percent.mito`, `percent.pltd`, `nCount_RNA`, `nFeature_RNA`, `nCount_SCT`, and `nFeature_SCT`. It has **23 metadata columns in total**. Eight requested annotation columns are factors, and the saved `active.ident` is `harmony_clusters`. Obsolete `nCount_Spatial` and `nFeature_Spatial` fields are not retained. The validated RDS is approximately **2.17 GB**.
+The object contains all 14 imported CSV fields plus current pipeline metadata, including `old_colname`, `percent.mito`, `percent.pltd`, `nCount_RNA`, `nFeature_RNA`, `nCount_SCT`, and `nFeature_SCT`. It has **23 metadata columns in total**. The revised workflow stores `domains`, `sample_id`, `sample_domain`, and eight additional annotation columns as factors, for 11 factor metadata fields in total; the saved `active.ident` is `harmony_clusters`. Obsolete `nCount_Spatial` and `nFeature_Spatial` fields are not retained. The previously validated RDS was approximately **2.17 GB** and should be regenerated to incorporate the revised metadata typing and new domain-diagnostic figures.
 
 ---
 
