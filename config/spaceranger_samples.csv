@@ -1,0 +1,15 @@
+sample_id,barcode_suffix,spaceranger_sample_name,slide_id,capture_area_from_script,image_region_in_filename,local_cores,local_memory_gb,input_paths_status,verification_note
+UL01,1,XGE20-UL01,V19N06-011,A1,A1,8,64,external_missing,
+UL02,2,XGE20-UL02,V19N06-011,B1,B1,8,64,external_missing,Confirmed by author
+UL04,3,XGE20-UL04,V19N06-011,D1,D1,8,64,external_missing,Confirmed by author
+VR01,4,XGE21-VR01,V10F04-109,A1,A1,8,64,external_missing,
+VR02,5,XGE21-VR02,V10F04-109,B1,B1,8,64,external_missing,
+VR03,6,XGE21-VR03,V10F04-109,C1,C1,8,64,external_missing,
+VR04,7,XGE21-VR04,V10F04-109,D1,D1,8,64,external_missing,
+DQ01,8,XGE22-DQ01,V11Y25-075,A1,A1,16,128,external_missing,
+DQ02,9,XGE22-DQ02,V11Y25-075,B1,B1,16,128,external_missing,
+DQ03,10,XGE22-DQ03,V11Y25-075,C1,C1,16,128,external_missing,
+DQ04,11,XGE22-DQ04,V11Y25-075,D1,D1,16,128,external_missing,
+DQ06,12,XGE22-DQ06,V11Y25-096,B1,B1,16,128,external_missing,
+DQ07,13,XGE22-DQ07,V11Y25-096,C1,C1,16,128,external_missing,
+DQ08,14,XGE22-DQ08,V11Y25-096,D1,D1,16,128,external_missing,

@@ -1,19 +1,21 @@
 dataset,expected_location,status,required_for
 Maize genome FASTA,external or documented reference-build directory/Maize AGPv5 FASTA,MISSING_BLOCKING,Space Ranger reference build
 Maize gene annotation GTF,external or documented reference-build directory/Zm-B73-Reference-NAM-5.0.gtf,MISSING_BLOCKING,Space Ranger reference build and Velocyto
-Space Ranger outputs for 14 samples,data/raw/<sample_id>/outs/,MISSING_BLOCKING,STUtility and Seurat loading
+Space Ranger count matrices and spatial outputs for 14 samples,data/raw/<sample_id>/outs/,MISSING_BLOCKING_NOT_IN_ZENODO_22058284,STUtility and Seurat loading from Space Ranger outputs
+Space Ranger web summaries for 14 samples,data/processed/<sample_id>_web_summary.html,PUBLIC_ZENODO_DOWNLOAD_REQUIRED,Space Ranger QC review
+Loupe Browser files for 14 samples,data/processed/<sample_id>_cloupe.cloupe,PUBLIC_ZENODO_DOWNLOAD_REQUIRED,Loupe Browser inspection
 Curated spot metadata,data/metadata/metadata.csv,PRESENT,QC integration velocity and pseudotime
 Mitochondrial gene list,data/reference/maize_mitochondrial_genes.txt,PRESENT,QC and integration
 Plastid gene list,data/reference/maize_plastid_genes.txt,PRESENT,QC and integration
 Fourteen individual Seurat objects,data/processed/<sample_id>_seurat_v5.rds,PRESENT_14_OF_14,QC integration and Monocle 3
 Integrated Visium object,data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds,PRESENT,marker pseudobulk trend and mapping workflows
 Cluster marker tables,results/tables/markers_harmony_clusters_SCT_*.csv,NOT_GENERATED,cluster annotation support
-Velocyto loom files,data/raw/<sample_id>/outs/velocyto/*.loom,MISSING_BLOCKING,RNA velocity
+Velocyto loom files,data/processed/<space_ranger_run_id>.loom,PUBLIC_ZENODO_DOWNLOAD_REQUIRED,RNA velocity
 SRR11943512 raw 10x matrix,data/raw/scRNA_reference/SRR11943512/filtered_feature_bc_matrix/,MISSING_BLOCKING_RAW_REBUILD,scRNA reference integration
 SRR11943513 raw 10x matrix,data/raw/scRNA_reference/SRR11943513/filtered_feature_bc_matrix/,MISSING_BLOCKING_RAW_REBUILD,scRNA reference integration
 Integrated scRNA reference,data/processed/sc_merged_filter_SCT2_inte.rds,PRESENT,scRNA downstream workflows
 Lightweight scRNA reference,data/processed/sce_ref.rds,PRESENT,scRNA plotting
-SCINA marker table,data/metadata/scRNA_reference/SCINA_marker_table.csv,MISSING_BLOCKING_NEW_SCINA,SCINA annotation
+SCINA marker table,data/metadata/scRNA_reference/SCINA_marker_table.csv,SOURCE_IDENTIFIED_CONVERSION_PENDING_FROM_SUPPLEMENTARY_TABLE_9,SCINA annotation
 SCINA-annotated Seurat reference,data/processed/sc_merged_filter_SCT2_inte_SCINA.rds,NOT_GENERATED,Seurat label transfer and SPOTlight
 SPOTlight-mapped Visium object,data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds,NOT_GENERATED,complete SPOTlight output and plotting
 SPOTlight plotting fallback,data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds,PRESENT,Figure B and C plotting

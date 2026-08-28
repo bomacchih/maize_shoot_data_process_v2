@@ -2,6 +2,7 @@
 data/raw/*
 !data/raw/note.txt
 data/processed/*
+!data/processed/README.md
 *.rds
 *.RDS
 *.h5
@@ -42,3 +43,6 @@ desktop.ini
 
 # Logs that can contain local absolute paths
 *.log
+
+# Machine-specific analysis paths
+config/local_paths.yaml

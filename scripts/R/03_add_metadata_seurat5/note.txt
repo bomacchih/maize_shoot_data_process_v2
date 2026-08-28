@@ -9,3 +9,6 @@ source("scripts/R/03_add_metadata/01_add_spot_metadata_from_csv.R")
             "section"
             "section_id"
             "ms_ve"
+# add metadata to each biological sample one by one
+# if use ./data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5
+# metadata already implemented.

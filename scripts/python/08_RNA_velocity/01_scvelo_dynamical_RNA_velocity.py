@@ -4,15 +4,13 @@
 Expected project structure
 --------------------------
 data/
-├── raw/
-│   └── loom/
-│       ├── XGE20_UL01_B73V5S210_short_MTCL.loom
-│       ├── XGE20_UL02_B73V5S210_short_MTCL.loom
-│       ├── XGE20_UL04_B73V5S210_short_MTCL.loom
-│       ├── XGE21_VR01_B73V5S210_short_MTCL.loom
-│       └── ... one loom file for each of the 14 samples
 ├── metadata/metadata.csv
 └── processed/
+    ├── XGE20_UL01_B73V5S210_short_MTCL.loom
+    ├── XGE20_UL02_B73V5S210_short_MTCL.loom
+    ├── XGE20_UL04_B73V5S210_short_MTCL.loom
+    ├── XGE21_VR01_B73V5S210_short_MTCL.loom
+    └── ... one loom file for each of the 14 samples
 
 The loom files must have been generated from the corresponding Space Ranger
 outputs with Velocyto and the Zm-B73-REFERENCE-NAM-5.0 GTF. This program does
@@ -84,7 +82,8 @@ def parse_arguments() -> argparse.Namespace:
         type=Path,
         default=None,
         help=(
-            "Directory containing the loom files. Defaults to data/raw/loom. "
+            "Directory containing the loom files. Defaults to data/processed, "
+            "where the Zenodo record should be downloaded. "
             "Legacy per-sample subdirectories are also supported."
         ),
     )
@@ -160,7 +159,7 @@ def parse_arguments() -> argparse.Namespace:
 def configure_paths(args: argparse.Namespace) -> argparse.Namespace:
     root = args.project_root.resolve()
     args.project_root = root
-    args.raw_dir = (args.raw_dir or root / "data" / "raw" / "loom").resolve()
+    args.raw_dir = (args.raw_dir or root / "data" / "processed").resolve()
     args.metadata = (
         args.metadata or root / "data" / "metadata" / "metadata.csv"
     ).resolve()

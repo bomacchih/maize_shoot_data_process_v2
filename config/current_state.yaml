@@ -1,0 +1,348 @@
+schema_version: 1
+
+snapshot:
+  date: "2026-08-28"
+  status: documentation_snapshot
+  scripts_read_this_file: false
+  source: current constants and defaults in repository scripts
+
+study:
+  assay_platform: 10x_Genomics_Visium
+  principal_dataset: Visium_V1
+  sample_ids:
+    - UL01
+    - UL02
+    - UL04
+    - VR01
+    - VR02
+    - VR03
+    - VR04
+    - DQ01
+    - DQ02
+    - DQ03
+    - DQ04
+    - DQ06
+    - DQ07
+    - DQ08
+  barcode_suffixes:
+    UL01: 1
+    UL02: 2
+    UL04: 3
+    VR01: 4
+    VR02: 5
+    VR03: 6
+    VR04: 7
+    DQ01: 8
+    DQ02: 9
+    DQ03: 10
+    DQ04: 11
+    DQ06: 12
+    DQ07: 13
+    DQ08: 14
+  structural_domains:
+    - SAM
+    - P1_P2
+    - P3
+    - P4
+    - P5
+    - coleoptile
+    - co_v
+  trajectory_domains:
+    - SAM
+    - P1_P2
+    - P3
+    - P4
+    - P5
+
+paths:
+  curated_metadata: data/metadata/metadata.csv
+  mitochondrial_genes: data/reference/maize_mitochondrial_genes.txt
+  plastid_genes: data/reference/maize_plastid_genes.txt
+  published_data_download_directory: data/processed
+  space_ranger_web_summaries: data/processed/<sample_id>_web_summary.html
+  cloupe_files: data/processed/<sample_id>_cloupe.cloupe
+  individual_visium_objects: data/processed/<sample_id>_seurat_v5.rds
+  integrated_visium_object: data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
+  loom_files: data/processed/<space_ranger_run_id>.loom
+  scrna_reference_raw: data/raw/scRNA_reference/<SRA_run>/filtered_feature_bc_matrix/
+  integrated_scrna_reference: data/processed/sc_merged_filter_SCT2_inte.rds
+  annotated_scrna_reference: data/processed/sc_merged_filter_SCT2_inte_SCINA.rds
+  spotlight_output: data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds
+
+data_readiness:
+  source: data/dataset_inventory.csv
+  present:
+    - curated_spot_metadata
+    - mitochondrial_gene_list
+    - plastid_gene_list
+    - fourteen_individual_Seurat_objects
+    - integrated_Visium_object
+    - integrated_scRNA_reference
+    - developmental_gene_subset
+    - maize_GO_mapping
+    - maize_gene_name_mapping
+  externally_available:
+    - fourteen_Space_Ranger_web_summaries
+    - fourteen_Loupe_Browser_cloupe_files
+    - fourteen_Velocyto_loom_files
+    - deposited_processed_RDS_objects
+  missing_blocking:
+    - maize_genome_FASTA
+    - maize_gene_annotation_GTF
+    - Space_Ranger_matrix_and_spatial_outputs_for_14_samples
+    - raw_scRNA_reference_matrices_for_rebuild
+    - SCINA_marker_CSV_conversion_from_Supplementary_Table_9
+  not_generated:
+    - cluster_marker_tables
+    - SCINA_annotated_reference
+    - SPOTlight_mapped_Visium_object
+  optional_missing:
+    - GO_term_descriptions
+    - independent_cell_type_module_markers
+    - Seurat_Harmony_UMAP_export_for_Monocle_reference
+
+public_data_archive:
+  provider: Zenodo
+  record_url: https://zenodo.org/records/22058284
+  doi: 10.5281/zenodo.22058284
+  verified_against_API: "2026-08-28"
+  expected_download_directory: data/processed
+  file_groups:
+    space_ranger_web_summary_html: 14
+    loupe_browser_cloupe: 14
+    velocyto_loom: 14
+    individual_visium_seurat_rds: 14
+    integrated_visium_rds: 1
+    integrated_scrna_reference_rds: 1
+    additional_processed_rds: 1
+  complete_space_ranger_outs_included: false
+  complete_space_ranger_outs_required_files:
+    - filtered_feature_bc_matrix.h5
+    - spatial/tissue_hires_image.png
+    - spatial/tissue_positions.csv_or_tissue_positions_list.csv
+    - spatial/scalefactors_json.json
+  note: Web summaries and cloupe files are Space Ranger deliverables, but they do not replace the count matrix and spatial files used by STUtility or Seurat.
+
+visium_loading:
+  default_single_sample: UL01
+  space_ranger_output: data/raw/<sample_id>/outs
+  matrix_file: filtered_feature_bc_matrix.h5
+  image_file: spatial/tissue_hires_image.png
+  positions_file: spatial/tissue_positions.csv
+  scalefactors_file: spatial/scalefactors_json.json
+
+visium_qc:
+  retained_spots:
+    method: curated_metadata_membership
+    metadata_field: Barcode
+    allowed_domains:
+      - SAM
+      - P1_P2
+      - P3
+      - P4
+      - P5
+      - coleoptile
+      - co_v
+  spot_level_thresholds:
+    detected_genes_min: null
+    detected_genes_max: null
+    total_umi_min: null
+    total_umi_max: null
+    mitochondrial_percent_max: null
+    chloroplast_percent_max: null
+    status: not_explicit_and_not_applied
+  gene_filter:
+    minimum_total_reads_across_retained_spots: 100
+  reported_metrics:
+    - nFeature_RNA
+    - nCount_RNA
+    - percent.mito
+    - percent.pltd
+
+visium_normalization_and_integration:
+  random_seed: 1234
+  sctransform:
+    assay: RNA
+    output_assay: SCT
+    vst_flavor: v2
+    variable_features: 3000
+  pca:
+    dimensions_tested: 50
+    dimensions_used: 30
+    selection_label: Bio-protocol_setting
+  harmony:
+    implementation: Seurat_v5_IntegrateLayers_HarmonyIntegration
+    input_reduction: pca
+    output_reduction: harmony
+    dimensions: 1-30
+    grouping_variable: null
+    status: not_explicit_in_script
+  umap:
+    before_integration_reduction: umap_pca
+    after_integration_reduction: umap_harmony
+    dimensions: 1-30
+    seed: 1234
+    n_neighbors: 30
+    min_dist: 0.3
+    metric: cosine
+    status: explicit_Seurat_5.5.1_settings
+  clustering:
+    performed_by_current_integration_script: false
+    resolution: null
+    identity_field: harmony_clusters
+    identity_source: data/metadata/metadata.csv
+
+marker_analysis:
+  assay: SCT
+  identity_field: harmony_clusters
+  test: wilcox
+  positive_only: true
+  min_detection_fraction: 0.25
+  log_fold_change_threshold: 0.25
+  return_threshold: 1
+  adjusted_p_value_cutoff: 0.05
+  random_seed: 1234
+
+pseudobulk:
+  experimental_unit: sample_id
+  anatomical_group: domains
+  aggregation: sum_raw_UMI_counts_by_sample_id_and_domain
+  normalization: edgeR_TMM_followed_by_log2_CPM
+  individual_spots_are_replicates: false
+  individual_sections_are_replicates: false
+  random_seed: 1234
+  optional_scrna_profile_file: null
+  optional_correlation:
+    method: spearman
+    minimum_common_genes: 100
+
+developmental_trends_and_go:
+  replicate_field: sample_id
+  domain_field: domains
+  domain_order:
+    - SAM
+    - P1_P2
+    - P3
+    - P4
+    - P5
+    - co_v
+    - coleoptile
+  trend_clusters: 7
+  clustering_distance: euclidean
+  clustering_linkage: complete
+  representative_genes_per_cluster: 3
+  go_genes_per_cluster: 1000
+  go_panel_clusters:
+    - C1
+    - C6
+    - C7
+  go_p_value_cutoff: 0.000001
+  go_terms_to_display: 29
+
+rna_velocity:
+  model: scVelo_dynamical
+  sample_domains:
+    - SAM
+    - P1_P2
+    - P3
+    - P4
+    - P5
+  min_shared_counts: 20
+  top_genes: 2000
+  pca_dimensions: 30
+  neighbors: 30
+  recover_dynamics_max_iterations: 20
+  parallel_jobs: 1
+  harmony_enabled_by_default: false
+  low_unspliced_fraction_diagnostic_threshold: 0.01
+
+monocle3:
+  input_objects: fourteen_individual_Seurat_objects
+  target_domains:
+    - SAM
+    - P1_P2
+    - P3
+    - P4
+    - P5
+  minimum_total_umi_per_spot: 100
+  pca_dimensions: 100
+  alignment_group: section_id
+  umap_neighbors: 15
+  umap_min_dist: 0.1
+  umap_metric: cosine
+  random_seed: 2026
+  cores: 1
+  use_partition_for_graph: false
+  close_loop: false
+  root_selection: most_frequent_principal_graph_node_among_SAM_spots
+
+scrna_reference:
+  sra_runs:
+    - SRR11943512
+    - SRR11943513
+  create_seurat_object:
+    min_cells: 3
+    min_features: 200
+  doublet_method: scDblFinder
+  sctransform:
+    vst_flavor: v2
+    method: glmGamPoi
+    variable_features: 3000
+  pca_dimensions_tested: 50
+  harmony_dimensions: 30
+  cluster_resolution: 2
+  random_seed: 2026
+  overwrite_existing_output: false
+
+scina:
+  marker_table: data/metadata/scRNA_reference/SCINA_marker_table.csv
+  marker_table_status: source_identified_conversion_pending
+  source_workbook: Supplementary_Tables_20251104.xlsx
+  source_sheet: Supplementary Table 9
+  source_title: Marker genes for cell types in the maize leaf and developing shoot, derived from the Single Cell Plant Database
+  source_header_row: 3
+  source_data_start_row: 4
+  source_column_mapping:
+    gene_id: gene
+    cell_type: clusterName
+    source_celltype_id: celltype_id
+  source_has_explicit_marker_rank: false
+  conversion_note: Preserve source row order, rename gene and clusterName, and retain source_celltype_id for provenance; the SCINA script removes duplicates and genes shared across cell types.
+  maximum_markers_per_cell_type: 100
+  posterior_cutoff: 0.5
+  random_seed: 1
+
+spotlight_mapping:
+  hard_label_transfer: true
+  spotlight_deconvolution: true
+  sections_to_run: null
+  reference_cells_per_type: 100
+  markers_per_type: 100
+  highly_variable_genes: 3000
+  pca_dimensions: 30
+  minimum_reported_proportion: 0.01
+  high_purity_cutoff: 0.60
+  vascular_display_cutoff: 0.10
+  SAM_display_cutoff: 0.05
+  random_seed: 1
+
+space_ranger_reference:
+  genome_name: B73_V5
+  fasta: null
+  input_gtf: null
+  filtered_gtf: Zm-B73-Reference-NAM-5.0_filtered.gtf
+  retained_gene_biotypes:
+    - protein_coding
+    - lncRNA
+    - antisense
+  status: external_FASTA_and_GTF_missing_blocking
+
+known_reproducibility_gaps:
+  - Numeric Visium spot-level QC thresholds are absent.
+  - The Harmony grouping variable is not explicitly supplied.
+  - Visium clustering is not recreated; harmony_clusters is imported from metadata.
+  - Space Ranger FASTQ, image, and transcriptome paths remain machine-specific.
+  - Zenodo 22058284 provides web summaries, cloupe files, loom files, and processed RDS objects, but not complete Space Ranger count-matrix and spatial outputs.
+  - The original SRR11943512 and SRR11943513 10x-style matrices are still needed only to rebuild the integrated scRNA reference from raw counts; downstream workflows can start from the deposited combined RDS.
+  - Supplementary Table 9 is the identified SCINA marker source, but its gene and clusterName columns still need a deterministic CSV conversion.
+  - The scripts do not yet load this configuration file.

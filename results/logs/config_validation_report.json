@@ -1,0 +1,59 @@
+{
+  "summary": {
+    "passed": 7,
+    "warnings": 3,
+    "failures": 0
+  },
+  "findings": [
+    {
+      "severity": "PASS",
+      "code": "CONFIG_SCHEMA",
+      "message": "Configuration keys, fixed sample mapping, value ranges, and portable paths are valid"
+    },
+    {
+      "severity": "PASS",
+      "code": "SAMPLE_MANIFEST",
+      "message": "14-sample order, uniqueness, and barcode suffixes are valid"
+    },
+    {
+      "severity": "PASS",
+      "code": "METADATA_INTEGRITY",
+      "message": "20,090 rows have valid required fields, unique barcodes, samples, domains, and suffixes"
+    },
+    {
+      "severity": "PASS",
+      "code": "PRESENT_FILES",
+      "message": "All 22 files declared present exist and are non-empty"
+    },
+    {
+      "severity": "PASS",
+      "code": "SCRIPT_CONFIG_SNAPSHOT",
+      "message": "26 important R-script assignments match the configuration snapshot"
+    },
+    {
+      "severity": "PASS",
+      "code": "UMAP_EXPLICIT_SETTINGS",
+      "message": "Both pre- and post-integration UMAP calls explicitly record neighbors, minimum distance, and metric"
+    },
+    {
+      "severity": "PASS",
+      "code": "VELOCITY_CONFIG_SNAPSHOT",
+      "message": "RNA-velocity command-line defaults match the configuration snapshot"
+    },
+    {
+      "severity": "WARN",
+      "code": "UNRESOLVED_SETTINGS",
+      "message": "10 publication-relevant setting(s) remain null: visium_qc.spot_level_thresholds.detected_genes_min, visium_qc.spot_level_thresholds.detected_genes_max, visium_qc.spot_level_thresholds.total_umi_min, visium_qc.spot_level_thresholds.total_umi_max, visium_qc.spot_level_thresholds.mitochondrial_percent_max, visium_qc.spot_level_thresholds.chloroplast_percent_max, visium_normalization_and_integration.harmony.grouping_variable, visium_normalization_and_integration.clustering.resolution, space_ranger_reference.fasta, space_ranger_reference.input_gtf"
+    },
+    {
+      "severity": "WARN",
+      "code": "MISSING_BLOCKING_INPUTS",
+      "message": "End-to-end rebuild inputs remain unavailable: maize_genome_FASTA, maize_gene_annotation_GTF, Space_Ranger_matrix_and_spatial_outputs_for_14_samples, raw_scRNA_reference_matrices_for_rebuild, SCINA_marker_CSV_conversion_from_Supplementary_Table_9"
+    },
+    {
+      "severity": "WARN",
+      "code": "CONFIG_NOT_AUTHORITATIVE",
+      "message": "Scripts still contain their own parameter assignments and do not load current_state.yaml"
+    }
+  ]
+}

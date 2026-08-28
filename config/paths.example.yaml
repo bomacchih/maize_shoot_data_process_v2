@@ -1,0 +1,36 @@
+# Copy this file to local_paths.yaml and replace null values locally.
+# local_paths.yaml is ignored by Git.
+
+project_root: .
+
+published_archive:
+  record_url: https://zenodo.org/records/22058284
+  download_directory: data/processed
+
+space_ranger:
+  executable: spaceranger
+  transcriptome_reference: null
+  maize_genome_fasta: null
+  maize_annotation_gtf: null
+  fastq_root: null
+  histology_image_root: null
+
+visium:
+  space_ranger_outputs: data/raw/<sample_id>/outs
+  web_summaries: data/processed/<sample_id>_web_summary.html
+  cloupe_files: data/processed/<sample_id>_cloupe.cloupe
+  processed_objects: data/processed
+  curated_metadata: data/metadata/metadata.csv
+  loom_root: data/processed
+
+scrna_reference:
+  raw_matrix_root: data/raw/scRNA_reference
+  processed_reference: data/processed/sc_merged_filter_SCT2_inte.rds
+  scina_marker_table: data/metadata/scRNA_reference/SCINA_marker_table.csv
+  supplementary_workbook: null
+
+outputs:
+  figures: results/figures
+  tables: results/tables
+  logs: results/logs
+  session_info: results/sessionInfo

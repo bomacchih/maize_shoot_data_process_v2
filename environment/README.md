@@ -1,0 +1,33 @@
+# R environment notes
+
+Validated on 2026-08-28 with R 4.6.1.
+
+Run the environment audit from the repository root:
+
+```bash
+Rscript tests/R/validate_R_environment.R
+```
+
+The current audit result is 21 exact package-version matches, two version
+warnings, and zero missing required packages. The warnings are patch-level
+differences from the recorded audit snapshot:
+
+- `edgeR` is 4.10.3; the audit snapshot records 4.10.1.
+- `S4Vectors` is 0.50.2; the audit snapshot records 0.50.1.
+
+## SCINA
+
+SCINA 1.2.0 was removed from the active CRAN repository on 2026-05-08, so
+`install.packages("SCINA")` no longer works against the normal CRAN package
+index. The source package remains available from the official CRAN archive.
+
+Install the pinned archived release with:
+
+```bash
+Rscript environment/install_SCINA.R
+```
+
+The installer uses the official HTTPS archive URL, installs into the first
+active R library, verifies version 1.2.0, and does nothing when the correct
+version is already installed.
+
