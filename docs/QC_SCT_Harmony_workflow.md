@@ -110,6 +110,68 @@ The integration script performs the following steps:
 12. Generates a Harmony-based UMAP and a before-versus-after integration figure.
 13. Validates and saves the combined Seurat object.
 
+## Computational resources and troubleshooting
+
+Computational requirements are determined more by the number of retained
+spots or bins, detected genes, nonzero counts, assay layers, and temporary
+matrix copies than by the compressed size of the input RDS files. The QC step
+is comparatively light because it primarily loads sparse count matrices,
+merges metadata, calculates summaries, and produces plots. The current 14-
+sample dataset contains about 23,000 spots before domain filtering and about
+20,000 retained spots. Its 14 input objects occupy approximately 0.38 GB on
+disk but about 1.8 GB after loading into R. QC should normally finish on a
+desktop with 16 GB RAM if other memory-intensive applications are closed;
+having at least 6–8 GB of genuinely available memory is a practical target.
+
+SCTransform, PCA, and integration require substantially more memory than QC.
+SCTransform is usually the peak-memory operation because normalized values,
+residuals, variable-feature matrices, and temporary copies may coexist with
+the original RNA layers. PCA can also create dense working matrices, whereas
+Harmony itself operates on the much smaller low-dimensional representation
+and is usually not the primary memory bottleneck. For a standard Visium
+analysis of roughly 20,000–25,000 combined spots, 16 GB RAM is a borderline
+minimum and 32 GB is the recommended comfortable configuration. A modern
+6–12-core processor is adequate; additional RAM is generally more valuable
+than a very large CPU count, and a GPU is not required for this workflow. The
+current final integrated object is approximately 2 GB when compressed, so at
+least 10–20 GB of free working disk space should be retained for the output,
+temporary files, and replacement copies.
+
+As a general planning guide, standard Visium projects with up to approximately
+25,000 combined spots usually fit comfortably within 32 GB RAM. Projects with
+approximately 25,000–100,000 spots should generally be planned for 32–64 GB,
+and analyses containing 100,000–500,000 observations may require 64–128 GB,
+depending on matrix sparsity and the number of assays retained. Fine-bin
+Visium HD data can exceed these ranges because one tissue section may contain
+many more observations than a conventional Visium capture area. For the same
+tissue area, halving the bin width produces approximately four times as many
+bins; consequently, 8-µm bins have roughly four times the potential bin count
+of 16-µm bins, and 2-µm bins have roughly 64 times the potential count of
+16-µm bins before tissue masking and filtering. Whole-section analysis at the
+finest HD resolution may therefore require 128–256 GB RAM or a staged strategy
+that aggregates bins, analyzes biologically defined regions separately, or
+uses disk-backed representations before integration. Resource-driven
+aggregation or filtering should always be recorded and should not replace
+biological and quality-control criteria.
+
+If R reports that it cannot allocate a vector, closes unexpectedly, or spends
+long periods paging to disk, restart R in a clean session, close browsers and
+other large applications, and run QC and integration as separate clean
+processes using `Rscript` with the `--vanilla` option. On a memory-limited
+computer, use `conserve.memory = TRUE` in `SCTransform()` and explicitly set
+`method = "glmGamPoi"` when appropriate and installed; these choices should be
+recorded because they can alter runtime and memory behavior. Avoid running
+several samples in parallel when RAM, rather than CPU time, is the limiting
+resource. Very slow
+completion after the figures have been produced may reflect serialization and
+file synchronization rather than continued integration. For Dropbox or other
+cloud-synchronized projects, write the large final RDS to a local nonsynced
+scratch directory first, verify that it can be reopened, and then copy it into
+the repository data location. A server is not necessary for the present
+standard Visium dataset, but a 32-GB workstation or a 64-GB server is a safer
+choice for repeated runs; a larger-memory server becomes advisable for large
+multi-section or fine-bin Visium HD analyses.
+
 ## PCA selection
 
 The elbow diagnostic evaluates PCs 1-50. The plot contains two reference lines:
