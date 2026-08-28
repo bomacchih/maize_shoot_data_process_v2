@@ -1,0 +1,8 @@
+source_file=marker_list2.rds
+source_md5=497fe45631f35884eff358e98bbdd56f
+source_cell_types=14
+marker_assignments=3997
+unique_genes=3997
+shared_genes=0
+marker_rank_semantics=position_within_source_list
+cell_type_normalization=non_alphanumeric_punctuation_replaced_with_underscore

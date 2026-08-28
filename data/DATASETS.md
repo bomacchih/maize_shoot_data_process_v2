@@ -62,11 +62,11 @@ This order determines the merged-barcode suffixes `_1_1` through `_1_14`.
 | Raw scRNA-seq matrices for SRR11943512 and SRR11943513 | Download from NCBI SRA and prepare under `data/raw/scRNA_reference/<run>/filtered_feature_bc_matrix/{matrix.mtx.gz,barcodes.tsv.gz,features.tsv.gz}` | **PUBLIC — DOWNLOAD/PROCESSING REQUIRED** | Required only to rebuild the scRNA reference from raw reads; the integrated reference RDS is present |
 | Integrated scRNA-seq reference | `data/processed/sc_merged_filter_SCT2_inte.rds` | **PRESENT** | Allows downstream scRNA plotting without rebuilding from raw matrices |
 | Lightweight scRNA reference | `data/processed/sce_ref.rds` | **PRESENT** | Contains an existing annotation column used for plotting |
-| SCINA marker table | Expected: `data/metadata/scRNA_reference/SCINA_marker_table.csv`; source: `C:/Users/user/Dropbox/2017_after_papers/ST_protocol/VT_202401/miss_dataset/cell_marker.csv` | **EXTERNAL — PRESENT; COPY/RENAME REQUIRED** | Source table contains `gene_id`, `cell_type`, and marker-ranking columns |
+| SCINA marker table | `data/metadata/scRNA_reference/SCINA_marker_table.csv`; source: `marker_list2.rds`, derived from Supplementary Table 9 | **PRESENT — 3,997 MARKERS FOR 14 CELL TYPES** | All markers occur in the combined scRNA reference and Visium feature space; `marker_rank` preserves source-list position rather than an effect-size statistic |
 | SCINA-annotated Seurat reference | `data/processed/sc_merged_filter_SCT2_inte_SCINA.rds` | **NOT GENERATED** | Required by the full Seurat label-transfer and SPOTlight mapping script |
 | Independent module-marker table | `data/metadata/scRNA_reference/independent_celltype_module_markers.csv` | **OPTIONAL — MISSING** | Enables independent module-score validation of SPOTlight proportions |
 | SPOTlight-mapped 14-sample Visium object | `data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds` | **NOT GENERATED** | Required for the complete mapping output; the figure-only script currently falls back to `XGE202122_S5_subset_embleaf_harmony_join.rds` |
-| Velocyto loom files, one per sample | `data/raw/loom/*.loom` | **PRESENT: 14/14 REQUIRED FILES** | Required by `python/08_RNA_velocity/01_scvelo_dynamical_RNA_velocity.py`; UL03 and DQ05 are present but intentionally ignored |
+| Velocyto loom files, one per sample | `data/processed/<space_ranger_run_id>.loom` | **PUBLIC ON ZENODO 22058284 — DOWNLOAD REQUIRED** | Place the 14 deposited loom files in `data/processed/`; the velocity script matches the canonical 14 sample IDs |
 | Optional Seurat Harmony UMAP export | `data/metadata/seurat_harmony_umap.csv` | **OPTIONAL — MISSING** | Monocle 3 uses its own aligned UMAP; this file is only an additional reference reduction |
 | Developmental-trend gene subset | `data/reference/developmental_trends/sub_gene.csv` | **PRESENT** | Optional gene restriction used by the Figure 9 workflow |
 | Maize GO mapping | `data/reference/developmental_trends/zea_go2.csv` | **PRESENT** | Enables local GO enrichment |
@@ -87,7 +87,7 @@ data/raw/<sample_id>/outs/
     └── scalefactors_json.json
 ```
 
-`web_summary.html`, `cloupe.cloupe`, `raw_feature_bc_matrix.h5`, and the low-resolution image are useful archival outputs but are not read by the current R loaders. The downloaded outputs use the newer `tissue_positions.csv` filename; the STUtility loader still expects `tissue_positions_list.csv` and must be revised or supplied with a compatible copy. RNA velocity uses one loom file per required sample from `data/raw/loom/`.
+`web_summary.html`, `cloupe.cloupe`, `raw_feature_bc_matrix.h5`, and the low-resolution image are useful archival outputs but are not read by the current R loaders. Zenodo 22058284 contains the web summaries and `.cloupe` files, but not the complete count-matrix and spatial `outs` folders. The STUtility loader may require the legacy `tissue_positions_list.csv` name when complete outputs use `tissue_positions.csv`. RNA velocity uses the 14 deposited loom files from `data/processed/`.
 
 ## Script-by-script readiness
 
@@ -102,11 +102,11 @@ data/raw/<sample_id>/outs/
 | Assign tissue supergroups and plot | `scripts/R/05_marker_analysis/02_assign_tissue_supergroups...R` | **READY**: integrated RDS is present; marker table is optional for the top-marker export |
 | Pseudobulk analysis | `scripts/R/06_pseudobulk_analysis/01_pseudobulk...R` | **READY**: integrated RDS is present; optional scRNA correlation input is not configured |
 | Developmental trends and GO | `scripts/R/07_developmental_trends_GO/01_developmental...R` | **READY**: main RDS and three reference CSV files are present; GO description file is optional and missing |
-| RNA velocity | `scripts/python/08_RNA_velocity/01_scvelo_dynamical_RNA_velocity.py` | **INPUTS READY**: all 14 required loom files are present in `data/raw/loom/`; the Python/scVelo environment and full numerical run still require verification |
+| RNA velocity | `scripts/python/08_RNA_velocity/01_scvelo_dynamical_RNA_velocity.py` | **PUBLIC INPUTS AVAILABLE; LOCAL DOWNLOAD REQUIRED**: download the 14 loom files from Zenodo 22058284 into `data/processed/`; the Python/scVelo environment and full numerical run still require verification |
 | Monocle 3 pseudotime | `scripts/R/09_monocle3_pseudotime/01_monocle3...R` | **READY**: 14 sample RDS files and `metadata.csv` are present; optional Seurat UMAP CSV is absent |
 | Build scRNA reference from raw data | `scripts/R/10_scRNA_reference_integration/01_prepare...R` | **PUBLIC RAW READS AVAILABLE, DOWNLOAD/PROCESSING REQUIRED**: obtain SRR11943512 and SRR11943513 from SRA; the processed integrated RDS is already present |
 | Plot scRNA QC/Harmony | `scripts/R/10_scRNA_reference_integration/02_plot...R` | **READY**: both preferred and alternative processed inputs are present |
-| Run SCINA | `scripts/R/10_scRNA_reference_integration/03_scRNA...R` | **SOURCE AVAILABLE, PREPARATION REQUIRED**: copy/rename the existing `cell_marker.csv` to the expected repository path. Existing annotations in `sce_ref.rds` can also be plotted |
+| Run SCINA | `scripts/R/10_scRNA_reference_integration/03_scRNA...R` | **READY**: the marker CSV is generated from `marker_list2.rds`, and all 3,997 unique markers occur in both feature spaces. Existing annotations in `sce_ref.rds` can also be plotted |
 | Map scRNA identities to Visium with SPOTlight | `scripts/R/10_scRNA_reference_integration/04_map...R` | **BLOCKED**: the expected SCINA-annotated Seurat RDS is not generated |
 | Plot selected SPOTlight cell types | `scripts/R/10_scRNA_reference_integration/05_plot...R` | **READY WITH FALLBACK**: uses the existing `XGE202122_S5_subset_embleaf_harmony_join.rds` until the complete mapped object is generated |
 
@@ -116,7 +116,7 @@ data/raw/<sample_id>/outs/
 - The RNA-velocity Python source passed a compile-only syntax check. It targets modern Python; the available fallback checker was Python 3.6, so the `from __future__ import annotations` declaration was omitted only in memory during this check.
 - Both shell scripts passed `bash -n` syntax checks.
 - Syntax checks do not confirm package installation, biological validity, or successful execution with full datasets.
-- `02_spaceranger_count.sh` still contains hard-coded `/home/macchihlee/...` paths and includes UL03 and DQ05, whereas the downstream canonical analysis uses 14 samples and excludes those two. Convert the count script to a sample sheet or configuration-driven loop before claiming full reproducibility.
+- `02_spaceranger_count.sh` still contains legacy personal absolute paths and includes UL03 and DQ05, whereas the downstream canonical analysis uses 14 samples and excludes those two. Convert the count script to a sample sheet or configuration-driven loop before claiming full reproducibility.
 - `04_map_scRNA_to_Visium_SPOTlight_Seurat_v5.R` looks for the mitochondrial and plastid lists under `data/metadata/`, but the files are actually under `data/reference/`. Because these lists are read as optional in that script, the run may continue while failing to exclude the intended organelle genes. The paths should be corrected before the full SPOTlight rerun.
 - `scripts/R/03_add_metadata_seurat5/note.txt` refers to `scripts/R/03_add_metadata/`, but the actual folder is `scripts/R/03_add_metadata_seurat5/`.
 - `data/processed/.RData` and `data/processed/.Rhistory` are RStudio workspace artifacts, not pipeline datasets; they should not be treated as reproducible inputs.
@@ -126,6 +126,6 @@ data/raw/<sample_id>/outs/
 1. For reproduction from raw Visium reads, download PRJNA805024 and PRJNA804974, obtain the original histology TIFFs, and replace the hard-coded Space Ranger paths with a configuration/sample sheet.
 2. Copy or link the external Space Ranger outputs into the documented `data/raw/<sample_id>/outs/` layout if the R loading steps will be rerun.
 3. For rebuilding the scRNA reference, download SRR11943512 and SRR11943513 and generate the expected 10x-style count matrices.
-4. Copy/rename the existing `cell_marker.csv` to `data/metadata/scRNA_reference/SCINA_marker_table.csv`, rerun SCINA to produce `sc_merged_filter_SCT2_inte_SCINA.rds`, and then run the full Seurat/SPOTlight mapping workflow.
+4. Review the generated `SCINA_marker_table.csv`, especially the short `Leaf_rim` signature and the source-order top markers, rerun SCINA to produce `sc_merged_filter_SCT2_inte_SCINA.rds`, and then run the full Seurat/SPOTlight mapping workflow.
 5. Correct the two organelle-list paths in the SPOTlight mapping script before that rerun.
 6. Run the marker-analysis step to generate the currently absent marker tables.

@@ -54,11 +54,13 @@ downstream scRNA annotation. The "raw scRNA matrices" are the three 10x files
 SRR11943512 and SRR11943513; they are needed only to regenerate that combined
 RDS from counts.
 
-The source for the SCINA marker table is `Supplementary Table 9` in
-`Supplementary_Tables_20251104.xlsx`. Its columns map as `gene` to `gene_id`,
-`clusterName` to `cell_type`, and `celltype_id` to a provenance field. The
-workbook does not provide an explicit marker-rank column, so conversion must
-preserve and document source order rather than invent a ranking statistic.
+The curated SCINA marker source is `marker_list2.rds`, a named list derived
+from Supplementary Table 9. Convert it with
+`scripts/R/10_scRNA_reference_integration/00_prepare_SCINA_marker_table.R`.
+The generated CSV retains the original cell-type label, uses a punctuation-safe
+analysis label, and records each gene's position within its source list as
+`marker_rank`. This preserves source order without claiming an effect-size
+ranking that the RDS does not provide.
 
 ## Validation
 

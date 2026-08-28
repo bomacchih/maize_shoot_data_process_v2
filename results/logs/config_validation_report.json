@@ -1,6 +1,6 @@
 {
   "summary": {
-    "passed": 7,
+    "passed": 8,
     "warnings": 3,
     "failures": 0
   },
@@ -23,7 +23,12 @@
     {
       "severity": "PASS",
       "code": "PRESENT_FILES",
-      "message": "All 22 files declared present exist and are non-empty"
+      "message": "All 24 files declared present exist and are non-empty"
+    },
+    {
+      "severity": "PASS",
+      "code": "SCINA_MARKER_TABLE",
+      "message": "3,997 markers for 14 cell types are unique, ranked by source order, and structurally valid"
     },
     {
       "severity": "PASS",
@@ -48,7 +53,7 @@
     {
       "severity": "WARN",
       "code": "MISSING_BLOCKING_INPUTS",
-      "message": "End-to-end rebuild inputs remain unavailable: maize_genome_FASTA, maize_gene_annotation_GTF, Space_Ranger_matrix_and_spatial_outputs_for_14_samples, raw_scRNA_reference_matrices_for_rebuild, SCINA_marker_CSV_conversion_from_Supplementary_Table_9"
+      "message": "End-to-end rebuild inputs remain unavailable: maize_genome_FASTA, maize_gene_annotation_GTF, Space_Ranger_matrix_and_spatial_outputs_for_14_samples, raw_scRNA_reference_matrices_for_rebuild"
     },
     {
       "severity": "WARN",

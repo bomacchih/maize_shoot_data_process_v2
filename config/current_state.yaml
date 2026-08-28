@@ -81,6 +81,7 @@ data_readiness:
     - developmental_gene_subset
     - maize_GO_mapping
     - maize_gene_name_mapping
+    - scina_marker_table
   externally_available:
     - fourteen_Space_Ranger_web_summaries
     - fourteen_Loupe_Browser_cloupe_files
@@ -91,7 +92,6 @@ data_readiness:
     - maize_gene_annotation_GTF
     - Space_Ranger_matrix_and_spatial_outputs_for_14_samples
     - raw_scRNA_reference_matrices_for_rebuild
-    - SCINA_marker_CSV_conversion_from_Supplementary_Table_9
   not_generated:
     - cluster_marker_tables
     - SCINA_annotated_reference
@@ -296,18 +296,22 @@ scrna_reference:
 
 scina:
   marker_table: data/metadata/scRNA_reference/SCINA_marker_table.csv
-  marker_table_status: source_identified_conversion_pending
-  source_workbook: Supplementary_Tables_20251104.xlsx
-  source_sheet: Supplementary Table 9
-  source_title: Marker genes for cell types in the maize leaf and developing shoot, derived from the Single Cell Plant Database
-  source_header_row: 3
-  source_data_start_row: 4
-  source_column_mapping:
-    gene_id: gene
-    cell_type: clusterName
-    source_celltype_id: celltype_id
+  marker_table_status: generated_and_validated
+  source_rds: marker_list2.rds
+  source_md5: 497fe45631f35884eff358e98bbdd56f
+  upstream_source_workbook: Supplementary_Tables_20251104.xlsx
+  upstream_source_sheet: Supplementary Table 9
+  source_cell_types: 14
+  marker_assignments: 3997
+  unique_marker_genes: 3997
+  shared_marker_genes: 0
   source_has_explicit_marker_rank: false
-  conversion_note: Preserve source row order, rename gene and clusterName, and retain source_celltype_id for provenance; the SCINA script removes duplicates and genes shared across cell types.
+  marker_rank_semantics: position_within_source_list
+  cell_type_normalization: replace_non_alphanumeric_punctuation_with_underscore
+  feature_space_validation:
+    combined_scrna_reference: 3997_of_3997
+    representative_visium_object_UL01: 3997_of_3997
+  conversion_script: scripts/R/10_scRNA_reference_integration/00_prepare_SCINA_marker_table.R
   maximum_markers_per_cell_type: 100
   posterior_cutoff: 0.5
   random_seed: 1
@@ -344,5 +348,5 @@ known_reproducibility_gaps:
   - Space Ranger FASTQ, image, and transcriptome paths remain machine-specific.
   - Zenodo 22058284 provides web summaries, cloupe files, loom files, and processed RDS objects, but not complete Space Ranger count-matrix and spatial outputs.
   - The original SRR11943512 and SRR11943513 10x-style matrices are still needed only to rebuild the integrated scRNA reference from raw counts; downstream workflows can start from the deposited combined RDS.
-  - Supplementary Table 9 is the identified SCINA marker source, but its gene and clusterName columns still need a deterministic CSV conversion.
+  - SCINA marker_rank records source-list position because marker_list2.rds does not contain an explicit effect-size statistic.
   - The scripts do not yet load this configuration file.

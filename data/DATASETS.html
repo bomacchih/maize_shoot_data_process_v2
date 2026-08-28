@@ -541,12 +541,14 @@ matrices</td>
 </tr>
 <tr class="odd">
 <td>SCINA marker table</td>
-<td><code>data/metadata/scRNA_reference/SCINA_marker_table.csv</code></td>
-<td align="right"><strong>MISSING — BLOCKING FOR A NEW SCINA
-RUN</strong></td>
-<td>Must contain at least <code>gene_id</code> and
-<code>cell_type</code>; the previous plot used existing
-<code>sce_ref.rds</code> annotations and did not rerun SCINA</td>
+<td><code>data/metadata/scRNA_reference/SCINA_marker_table.csv</code>;
+source: <code>marker_list2.rds</code>, derived from Supplementary Table
+9</td>
+<td align="right"><strong>PRESENT — 3,997 MARKERS FOR 14 CELL
+TYPES</strong></td>
+<td>All markers occur in the combined scRNA reference and Visium feature
+space; <code>marker_rank</code> preserves source-list position rather
+than an effect-size statistic</td>
 </tr>
 <tr class="even">
 <td>SCINA-annotated Seurat reference</td>
@@ -734,9 +736,10 @@ inputs are present</td>
 <tr class="even">
 <td>Run SCINA</td>
 <td><code>scripts/R/10_scRNA_reference_integration/03_scRNA...R</code></td>
-<td><strong>BLOCKED FOR NEW ANNOTATION</strong>: SCINA marker CSV is
-missing. Existing annotations in <code>sce_ref.rds</code> can still be
-plotted</td>
+<td><strong>READY</strong>: the marker CSV is generated from
+<code>marker_list2.rds</code>, and all 3,997 unique markers occur in both
+feature spaces. Existing annotations in <code>sce_ref.rds</code> can
+also be plotted</td>
 </tr>
 <tr class="odd">
 <td>Map scRNA identities to Visium with SPOTlight</td>
@@ -766,7 +769,7 @@ omitted only in memory during this check.</li>
 <li>Syntax checks do not confirm package installation, biological
 validity, or successful execution with full datasets.</li>
 <li><code>02_spaceranger_count.sh</code> still contains hard-coded
-<code>/home/macchihlee/...</code> paths and includes UL03 and DQ05,
+legacy personal absolute paths and includes UL03 and DQ05,
 whereas the downstream canonical analysis uses 14 samples and excludes
 those two. Convert the count script to a sample sheet or
 configuration-driven loop before claiming full reproducibility.</li>
@@ -795,7 +798,9 @@ required.</li>
 samples.</li>
 <li>Add the two raw scRNA-seq 10x matrices for SRR11943512 and
 SRR11943513 if the reference must be rebuilt.</li>
-<li>Add <code>SCINA_marker_table.csv</code>, rerun SCINA to produce
+<li>Review the generated <code>SCINA_marker_table.csv</code>, especially
+the short <code>Leaf_rim</code> signature and the source-order top
+markers, rerun SCINA to produce
 <code>sc_merged_filter_SCT2_inte_SCINA.rds</code>, and then run the full
 Seurat/SPOTlight mapping workflow.</li>
 <li>Correct the two organelle-list paths in the SPOTlight mapping script

@@ -43,6 +43,24 @@ python tests/python/validate_python_environment.py
 This reports missing packages and also warns that the current Python
 requirements are not yet pinned to exact versions.
 
+## Cell-type marker validation
+
+The committed SCINA marker CSV is validated automatically by the main Python
+validator. To also verify the original curated RDS against the expression
+features in both the combined scRNA reference and a representative Visium
+object, run:
+
+```bash
+Rscript tests/R/validate_marker_list_for_mapping.R \
+  <path-to-marker_list2.rds> \
+  data/processed/sc_merged_filter_SCT2_inte.rds \
+  data/processed/UL01_seurat_v5.rds
+```
+
+The check fails for blank or duplicated markers, unstable maize gene IDs,
+markers assigned to more than one cell type, or markers absent from either
+feature space.
+
 ## Seurat object validation
 
 Run this only after activating the documented R environment:

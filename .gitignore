@@ -43,6 +43,8 @@ desktop.ini
 
 # Logs that can contain local absolute paths
 *.log
+results/logs/public_readiness_report.json
+results/logs/public_readiness_report.md
 
 # Machine-specific analysis paths
 config/local_paths.yaml

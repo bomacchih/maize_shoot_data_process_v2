@@ -25,6 +25,12 @@ EXPECTED_SAMPLES = [
     "DQ01", "DQ02", "DQ03", "DQ04", "DQ06", "DQ07", "DQ08",
 ]
 EXPECTED_DOMAINS = ["SAM", "P1_P2", "P3", "P4", "P5", "coleoptile", "co_v"]
+EXPECTED_SCINA_CELL_TYPES = [
+    "Bundle_sheath", "G2_M_phase", "Leaf_epidermis", "Leaf_guard_cell",
+    "Leaf_primordium", "Leaf_rim", "Leaf_subsidiary_cell", "Mesophyll",
+    "Pavement_cell_A", "Pavement_cell_N", "S_phase",
+    "Shoot_apical_meristem", "Shoot_system_epidermis", "Vascular_tissue",
+]
 REQUIRED_METADATA_COLUMNS = {
     "Barcode", "sample_id", "section_id", "domains", "harmony_clusters"
 }
@@ -268,14 +274,19 @@ def validate_config_schema(config: dict[str, Any], reporter: Reporter) -> None:
     expect_value(
         config, "public_data_archive.complete_space_ranger_outs_included", False, reporter
     )
+    expect_value(config, "scina.marker_table_status", "generated_and_validated", reporter)
+    expect_value(config, "scina.source_rds", "marker_list2.rds", reporter)
     expect_value(
-        config, "scina.source_sheet", "Supplementary Table 9", reporter
+        config, "scina.source_md5", "497fe45631f35884eff358e98bbdd56f", reporter
     )
-    expect_value(config, "scina.source_column_mapping.gene_id", "gene", reporter)
-    expect_value(
-        config, "scina.source_column_mapping.cell_type", "clusterName", reporter
-    )
+    expect_value(config, "scina.source_cell_types", 14, reporter)
+    expect_value(config, "scina.marker_assignments", 3997, reporter)
+    expect_value(config, "scina.unique_marker_genes", 3997, reporter)
+    expect_value(config, "scina.shared_marker_genes", 0, reporter)
     expect_value(config, "scina.source_has_explicit_marker_rank", False, reporter)
+    expect_value(
+        config, "scina.marker_rank_semantics", "position_within_source_list", reporter
+    )
 
     try:
         suffixes = get_nested(config, "study.barcode_suffixes")
@@ -526,6 +537,8 @@ def validate_present_files(
         "data/metadata/metadata.csv",
         "data/reference/maize_mitochondrial_genes.txt",
         "data/reference/maize_plastid_genes.txt",
+        "data/metadata/scRNA_reference/SCINA_marker_table.csv",
+        "data/metadata/scRNA_reference/SCINA_marker_table_provenance.txt",
         "data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds",
         "data/processed/sc_merged_filter_SCT2_inte.rds",
         "data/reference/developmental_trends/sub_gene.csv",
@@ -552,6 +565,153 @@ def validate_present_files(
         reporter.passed(
             "PRESENT_FILES",
             f"All {len(required_files)} files declared present exist and are non-empty",
+        )
+
+
+def validate_scina_marker_table(
+    project_root: Path, config: dict[str, Any], reporter: Reporter
+) -> None:
+    path = project_root / get_nested(config, "scina.marker_table")
+    if not path.is_file():
+        reporter.fail("SCINA_MARKER_TABLE", f"SCINA marker table is missing: {path}")
+        return
+
+    with path.open(newline="", encoding="utf-8-sig") as handle:
+        rows = list(csv.DictReader(handle))
+
+    required_columns = {
+        "gene_id", "cell_type", "marker_rank", "source_cell_type"
+    }
+    fields = set(rows[0].keys() if rows else set())
+    missing_columns = required_columns.difference(fields)
+    if missing_columns:
+        reporter.fail(
+            "SCINA_MARKER_COLUMNS",
+            "SCINA marker table is missing column(s): "
+            + ", ".join(sorted(missing_columns)),
+        )
+        return
+
+    expected_rows = get_nested(config, "scina.marker_assignments")
+    if len(rows) != expected_rows:
+        reporter.fail(
+            "SCINA_MARKER_ROWS",
+            f"SCINA marker table has {len(rows)} rows; expected {expected_rows}",
+        )
+
+    seen_pairs: set[tuple[str, str]] = set()
+    gene_to_types: dict[str, set[str]] = {}
+    ranks_by_type: dict[str, list[int]] = {}
+    source_names_by_type: dict[str, set[str]] = {}
+    invalid_gene_examples: list[str] = []
+    invalid_rank_examples: list[str] = []
+    blank_examples: list[str] = []
+
+    for row_number, row in enumerate(rows, start=2):
+        gene = (row.get("gene_id") or "").strip()
+        cell_type = (row.get("cell_type") or "").strip()
+        source_cell_type = (row.get("source_cell_type") or "").strip()
+        if not gene or not cell_type or not source_cell_type:
+            if len(blank_examples) < 5:
+                blank_examples.append(str(row_number))
+            continue
+        if not re.fullmatch(r"Zm[0-9]+[A-Za-z]+[0-9]+", gene):
+            if len(invalid_gene_examples) < 5:
+                invalid_gene_examples.append(gene)
+        try:
+            rank = int((row.get("marker_rank") or "").strip())
+            if rank < 1:
+                raise ValueError
+        except ValueError:
+            if len(invalid_rank_examples) < 5:
+                invalid_rank_examples.append(str(row_number))
+            continue
+        pair = (cell_type, gene)
+        if pair in seen_pairs:
+            reporter.fail(
+                "SCINA_MARKER_DUPLICATE",
+                f"Duplicate SCINA marker pair: {cell_type}/{gene}",
+            )
+            return
+        seen_pairs.add(pair)
+        gene_to_types.setdefault(gene, set()).add(cell_type)
+        ranks_by_type.setdefault(cell_type, []).append(rank)
+        source_names_by_type.setdefault(cell_type, set()).add(source_cell_type)
+
+    if blank_examples:
+        reporter.fail(
+            "SCINA_MARKER_BLANK",
+            "Blank SCINA marker fields at row(s): " + ", ".join(blank_examples),
+        )
+    if invalid_gene_examples:
+        reporter.fail(
+            "SCINA_MARKER_GENE_ID",
+            "Invalid maize marker identifier example(s): "
+            + ", ".join(invalid_gene_examples),
+        )
+    if invalid_rank_examples:
+        reporter.fail(
+            "SCINA_MARKER_RANK",
+            "Invalid marker_rank at row(s): " + ", ".join(invalid_rank_examples),
+        )
+
+    observed_types = sorted(ranks_by_type)
+    if observed_types != sorted(EXPECTED_SCINA_CELL_TYPES):
+        reporter.fail(
+            "SCINA_CELL_TYPES",
+            "SCINA marker cell types do not match the expected 14 normalized labels",
+        )
+
+    bad_rank_types = [
+        cell_type
+        for cell_type, ranks in ranks_by_type.items()
+        if ranks != list(range(1, len(ranks) + 1))
+    ]
+    if bad_rank_types:
+        reporter.fail(
+            "SCINA_MARKER_RANK_SEQUENCE",
+            "marker_rank is not consecutive in: " + ", ".join(sorted(bad_rank_types)),
+        )
+
+    inconsistent_source_names = [
+        cell_type
+        for cell_type, source_names in source_names_by_type.items()
+        if len(source_names) != 1
+    ]
+    if inconsistent_source_names:
+        reporter.fail(
+            "SCINA_SOURCE_CELL_TYPE",
+            "Normalized cell types map to multiple source labels: "
+            + ", ".join(sorted(inconsistent_source_names)),
+        )
+
+    shared_genes = [gene for gene, types in gene_to_types.items() if len(types) > 1]
+    if shared_genes:
+        reporter.fail(
+            "SCINA_SHARED_MARKERS",
+            f"{len(shared_genes)} gene(s) occur in multiple cell-type signatures",
+        )
+
+    expected_unique = get_nested(config, "scina.unique_marker_genes")
+    if len(gene_to_types) != expected_unique:
+        reporter.fail(
+            "SCINA_UNIQUE_MARKERS",
+            f"SCINA marker table has {len(gene_to_types)} unique genes; expected {expected_unique}",
+        )
+
+    scina_failure_codes = {
+        "SCINA_MARKER_TABLE", "SCINA_MARKER_COLUMNS", "SCINA_MARKER_ROWS",
+        "SCINA_MARKER_DUPLICATE", "SCINA_MARKER_BLANK", "SCINA_MARKER_GENE_ID",
+        "SCINA_MARKER_RANK", "SCINA_CELL_TYPES", "SCINA_MARKER_RANK_SEQUENCE",
+        "SCINA_SOURCE_CELL_TYPE", "SCINA_SHARED_MARKERS", "SCINA_UNIQUE_MARKERS",
+    }
+    if not any(
+        item.severity == "FAIL" and item.code in scina_failure_codes
+        for item in reporter.findings
+    ):
+        reporter.passed(
+            "SCINA_MARKER_TABLE",
+            f"{len(rows):,} markers for {len(observed_types)} cell types are unique, ranked by source order, and structurally valid",
         )
 
 
@@ -773,6 +933,7 @@ def run_validation(project_root: Path) -> tuple[dict[str, Any], Reporter]:
     validate_sample_manifest(project_root, config, reporter)
     validate_metadata(project_root, config, reporter)
     validate_present_files(project_root, config, reporter)
+    validate_scina_marker_table(project_root, config, reporter)
     validate_script_consistency(project_root, config, reporter)
     report_unresolved_settings(config, reporter)
     return config, reporter

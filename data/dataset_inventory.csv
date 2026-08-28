@@ -15,7 +15,7 @@ SRR11943512 raw 10x matrix,data/raw/scRNA_reference/SRR11943512/filtered_feature
 SRR11943513 raw 10x matrix,data/raw/scRNA_reference/SRR11943513/filtered_feature_bc_matrix/,MISSING_BLOCKING_RAW_REBUILD,scRNA reference integration
 Integrated scRNA reference,data/processed/sc_merged_filter_SCT2_inte.rds,PRESENT,scRNA downstream workflows
 Lightweight scRNA reference,data/processed/sce_ref.rds,PRESENT,scRNA plotting
-SCINA marker table,data/metadata/scRNA_reference/SCINA_marker_table.csv,SOURCE_IDENTIFIED_CONVERSION_PENDING_FROM_SUPPLEMENTARY_TABLE_9,SCINA annotation
+SCINA marker table,data/metadata/scRNA_reference/SCINA_marker_table.csv,PRESENT_GENERATED_FROM_MARKER_LIST2_RDS,SCINA annotation and downstream Visium mapping
 SCINA-annotated Seurat reference,data/processed/sc_merged_filter_SCT2_inte_SCINA.rds,NOT_GENERATED,Seurat label transfer and SPOTlight
 SPOTlight-mapped Visium object,data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds,NOT_GENERATED,complete SPOTlight output and plotting
 SPOTlight plotting fallback,data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds,PRESENT,Figure B and C plotting
