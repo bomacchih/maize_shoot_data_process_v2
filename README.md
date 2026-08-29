@@ -34,7 +34,7 @@ The first five domains are used for developmental trajectory, RNA-velocity, and 
 | 4 | QC, merge 14 samples, run SCTransform, PCA, Harmony, UMAP, and clustering | [`scripts/R/04_merge_integration/`](scripts/R/04_merge_integration/) |
 | 5 | Find cluster markers and assign 12 tissue supergroups | [`scripts/R/05_marker_analysis/`](scripts/R/05_marker_analysis/) |
 | 6 | Generate replicate-level pseudobulk profiles and Figure 13 | [`scripts/R/06_pseudobulk_analysis/`](scripts/R/06_pseudobulk_analysis/) |
-| 7 | Cluster developmental expression trends, analyze GO enrichment, and generate Figure 9 | [`scripts/R/07_developmental_trends_GO/`](scripts/R/07_developmental_trends_GO/) |
+| 7 | Cluster developmental expression trends, analyze GO enrichment, and generate Figure 14 | [`scripts/R/07_developmental_trends_GO/`](scripts/R/07_developmental_trends_GO/) |
 | 8 | Estimate dynamical RNA velocity with scVelo | [`scripts/python/08_RNA_velocity/`](scripts/python/08_RNA_velocity/) |
 | 9 | Estimate pseudotime and trajectories with Monocle 3 | [`scripts/R/09_monocle3_pseudotime/`](scripts/R/09_monocle3_pseudotime/) |
 | 10 | Build and annotate the scRNA-seq reference; map cell types to Visium with Seurat and SPOTlight | [`scripts/R/10_scRNA_reference_integration/`](scripts/R/10_scRNA_reference_integration/) |
@@ -195,7 +195,7 @@ Available reports include:
 - [Seurat v5 maize spatial dataset](docs/Maize_data_Seurat_v5.md)
 - [Tissue supergroups and Figure 12](docs/Tissue_supergroups_Figure_12_Seurat_v5.md)
 - [Structural-domain pseudobulk analysis and Figure 13](docs/Pseudobulk_structural_domains_Figure_13.md)
-- [Developmental trends and GO enrichment](docs/Developmental_expression_trends_GO_Figure_9.md)
+- [Developmental trends and GO enrichment](docs/Developmental_expression_trends_GO_Figure_14.md)
 - [scRNA-seq reference QC and Harmony](docs/scRNA_reference_QC_and_Harmony.md)
 - [SCINA cell-type annotation](docs/scRNA_reference_SCINA_celltype_annotation.md)
 - [scRNA-to-Visium SPOTlight mapping](docs/scRNA_to_Visium_SPOTlight_mapping.md)

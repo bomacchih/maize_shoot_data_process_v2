@@ -1,4 +1,4 @@
-# Developmental expression-trend clustering and GO enrichment (Figure 9)
+# Developmental expression-trend clustering and GO enrichment (Figure 14)
 #
 # Project input:
 #   data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
@@ -162,6 +162,63 @@ read_gene_list <- function(path) {
     fallback_col
   )
   unique(na.omit(trimws(as.character(x[[gene_col]]))))
+}
+
+# Convert an hclust object to line segments that can be drawn with ggplot2.
+# Optional named leaf positions allow a row dendrogram to be aligned with a
+# specified top-to-bottom heatmap order without changing the tree topology.
+hclust_segments <- function(hclust_object, leaf_positions = NULL) {
+  dendrogram_object <- as.dendrogram(hclust_object)
+  leaf_labels <- labels(dendrogram_object)
+
+  if (is.null(leaf_positions)) {
+    leaf_positions <- setNames(seq_along(leaf_labels), leaf_labels)
+  } else {
+    if (is.null(names(leaf_positions)) ||
+        !all(leaf_labels %in% names(leaf_positions))) {
+      stop("leaf_positions must be a named vector containing every dendrogram label.")
+    }
+    leaf_positions <- leaf_positions[leaf_labels]
+  }
+
+  segment_table <- data.frame(
+    x = numeric(), y = numeric(), xend = numeric(), yend = numeric()
+  )
+
+  walk_dendrogram <- function(node) {
+    node_height <- attr(node, "height")
+    if (is.leaf(node)) {
+      node_label <- as.character(attr(node, "label"))
+      return(list(x = unname(leaf_positions[node_label]), height = node_height))
+    }
+
+    child_positions <- lapply(node, walk_dendrogram)
+    child_x <- vapply(child_positions, `[[`, numeric(1), "x")
+    child_height <- vapply(child_positions, `[[`, numeric(1), "height")
+    node_x <- mean(range(child_x))
+
+    for (i in seq_along(child_x)) {
+      segment_table <<- rbind(
+        segment_table,
+        data.frame(
+          x = child_x[i], y = child_height[i],
+          xend = child_x[i], yend = node_height
+        )
+      )
+    }
+    segment_table <<- rbind(
+      segment_table,
+      data.frame(
+        x = min(child_x), y = node_height,
+        xend = max(child_x), yend = node_height
+      )
+    )
+
+    list(x = node_x, height = node_height)
+  }
+
+  walk_dendrogram(dendrogram_object)
+  list(segments = segment_table, labels = leaf_labels)
 }
 
 read_gene_symbols <- function(path) {
@@ -439,7 +496,7 @@ saveRDS(
 )
 
 # -----------------------------
-# 5. Representative genes and Figure 9A
+# 5. Representative genes and Figure 14A
 # -----------------------------
 
 cluster_medians <- bind_rows(lapply(levels(trend_cluster), function(cluster_name) {
@@ -536,16 +593,16 @@ panel_a <- ggplot(trend_long, aes(domain, scaled_expression, group = gene)) +
   )
 
 ggsave(
-  file.path(figure_dir, "Figure_9A_expression_trend_clusters.png"),
+  file.path(figure_dir, "Figure_14A_expression_trend_clusters.png"),
   panel_a, width = 13.5, height = 5.2, dpi = 300
 )
 ggsave(
-  file.path(figure_dir, "Figure_9A_expression_trend_clusters.pdf"),
+  file.path(figure_dir, "Figure_14A_expression_trend_clusters.pdf"),
   panel_a, width = 13.5, height = 5.2
 )
 
 # -----------------------------
-# 6. GO gene lists, enrichment, and Figure 9B
+# 6. GO gene lists, enrichment, and Figure 14B
 # -----------------------------
 
 mean_expression <- Matrix::rowMeans(
@@ -621,30 +678,115 @@ if (file.exists(go_map_file)) {
     rownames(go_matrix) <- as.character(go_matrix$cluster)
     go_matrix$cluster <- NULL
 
+    go_matrix <- as.matrix(go_matrix)
+
     if (ncol(go_matrix) > 1L) {
-      go_order <- colnames(go_matrix)[hclust(dist(t(as.matrix(go_matrix))), method = "complete")$order]
+      go_column_hclust <- hclust(dist(t(go_matrix)), method = "complete")
+      go_order <- colnames(go_matrix)[go_column_hclust$order]
+      go_column_segments <- hclust_segments(go_column_hclust)
     } else {
       go_order <- colnames(go_matrix)
+      go_column_hclust <- NULL
+    }
+
+    if (nrow(go_matrix) > 1L) {
+      go_row_hclust <- hclust(dist(go_matrix), method = "complete")
+      row_leaf_positions <- setNames(
+        rev(seq_along(go_panel_clusters)),
+        go_panel_clusters
+      )
+      go_row_segments <- hclust_segments(
+        go_row_hclust,
+        leaf_positions = row_leaf_positions
+      )
+    } else {
+      go_row_hclust <- NULL
     }
 
     label_map <- heatmap_data |>
       distinct(GO_ID, GO_term) |>
       filter(GO_ID %in% go_order)
     ordered_labels <- label_map$GO_term[match(go_order, label_map$GO_ID)]
-    heatmap_data$GO_term <- factor(heatmap_data$GO_term, levels = ordered_labels)
-    panel_b <- ggplot(heatmap_data, aes(GO_term, cluster, fill = minus_log10_p)) +
+    ordered_labels <- make.unique(ordered_labels, sep = " | ")
+    names(ordered_labels) <- go_order
+
+    heatmap_data <- heatmap_data |>
+      mutate(
+        GO_ID = factor(GO_ID, levels = go_order),
+        cluster = factor(as.character(cluster), levels = rev(go_panel_clusters))
+      )
+
+    go_fill_max <- max(heatmap_data$minus_log10_p, na.rm = TRUE)
+    if (!is.finite(go_fill_max) || go_fill_max <= 0) go_fill_max <- 1
+
+    go_heatmap <- ggplot(
+      heatmap_data,
+      aes(GO_ID, cluster, fill = minus_log10_p)
+    ) +
       geom_tile(color = "grey75", linewidth = 0.25) +
-      scale_fill_gradient(low = "white", high = "red") +
+      scale_x_discrete(labels = ordered_labels, drop = FALSE) +
+      scale_y_discrete(position = "right", drop = FALSE) +
+      scale_fill_gradientn(
+        colours = c("white", "#5364B0", "#5E3C99", "#EF1B23"),
+        values = c(0, 0.25, 0.75, 1),
+        limits = c(0, go_fill_max),
+        breaks = pretty(c(0, go_fill_max), n = 5)
+      ) +
       labs(
-        x = "GO term",
+        x = NULL,
         y = NULL,
-        fill = expression(-log[10](italic(p))),
-        title = "GO enrichment across clusters"
+        fill = expression(-log[10](italic(p)))
       ) +
       theme_bw(base_size = 9) +
       theme(
         axis.text.x = element_text(angle = 55, hjust = 1),
+        axis.text.y = element_text(face = "bold", size = 10),
+        axis.ticks = element_blank(),
         panel.grid = element_blank()
+      )
+
+    if (!is.null(go_column_hclust)) {
+      go_column_dendrogram <- ggplot(go_column_segments$segments) +
+        geom_segment(
+          aes(x = x, y = y, xend = xend, yend = yend),
+          linewidth = 0.45, lineend = "square"
+        ) +
+        scale_x_continuous(
+          limits = c(0.5, length(go_order) + 0.5),
+          expand = c(0, 0)
+        ) +
+        scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+        theme_void()
+    } else {
+      go_column_dendrogram <- plot_spacer()
+    }
+
+    if (!is.null(go_row_hclust)) {
+      go_row_dendrogram <- ggplot(go_row_segments$segments) +
+        geom_segment(
+          aes(x = -y, y = x, xend = -yend, yend = xend),
+          linewidth = 0.45, lineend = "square"
+        ) +
+        scale_y_continuous(
+          limits = c(0.5, length(go_panel_clusters) + 0.5),
+          expand = c(0, 0)
+        ) +
+        scale_x_continuous(expand = expansion(mult = c(0.05, 0))) +
+        theme_void()
+    } else {
+      go_row_dendrogram <- plot_spacer()
+    }
+
+    go_top <- plot_spacer() + go_column_dendrogram +
+      plot_layout(widths = c(1.15, 10))
+    go_bottom <- go_row_dendrogram + go_heatmap +
+      plot_layout(widths = c(1.15, 10))
+
+    panel_b <- (go_top / go_bottom) +
+      plot_layout(heights = c(1.25, 4.75)) +
+      plot_annotation(
+        title = "GO enrichment heatmap across clusters",
+        theme = theme(plot.title = element_text(hjust = 0.5, size = 13))
       )
   } else {
     panel_b <- ggplot() +
@@ -668,25 +810,25 @@ if (file.exists(go_map_file)) {
 }
 
 ggsave(
-  file.path(figure_dir, "Figure_9B_GO_enrichment_heatmap.png"),
+  file.path(figure_dir, "Figure_14B_GO_enrichment_heatmap.png"),
   panel_b, width = 13.5, height = 5.8, dpi = 300
 )
 ggsave(
-  file.path(figure_dir, "Figure_9B_GO_enrichment_heatmap.pdf"),
+  file.path(figure_dir, "Figure_14B_GO_enrichment_heatmap.pdf"),
   panel_b, width = 13.5, height = 5.8
 )
 
-figure_9 <- panel_a / panel_b +
+figure_14 <- panel_a / wrap_elements(full = panel_b) +
   plot_annotation(tag_levels = "A") +
   plot_layout(heights = c(1.15, 1))
 
 ggsave(
-  file.path(figure_dir, "Figure_9_developmental_trends_and_GO.png"),
-  figure_9, width = 13.5, height = 11.5, dpi = 300
+  file.path(figure_dir, "Figure_14_developmental_trends_and_GO.png"),
+  figure_14, width = 13.5, height = 11.5, dpi = 300
 )
 ggsave(
-  file.path(figure_dir, "Figure_9_developmental_trends_and_GO.pdf"),
-  figure_9, width = 13.5, height = 11.5
+  file.path(figure_dir, "Figure_14_developmental_trends_and_GO.pdf"),
+  figure_14, width = 13.5, height = 11.5
 )
 
 # -----------------------------
