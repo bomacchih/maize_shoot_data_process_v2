@@ -69,7 +69,8 @@ This order determines the merged-barcode suffixes `_1_1` through `_1_14`.
 | Velocyto loom files, one per sample | `data/processed/<space_ranger_run_id>.loom` | **PUBLIC ON ZENODO 22058284 — DOWNLOAD REQUIRED** | Place the 14 deposited loom files in `data/processed/`; the velocity script matches the canonical 14 sample IDs |
 | Optional Seurat Harmony UMAP export | `data/metadata/seurat_harmony_umap.csv` | **OPTIONAL — MISSING** | Monocle 3 uses its own aligned UMAP; this file is only an additional reference reduction |
 | Developmental-trend gene subset | `data/reference/developmental_trends/sub_gene.csv` | **PRESENT** | Optional gene restriction used by the Figure 14 workflow |
-| GO-term descriptions | `data/reference/developmental_trends/go_term_descriptions.csv` | **MISSING / OPTIONAL** | Required for named GO terms in Figure 14B unless `GO.db` is installed; the recovered `zea_go2.csv` contains identifiers only |
+| Figure 14B GO enrichment | `data/reference/developmental_trends/Figure_14B_GO_enrichment_C1_C6_C7.csv` | **PRESENT** | Standardized Supplementary Table 6-2 values for C1, C6, and C7; columns are `cluster`, `GO_ID`, `GO_term`, and `p_value` |
+| GO-term descriptions | `data/reference/developmental_trends/go_term_descriptions.csv` | **MISSING / OPTIONAL** | Needed only when regenerating named terms from the local gene-to-GO fallback rather than the Supplementary Table 6-2 reference |
 | Maize GO mapping | `data/reference/developmental_trends/zea_go2.csv` | **PRESENT** | Enables local GO enrichment |
 | Maize gene-ID/name mapping | `data/reference/developmental_trends/maize_id_name.csv` | **PRESENT** | Used to label representative genes |
 | GO term descriptions | `data/reference/developmental_trends/go_term_descriptions.csv` | **OPTIONAL — MISSING** | Without it, GO identifiers/descriptions are taken from the available GO mapping when possible |

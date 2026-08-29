@@ -1,0 +1,66 @@
+cluster,GO_ID,GO_term,p_value
+C1,GO:0006952,defense response,6.20E-12
+C1,GO:0006950,response to stress,5.70E-07
+C1,GO:0010200,response to chitin,5.40E-07
+C1,GO:0009611,response to wounding,3.00E-07
+C1,GO:0019748,secondary metabolic process,1.20E-06
+C1,GO:0009753,response to jasmonic acid,1.60E-06
+C1,GO:0071229,cellular response to acid chemical,2.90E-06
+C1,GO:0010243,response to organonitrogen compound,5.80E-06
+C1,GO:2000022,regulation of jasmonic acid mediated signaling pathway,1.20E-05
+C1,GO:1901700,response to oxygen-containing compound,1.40E-05
+C1,GO:0018871,1-aminocyclopropane-1-carboxylate metabolic process,2.10E-05
+C1,GO:0009751,response to salicylic acid,3.60E-05
+C1,GO:0009698,phenylpropanoid metabolic process,7.80E-05
+C1,GO:0042743,hydrogen peroxide metabolic process,7.80E-05
+C1,GO:0044550,secondary metabolite biosynthetic process,8.50E-05
+C1,GO:1901701,cellular response to oxygen-containing compound,9.30E-05
+C1,GO:0009867,jasmonic acid mediated signaling pathway,0.00011
+C1,GO:0009607,response to biotic stimulus,0.00012
+C1,GO:0050896,response to stimulus,0.00014
+C1,GO:0042221,response to chemical,0.00014
+C1,GO:0071395,cellular response to jasmonic acid stimulus,0.00021
+C1,GO:0009808,lignin metabolic process,0.00023
+C1,GO:0001101,response to acid chemical,0.00022
+C1,GO:0043207,response to external biotic stimulus,0.00026
+C1,GO:0051707,response to other organism,0.00025
+C1,GO:0006979,response to oxidative stress,0.00029
+C1,GO:0044092,negative regulation of molecular function,0.00032
+C6,GO:0016772,"transferase activity, transferring phosphorus-containing groups",0.00021
+C7,GO:0006139,nucleobase-containing compound metabolic process,6.30E-24
+C7,GO:0016043,cellular component organization,5.90E-21
+C7,GO:0006807,nitrogen compound metabolic process,5.30E-20
+C7,GO:0010467,gene expression,5.00E-19
+C7,GO:0044260,cellular macromolecule metabolic process,1.40E-18
+C7,GO:0043170,macromolecule metabolic process,1.80E-18
+C7,GO:0009987,cellular process,7.10E-16
+C7,GO:0006259,DNA metabolic process,3.50E-15
+C7,GO:0040029,"regulation of gene expression, epigenetic",7.60E-13
+C7,GO:0060255,regulation of macromolecule metabolic process,1.70E-12
+C7,GO:0019222,regulation of metabolic process,9.90E-12
+C7,GO:0007049,cell cycle,2.00E-11
+C7,GO:0044238,primary metabolic process,1.30E-10
+C7,GO:0044237,cellular metabolic process,5.70E-09
+C7,GO:0050789,regulation of biological process,6.90E-09
+C7,GO:0010468,regulation of gene expression,8.20E-08
+C7,GO:0065007,biological regulation,9.00E-08
+C7,GO:0000003,reproduction,1.40E-07
+C7,GO:0022414,reproductive process,4.30E-07
+C7,GO:0032502,developmental process,1.10E-06
+C7,GO:0007275,multicellular organism development,1.20E-06
+C7,GO:0048856,anatomical structure development,1.30E-06
+C7,GO:0009059,macromolecule biosynthetic process,1.60E-06
+C7,GO:0008152,metabolic process,1.70E-06
+C7,GO:0034645,cellular macromolecule biosynthetic process,2.50E-06
+C7,GO:0050794,regulation of cellular process,4.30E-06
+C7,GO:0003006,developmental process involved in reproduction,4.30E-06
+C7,GO:0032501,multicellular organismal process,4.90E-06
+C7,GO:0048608,reproductive structure development,4.90E-05
+C7,GO:0009791,post-embryonic development,5.60E-05
+C7,GO:0016049,cell growth,0.0012
+C7,GO:0044249,cellular biosynthetic process,0.0017
+C7,GO:0009058,biosynthetic process,0.003
+C7,GO:0009628,response to abiotic stimulus,0.0033
+C7,GO:0009790,embryo development,0.0034
+C7,GO:0009653,anatomical structure morphogenesis,0.0045
+C7,GO:0030154,cell differentiation,0.0047

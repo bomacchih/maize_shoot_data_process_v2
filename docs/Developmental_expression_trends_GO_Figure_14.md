@@ -30,6 +30,7 @@ Optional recovered reference files can be placed in:
 | `zea_go2.csv` | Gene-to-GO mapping for reproducible hypergeometric enrichment. |
 | `maize_id_name.csv` | Maps maize gene identifiers to short labels for representative genes. |
 | `go_term_descriptions.csv` | Optional two-column GO-ID/term-name table. If absent, the script uses `GO.db` when installed and otherwise labels terms by GO ID. |
+| `Figure_14B_GO_enrichment_C1_C6_C7.csv` | Recovered Supplementary Table 6-2 enrichment results for C1, C6, and C7, with columns `cluster`, `GO_ID`, `GO_term`, and `p_value`. This is the preferred input for Figure 14B. |
 
 If `sub_gene.csv` is absent, all genes with non-zero mean SCT expression in every target domain are used. If `zea_go2.csv` is absent, the script still exports AgriGO-ready gene lists and produces an explanatory placeholder for panel B.
 
@@ -51,9 +52,9 @@ For each cluster, the median developmental profile is calculated. The three gene
 
 Within each trend cluster, genes are ranked by their mean SCT expression across replicate-domain profiles. The top 1,000 genes are exported for GO enrichment. The value 1,000 follows the original analysis and was an explicitly defined, arbitrary cutoff.
 
-When `zea_go2.csv` is available, the script performs a one-sided hypergeometric test using all eligible expressed genes as the background and reports Benjamini–Hochberg-adjusted p-values in addition to raw p-values. To reproduce the manuscript panel, terms for Clusters 1, 6, and 7 with raw `p < 1 × 10⁻⁶` are displayed, up to the 29 most significant unique terms. Missing cluster–term combinations are displayed as zero. Complete-linkage hierarchical clustering with Euclidean distance is applied independently to the GO-term columns and the three cluster rows; both dendrograms are shown in panel B. The exported adjusted p-values should be used when interpreting enrichment beyond the descriptive manuscript figure.
+When `zea_go2.csv` is available, the script performs a one-sided hypergeometric test using all eligible expressed genes as the background and reports Benjamini–Hochberg-adjusted p-values. These recalculated results are exported for reproducibility. Figure 14B preferentially uses the recovered Supplementary Table 6-2 results in `Figure_14B_GO_enrichment_C1_C6_C7.csv`. The strongest term from each of C1, C6, and C7 is retained, and the remaining positions are filled by the most significant unique terms until 29 terms are selected. Missing cluster–term combinations are displayed as zero. Complete-linkage hierarchical clustering with Euclidean distance is applied independently to the GO-term columns and the three cluster rows; both dendrograms are shown in panel B.
 
-The recovered `zea_go2.csv` contains gene-to-GO identifiers but no GO-term descriptions. Consequently, an exact reconstruction of the published panel also requires `go_term_descriptions.csv` (columns `GO_ID` and `GO_term`) or an installed `GO.db` package. The number of terms passing the cutoff can differ from the published AgriGO result when a different annotation release or enrichment background is used; therefore, the original AgriGO result table should be retained with the archived analysis if exact manuscript reproduction is required.
+The recovered `zea_go2.csv` contains gene-to-GO identifiers but no GO-term descriptions. The supplementary-table reference supplies the term descriptions used in the manuscript panel. If that reference is unavailable, the script falls back to the locally calculated enrichment and requires `go_term_descriptions.csv` or an installed `GO.db` package for named terms.
 
 The per-cluster text files can alternatively be submitted to AgriGO or an equivalent enrichment service.
 
@@ -80,6 +81,7 @@ Key tables include:
 - `top_1000_genes_per_cluster_for_GO.csv`
 - `C1_top1000_AgriGO_gene_list.txt` through `C7_top1000_AgriGO_gene_list.txt`
 - `GO_hypergeometric_enrichment_all_clusters.csv`, when a GO map is available
+- `Figure_14B_GO_reference_values.csv`, the standardized Supplementary Table 6-2 values used for panel B
 
 Figures are written to:
 
@@ -99,7 +101,7 @@ Gray lines represent individual genes, and the red line represents the median ex
 
 ![GO enrichment heatmap](../results/figures/07_developmental_trends_GO/Figure_14B_GO_enrichment_heatmap.png)
 
-Color represents `−log10(p)` from the hypergeometric enrichment test. The plotted panel uses the manuscript threshold of `p < 1 × 10⁻⁶`. The top and left dendrograms show complete-linkage hierarchical clustering of GO terms and trend clusters, respectively.
+Color represents `−log10(p)` from Supplementary Table 6-2. The top and left dendrograms show complete-linkage hierarchical clustering of GO terms and trend clusters, respectively.
 
 ### Combined figure
 
@@ -107,7 +109,7 @@ Color represents `−log10(p)` from the hypergeometric enrichment test. The plot
 
 ## Suggested figure legend
 
-**Figure 14. Gene-expression trends and GO enrichment across maize shoot structural domains.** (A) Seven hierarchical clusters of gene-expression patterns across SAM, P1–P2, P3, P4, P5, coleoptile vein (co-v), and coleoptile. Gray lines represent individual genes, and the red line indicates the median trend within each cluster. Three representative genes nearest to each cluster median are shown. (B) GO enrichment heatmap for Clusters 1, 6, and 7 (`p < 1 × 10⁻⁶`). Colors represent `−log10(p)`, and the dendrograms show complete-linkage hierarchical clustering of the trend clusters and GO terms using Euclidean distance. Adapted from Figure 3C–D of Wu et al. [1].
+**Figure 14. Gene-expression trends and GO enrichment across maize shoot structural domains.** (A) Seven hierarchical clusters of gene-expression patterns across SAM, P1–P2, P3, P4, P5, coleoptile vein (co-v), and coleoptile. Gray lines represent individual genes, and the red line indicates the median trend within each cluster. Three representative genes nearest to each cluster median are shown. (B) GO enrichment heatmap for Clusters 1, 6, and 7. Colors represent `−log10(p)` from Supplementary Table 6-2, and the dendrograms show complete-linkage hierarchical clustering of the trend clusters and GO terms using Euclidean distance. Adapted from Figure 3C–D of Wu et al. [1].
 
 ## Session information
 

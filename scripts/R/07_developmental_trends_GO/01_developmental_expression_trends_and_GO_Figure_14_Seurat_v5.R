@@ -8,6 +8,7 @@
 #   data/reference/developmental_trends/zea_go2.csv
 #   data/reference/developmental_trends/maize_id_name.csv
 #   data/reference/developmental_trends/go_term_descriptions.csv
+#   data/reference/developmental_trends/Figure_14B_GO_enrichment_C1_C6_C7.csv
 #
 # Outputs:
 #   results/tables/07_developmental_trends_GO/
@@ -52,6 +53,9 @@ input_rds <- file.path(
 
 reference_dir <- file.path(
   project_root, "data", "reference", "developmental_trends"
+)
+manuscript_go_file <- file.path(
+  reference_dir, "Figure_14B_GO_enrichment_C1_C6_C7.csv"
 )
 table_dir <- file.path(
   project_root, "results", "tables", "07_developmental_trends_GO"
@@ -647,13 +651,93 @@ if (file.exists(go_map_file)) {
     row.names = FALSE
   )
 
-  selected_terms <- go_results |>
-    filter(cluster %in% go_panel_clusters, p_value < go_pvalue_cutoff) |>
-    group_by(GO_ID) |>
-    summarise(best_p = min(p_value), .groups = "drop") |>
-    arrange(best_p) |>
-    slice_head(n = go_terms_to_display) |>
-    pull(GO_ID)
+  # Use the recovered Supplementary Table 6-2 results for the manuscript panel.
+  # The locally calculated hypergeometric results above remain available as a
+  # reproducible fallback and as a comparison using the bundled GO annotation.
+  if (file.exists(manuscript_go_file)) {
+    panel_go_results <- read.csv(
+      manuscript_go_file,
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+    required_columns <- c("cluster", "GO_ID", "GO_term", "p_value")
+    missing_columns <- setdiff(required_columns, names(panel_go_results))
+    if (length(missing_columns) > 0L) {
+      stop(
+        "The Figure 14B GO reference table is missing columns: ",
+        paste(missing_columns, collapse = ", ")
+      )
+    }
+
+    panel_go_results <- panel_go_results |>
+      transmute(
+        cluster = toupper(trimws(as.character(cluster))),
+        GO_ID = trimws(as.character(GO_ID)),
+        GO_term = trimws(as.character(GO_term)),
+        p_value = as.numeric(p_value)
+      ) |>
+      filter(
+        cluster %in% go_panel_clusters,
+        GO_ID != "",
+        GO_term != "",
+        is.finite(p_value),
+        p_value > 0,
+        p_value <= 1
+      ) |>
+      distinct(cluster, GO_ID, .keep_all = TRUE) |>
+      mutate(minus_log10_p = -log10(p_value))
+
+    absent_clusters <- setdiff(
+      go_panel_clusters,
+      unique(panel_go_results$cluster)
+    )
+    if (length(absent_clusters) > 0L) {
+      stop(
+        "The Figure 14B GO reference table has no records for: ",
+        paste(absent_clusters, collapse = ", ")
+      )
+    }
+
+    # Preserve at least the strongest term from every displayed cluster, then
+    # fill the remaining positions with the most significant unique GO terms.
+    required_terms <- panel_go_results |>
+      group_by(cluster) |>
+      slice_min(order_by = p_value, n = 1L, with_ties = FALSE) |>
+      ungroup() |>
+      arrange(match(cluster, go_panel_clusters)) |>
+      pull(GO_ID)
+
+    ranked_terms <- panel_go_results |>
+      group_by(GO_ID) |>
+      summarise(best_p = min(p_value), .groups = "drop") |>
+      arrange(best_p, GO_ID) |>
+      pull(GO_ID)
+
+    selected_terms <- unique(c(required_terms, ranked_terms))
+    selected_terms <- head(selected_terms, go_terms_to_display)
+
+    write.csv(
+      panel_go_results,
+      file.path(table_dir, "Figure_14B_GO_reference_values.csv"),
+      row.names = FALSE
+    )
+    message("Figure 14B uses the recovered Supplementary Table 6-2 GO results.")
+  } else {
+    panel_go_results <- go_results |>
+      filter(cluster %in% go_panel_clusters)
+
+    selected_terms <- panel_go_results |>
+      filter(p_value < go_pvalue_cutoff) |>
+      group_by(GO_ID) |>
+      summarise(best_p = min(p_value), .groups = "drop") |>
+      arrange(best_p) |>
+      slice_head(n = go_terms_to_display) |>
+      pull(GO_ID)
+
+    warning(
+      "Figure 14B reference table not found; using locally calculated GO results."
+    )
+  }
 
   if (length(selected_terms) > 0L) {
     heatmap_data <- expand_grid(
@@ -661,7 +745,7 @@ if (file.exists(go_map_file)) {
       GO_ID = selected_terms
     ) |>
       left_join(
-        go_results |>
+        panel_go_results |>
           filter(cluster %in% go_panel_clusters, GO_ID %in% selected_terms) |>
           select(cluster, GO_ID, GO_term, minus_log10_p),
         by = c("cluster", "GO_ID")
@@ -703,9 +787,10 @@ if (file.exists(go_map_file)) {
       go_row_hclust <- NULL
     }
 
-    label_map <- heatmap_data |>
+    label_map <- panel_go_results |>
+      filter(GO_ID %in% go_order) |>
       distinct(GO_ID, GO_term) |>
-      filter(GO_ID %in% go_order)
+      arrange(match(GO_ID, go_order))
     ordered_labels <- label_map$GO_term[match(go_order, label_map$GO_ID)]
     ordered_labels <- make.unique(ordered_labels, sep = " | ")
     names(ordered_labels) <- go_order

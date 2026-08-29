@@ -1,0 +1,66 @@
+"cluster","GO_ID","GO_term","p_value","minus_log10_p"
+"C1","GO:0006952","defense response",6.2e-12,11.2076083105017
+"C1","GO:0006950","response to stress",5.7e-07,6.24412514432751
+"C1","GO:0010200","response to chitin",5.4e-07,6.26760624017703
+"C1","GO:0009611","response to wounding",3e-07,6.52287874528034
+"C1","GO:0019748","secondary metabolic process",1.2e-06,5.92081875395237
+"C1","GO:0009753","response to jasmonic acid",1.6e-06,5.79588001734407
+"C1","GO:0071229","cellular response to acid chemical",2.9e-06,5.53760200210104
+"C1","GO:0010243","response to organonitrogen compound",5.8e-06,5.23657200643706
+"C1","GO:2000022","regulation of jasmonic acid mediated signaling pathway",1.2e-05,4.92081875395237
+"C1","GO:1901700","response to oxygen-containing compound",1.4e-05,4.85387196432176
+"C1","GO:0018871","1-aminocyclopropane-1-carboxylate metabolic process",2.1e-05,4.67778070526608
+"C1","GO:0009751","response to salicylic acid",3.6e-05,4.44369749923271
+"C1","GO:0009698","phenylpropanoid metabolic process",7.8e-05,4.10790539730952
+"C1","GO:0042743","hydrogen peroxide metabolic process",7.8e-05,4.10790539730952
+"C1","GO:0044550","secondary metabolite biosynthetic process",8.5e-05,4.07058107428571
+"C1","GO:1901701","cellular response to oxygen-containing compound",9.3e-05,4.03151705144607
+"C1","GO:0009867","jasmonic acid mediated signaling pathway",0.00011,3.95860731484178
+"C1","GO:0009607","response to biotic stimulus",0.00012,3.92081875395238
+"C1","GO:0050896","response to stimulus",0.00014,3.85387196432176
+"C1","GO:0042221","response to chemical",0.00014,3.85387196432176
+"C1","GO:0071395","cellular response to jasmonic acid stimulus",0.00021,3.67778070526608
+"C1","GO:0009808","lignin metabolic process",0.00023,3.63827216398241
+"C1","GO:0001101","response to acid chemical",0.00022,3.65757731917779
+"C1","GO:0043207","response to external biotic stimulus",0.00026,3.58502665202918
+"C1","GO:0051707","response to other organism",0.00025,3.60205999132796
+"C1","GO:0006979","response to oxidative stress",0.00029,3.53760200210104
+"C1","GO:0044092","negative regulation of molecular function",0.00032,3.49485002168009
+"C6","GO:0016772","transferase activity, transferring phosphorus-containing groups",0.00021,3.67778070526608
+"C7","GO:0006139","nucleobase-containing compound metabolic process",6.3e-24,23.2006594505464
+"C7","GO:0016043","cellular component organization",5.9e-21,20.2291479883579
+"C7","GO:0006807","nitrogen compound metabolic process",5.3e-20,19.2757241303992
+"C7","GO:0010467","gene expression",5e-19,18.301029995664
+"C7","GO:0044260","cellular macromolecule metabolic process",1.4e-18,17.8538719643218
+"C7","GO:0043170","macromolecule metabolic process",1.8e-18,17.7447274948967
+"C7","GO:0009987","cellular process",7.1e-16,15.1487416512809
+"C7","GO:0006259","DNA metabolic process",3.5e-15,14.4559319556497
+"C7","GO:0040029","regulation of gene expression, epigenetic",7.6e-13,12.1191864077192
+"C7","GO:0060255","regulation of macromolecule metabolic process",1.7e-12,11.7695510786217
+"C7","GO:0019222","regulation of metabolic process",9.9e-12,11.0043648054024
+"C7","GO:0007049","cell cycle",2e-11,10.698970004336
+"C7","GO:0044238","primary metabolic process",1.3e-10,9.88605664769316
+"C7","GO:0044237","cellular metabolic process",5.7e-09,8.24412514432751
+"C7","GO:0050789","regulation of biological process",6.9e-09,8.16115090926274
+"C7","GO:0010468","regulation of gene expression",8.2e-08,7.08618614761628
+"C7","GO:0065007","biological regulation",9e-08,7.04575749056067
+"C7","GO:0000003","reproduction",1.4e-07,6.85387196432176
+"C7","GO:0022414","reproductive process",4.3e-07,6.36653154442041
+"C7","GO:0032502","developmental process",1.1e-06,5.95860731484177
+"C7","GO:0007275","multicellular organism development",1.2e-06,5.92081875395237
+"C7","GO:0048856","anatomical structure development",1.3e-06,5.88605664769316
+"C7","GO:0009059","macromolecule biosynthetic process",1.6e-06,5.79588001734407
+"C7","GO:0008152","metabolic process",1.7e-06,5.76955107862173
+"C7","GO:0034645","cellular macromolecule biosynthetic process",2.5e-06,5.60205999132796
+"C7","GO:0050794","regulation of cellular process",4.3e-06,5.36653154442041
+"C7","GO:0003006","developmental process involved in reproduction",4.3e-06,5.36653154442041
+"C7","GO:0032501","multicellular organismal process",4.9e-06,5.30980391997149
+"C7","GO:0048608","reproductive structure development",4.9e-05,4.30980391997149
+"C7","GO:0009791","post-embryonic development",5.6e-05,4.2518119729938
+"C7","GO:0016049","cell growth",0.0012,2.92081875395238
+"C7","GO:0044249","cellular biosynthetic process",0.0017,2.76955107862173
+"C7","GO:0009058","biosynthetic process",0.003,2.52287874528034
+"C7","GO:0009628","response to abiotic stimulus",0.0033,2.48148606012211
+"C7","GO:0009790","embryo development",0.0034,2.46852108295775
+"C7","GO:0009653","anatomical structure morphogenesis",0.0045,2.34678748622466
+"C7","GO:0030154","cell differentiation",0.0047,2.32790214206428
