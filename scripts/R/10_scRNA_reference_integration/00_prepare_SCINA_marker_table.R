@@ -25,28 +25,78 @@ normalize_cell_type <- function(value) {
   gsub("^_|_$", "", normalized)
 }
 
+project_root <- find_project_root()
 arguments <- commandArgs(trailingOnly = TRUE)
-if (!length(arguments)) {
-  stop(
-    "Usage: Rscript 00_prepare_SCINA_marker_table.R ",
-    "<marker_list2.rds> [output.csv]"
-  )
+
+default_source_rds <- file.path(
+  project_root, "data", "reference", "scRNA_reference", "marker_list2.rds"
+)
+default_output_csv <- file.path(
+  project_root, "data", "metadata", "scRNA_reference",
+  "SCINA_marker_table.csv"
+)
+
+source_rds <- if (length(arguments) >= 1L) {
+  normalizePath(arguments[[1L]], winslash = "/", mustWork = TRUE)
+} else if (file.exists(default_source_rds)) {
+  normalizePath(default_source_rds, winslash = "/", mustWork = TRUE)
+} else {
+  NA_character_
 }
 
-project_root <- find_project_root()
-source_rds <- normalizePath(arguments[[1L]], winslash = "/", mustWork = TRUE)
 output_csv <- if (length(arguments) >= 2L) {
   arguments[[2L]]
 } else {
-  file.path(
-    project_root, "data", "metadata", "scRNA_reference",
-    "SCINA_marker_table.csv"
-  )
+  default_output_csv
 }
 if (!grepl("^([A-Za-z]:[/\\]|[/\\])", output_csv)) {
   output_csv <- file.path(project_root, output_csv)
 }
 
+reuse_existing_csv <- is.na(source_rds) && file.exists(output_csv)
+
+if (reuse_existing_csv) {
+  marker_table <- read.csv(
+    output_csv,
+    check.names = FALSE,
+    stringsAsFactors = FALSE
+  )
+  required_columns <- c(
+    "gene_id", "cell_type", "marker_rank", "source_cell_type"
+  )
+  missing_columns <- setdiff(required_columns, names(marker_table))
+  if (length(missing_columns) > 0L) {
+    stop(
+      "The existing SCINA marker table is missing columns: ",
+      paste(missing_columns, collapse = ", ")
+    )
+  }
+  if (nrow(marker_table) == 0L ||
+      anyNA(marker_table[, required_columns, drop = FALSE]) ||
+      any(!nzchar(trimws(marker_table$gene_id))) ||
+      any(!nzchar(trimws(marker_table$cell_type))) ||
+      anyDuplicated(marker_table[, c("gene_id", "cell_type")])) {
+    stop("The existing SCINA marker table failed validation.")
+  }
+
+  message(
+    "No marker-list RDS argument was supplied and the project-local default ",
+    "was not found. Validated the existing prepared marker table instead: ",
+    output_csv
+  )
+  message(
+    "Validated ", nrow(marker_table), " markers for ",
+    length(unique(marker_table$cell_type)), " cell types."
+  )
+} else if (is.na(source_rds)) {
+  stop(
+    "No marker-list RDS was supplied, the default file was not found at ",
+    default_source_rds,
+    ", and no prepared SCINA marker table exists at ", output_csv, ".\n",
+    "Run from the command line as: Rscript ",
+    "00_prepare_SCINA_marker_table.R <marker_list2.rds> [output.csv]"
+  )
+} else {
 marker_list <- readRDS(source_rds)
 if (!is.list(marker_list) || !length(marker_list)) {
   stop("The marker RDS must contain a non-empty list.")
@@ -117,16 +167,37 @@ provenance <- c(
   paste0("unique_genes=", length(gene_membership)),
   paste0("shared_genes=", shared_gene_count),
   "upstream_source_workbook=Supplementary_Tables_20251104.xlsx",
+  "upstream_source_workbook_md5=3d0c20648b193de5f1919ad7127f3b70",
   "upstream_source_sheet=Supplementary Table 9",
+  "supplementary_table9_comparison_passed=true",
+  "supplementary_table9_raw_rows=8080",
+  "supplementary_table9_duplicate_pair_rows=1227",
+  "supplementary_table9_genes_shared_across_cell_types=1195",
+  "supplementary_table9_exclusive_genes=4094",
+  "supplementary_table9_exclusive_genes_not_in_curated_rds=97",
   paste0(
     "comparison_script=",
     "scripts/python/compare_supplementary_table9_markers.py"
   ),
+  paste0(
+    "comparison_report=",
+    "results/logs/scina_marker_supplementary_table9_comparison.json"
+  ),
   "marker_rank_semantics=position_within_source_list",
   "cell_type_normalization=non_alphanumeric_punctuation_replaced_with_underscore"
 )
-writeLines(provenance, provenance_file, useBytes = TRUE)
+provenance_connection <- file(provenance_file, open = "wb")
+tryCatch(
+  writeLines(
+    provenance,
+    con = provenance_connection,
+    sep = "\n",
+    useBytes = TRUE
+  ),
+  finally = close(provenance_connection)
+)
 
 message("Wrote ", nrow(marker_table), " markers for ", length(marker_list),
         " cell types to ", output_csv)
 message("Provenance: ", provenance_file)
+}

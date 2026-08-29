@@ -48,6 +48,23 @@ specific biological review. SPOTlight does not consume this CSV directly: it
 uses the SCINA-annotated scRNA identities to calculate reference markers and
 map/deconvolve cell types in Visium.
 
+## Prepare or validate the marker table
+
+From the repository root in RStudio, run:
+
+```r
+source("scripts/R/10_scRNA_reference_integration/00_prepare_SCINA_marker_table.R")
+```
+
+If `data/reference/scRNA_reference/marker_list2.rds` exists, the script converts
+it to the analysis-ready CSV. If that RDS is absent but the prepared CSV already
+exists, the script validates and reuses the existing CSV without overwriting it.
+An explicit source RDS can still be supplied from a terminal:
+
+```text
+Rscript scripts/R/10_scRNA_reference_integration/00_prepare_SCINA_marker_table.R marker_list2.rds
+```
+
 Reproduce the source comparison with
 `scripts/python/compare_supplementary_table9_markers.py`. Validate expression-
 feature overlap with `tests/R/validate_marker_list_for_mapping.R`.

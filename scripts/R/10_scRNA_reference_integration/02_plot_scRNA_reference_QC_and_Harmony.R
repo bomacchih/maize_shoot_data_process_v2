@@ -87,6 +87,20 @@ if (inherits(reference, "Seurat")) {
   stop("Input must be a Seurat or SingleCellExperiment object.")
 }
 
+# Preserve the exact cell order when metadata and embeddings carry cell names.
+if (nrow(metadata) != nrow(umap)) {
+  stop(
+    "Metadata and Harmony UMAP contain different numbers of cells: ",
+    nrow(metadata), " versus ", nrow(umap), "."
+  )
+}
+if (!is.null(rownames(metadata)) && !is.null(rownames(umap))) {
+  if (!setequal(rownames(metadata), rownames(umap))) {
+    stop("Metadata and Harmony UMAP do not contain the same cell identifiers.")
+  }
+  umap <- umap[rownames(metadata), , drop = FALSE]
+}
+
 metadata_columns <- colnames(metadata)
 library_column <- first_existing(
   c("batch", "SRA_run", "library_id", "orig.ident", "sample_id"),
@@ -156,8 +170,12 @@ library_plot <- ggplot(
   theme_classic(base_size = 11)
 
 cluster_centers <- plot_data |>
-  group_by(plot_cluster) |>
-  summarise(UMAP_1 = median(UMAP_1), UMAP_2 = median(UMAP_2), .groups = "drop")
+  dplyr::group_by(plot_cluster) |>
+  dplyr::summarise(
+    UMAP_1 = median(UMAP_1),
+    UMAP_2 = median(UMAP_2),
+    .groups = "drop"
+  )
 
 cluster_plot <- ggplot(
   plot_data, aes(UMAP_1, UMAP_2, color = plot_cluster)
@@ -190,11 +208,11 @@ ggsave(file.path(figure_dir, "Figure_scRNA_reference_QC_and_Harmony.pdf"),
        combined_figure, width = 13, height = 10)
 
 qc_summary <- plot_data |>
-  group_by(plot_library) |>
-  summarise(
-    n_cells = n(),
-    across(
-      all_of(qc_features),
+  dplyr::group_by(plot_library) |>
+  dplyr::summarise(
+    n_cells = dplyr::n(),
+    dplyr::across(
+      dplyr::all_of(qc_features),
       list(
         median = ~median(.x, na.rm = TRUE),
         q05 = ~quantile(.x, 0.05, na.rm = TRUE),
@@ -209,7 +227,7 @@ write.csv(qc_summary,
           row.names = FALSE)
 
 cluster_summary <- plot_data |>
-  count(plot_library, plot_cluster, name = "n_cells")
+  dplyr::count(plot_library, plot_cluster, name = "n_cells")
 write.csv(cluster_summary,
           file.path(table_dir, "scRNA_reference_cells_by_library_and_cluster.csv"),
           row.names = FALSE)

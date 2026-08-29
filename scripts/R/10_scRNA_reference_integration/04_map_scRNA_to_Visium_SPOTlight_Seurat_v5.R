@@ -31,6 +31,7 @@ set.seed(1)
 
 run_hard_label_transfer <- TRUE
 run_spotlight_deconvolution <- TRUE
+reuse_existing_hard_transfer <- TRUE
 sections_to_run <- NULL       # NULL runs every section; use c("VR03_S2") to test
 reference_cells_per_type <- 100L
 markers_per_type <- 100L
@@ -68,21 +69,56 @@ safe_spotlight_name <- function(cell_type) {
 }
 
 standardize_cell_type <- function(x) {
-  gsub("^SPOT_", "", as.character(x))
+  gsub("^SPOT_", "", as_character_vector(x, "cell type"))
+}
+
+as_character_vector <- function(x, description = "value") {
+  if (is.data.frame(x)) {
+    if (ncol(x) != 1L) {
+      stop(description, " must contain exactly one column.")
+    }
+    x <- x[[1L]]
+  }
+  if (methods::is(x, "Rle")) {
+    # Factor-Rle objects do not consistently support as.character() across
+    # S4Vectors versions, so expand their ordinary run values explicitly.
+    x <- rep(
+      as.character(S4Vectors::runValue(x)),
+      S4Vectors::runLength(x)
+    )
+  }
+  if (isS4(x)) {
+    x <- tryCatch(
+      as.vector(x),
+      error = function(error) {
+        stop(
+          "Could not convert ", description, " from S4 class ",
+          paste(class(x), collapse = "/"), " to an ordinary vector: ",
+          conditionMessage(error)
+        )
+      }
+    )
+  }
+  if (isS4(x) || is.list(x)) {
+    stop(description, " is not an atomic vector after extraction.")
+  }
+  as.character(x)
 }
 
 get_all_tissue_coordinates <- function(object) {
-  image_names <- Images(object)
+  image_names <- SeuratObject::Images(object)
   if (!length(image_names)) stop("The Visium object contains no spatial images.")
 
   coordinate_list <- lapply(image_names, function(image_name) {
-    coordinates <- GetTissueCoordinates(object, image = image_name)
+    coordinates <- SeuratObject::GetTissueCoordinates(
+      object, image = image_name
+    )
     if (!nrow(coordinates)) return(NULL)
     coordinates$spatial_image <- image_name
     coordinates$spot_barcode <- rownames(coordinates)
     coordinates
   })
-  coordinates <- bind_rows(coordinate_list)
+  coordinates <- dplyr::bind_rows(coordinate_list)
   if (!nrow(coordinates)) stop("No tissue coordinates were recovered.")
   coordinates <- coordinates[!duplicated(coordinates$spot_barcode), , drop = FALSE]
   rownames(coordinates) <- coordinates$spot_barcode
@@ -127,8 +163,25 @@ read_optional_gene_list <- function(path) {
     (\(x) x[nzchar(x)])()
 }
 
-build_marker_table <- function(sce, genes_to_test, maximum_per_type = 100L) {
-  marker_statistics <- scran::scoreMarkers(sce, subset.row = genes_to_test)
+build_marker_table <- function(sce, groups, genes_to_test,
+                               maximum_per_type = 100L) {
+  if (length(groups) != ncol(sce)) {
+    stop("Marker-group vector length does not match the reference cells.")
+  }
+  message("Scoring reference markers by cell type.")
+  log_expression <- SummarizedExperiment::assay(
+    sce, "logcounts", withDimnames = TRUE
+  )
+  marker_statistics <- scran::scoreMarkers(
+    log_expression,
+    groups = factor(groups),
+    subset.row = genes_to_test
+  )
+  message(
+    "Marker scoring returned statistics for ",
+    length(marker_statistics), " cell types."
+  )
+  rm(log_expression)
   marker_tables <- lapply(names(marker_statistics), function(cell_type) {
     marker_table <- as.data.frame(marker_statistics[[cell_type]])
     weight_column <- first_existing(
@@ -139,12 +192,12 @@ build_marker_table <- function(sce, genes_to_test, maximum_per_type = 100L) {
     marker_table$cluster <- cell_type
     marker_table$weight <- suppressWarnings(as.numeric(marker_table[[weight_column]]))
     marker_table |>
-      filter(is.finite(weight), gene %in% genes_to_test) |>
-      arrange(desc(weight)) |>
-      slice_head(n = maximum_per_type) |>
-      select(gene, cluster, weight)
+      dplyr::filter(is.finite(weight), gene %in% genes_to_test) |>
+      dplyr::arrange(dplyr::desc(weight)) |>
+      dplyr::slice_head(n = maximum_per_type) |>
+      dplyr::select(gene, cluster, weight)
   })
-  marker_table <- bind_rows(marker_tables)
+  marker_table <- dplyr::bind_rows(marker_tables)
   if (!nrow(marker_table)) stop("No SPOTlight marker genes were retained.")
   marker_table
 }
@@ -207,14 +260,22 @@ for (directory in c(dirname(output_rds), figure_dir, table_dir,
 
 if (exists("sc_reference", envir = .GlobalEnv, inherits = FALSE)) {
   sc_reference <- get("sc_reference", envir = .GlobalEnv)
+} else if (exists("sc_merged_filter_SCT2_inte_SCINA",
+                  envir = .GlobalEnv, inherits = FALSE)) {
+  sc_reference <- get(
+    "sc_merged_filter_SCT2_inte_SCINA", envir = .GlobalEnv
+  )
 } else if (file.exists(reference_rds)) {
   sc_reference <- readRDS(reference_rds)
-} else if (exists("sc_merged_filter_SCT2_inte", envir = .GlobalEnv,
-                  inherits = FALSE)) {
-  sc_reference <- get("sc_merged_filter_SCT2_inte", envir = .GlobalEnv)
 } else {
-  stop("Load an annotated scRNA reference as `sc_reference`, or create: ",
-       reference_rds)
+  stop(
+    "The SCINA-annotated scRNA reference is required but was not found.\n",
+    "First run:\n",
+    "source(\"scripts/R/10_scRNA_reference_integration/",
+    "03_scRNA_celltype_annotation_SCINA_Seurat_v5.R\")\n",
+    "This creates: ", reference_rds, "\n",
+    "Alternatively, load that annotated Seurat object as `sc_reference`."
+  )
 }
 
 if (exists("visium_query", envir = .GlobalEnv, inherits = FALSE)) {
@@ -227,7 +288,11 @@ if (exists("visium_query", envir = .GlobalEnv, inherits = FALSE)) {
 }
 
 stopifnot(inherits(sc_reference, "Seurat"), inherits(visium_query, "Seurat"))
-original_visium_idents <- Idents(visium_query)
+message(
+  "Loaded annotated scRNA reference (", ncol(sc_reference),
+  " cells) and Visium query (", ncol(visium_query), " spots)."
+)
+original_visium_idents <- SeuratObject::Idents(visium_query)
 reference_metadata <- sc_reference[[]]
 visium_metadata <- visium_query[[]]
 
@@ -236,7 +301,9 @@ celltype_column <- first_existing(
     "ident", "label"),
   colnames(reference_metadata), "scRNA cell-type annotation column"
 )
-reference_labels <- as.character(reference_metadata[[celltype_column]])
+reference_labels <- as_character_vector(
+  reference_metadata[[celltype_column]], celltype_column
+)
 valid_reference_cells <- !is.na(reference_labels) & nzchar(reference_labels) &
   reference_labels != "Unknown"
 sc_reference <- subset(sc_reference, cells = colnames(sc_reference)[valid_reference_cells])
@@ -244,11 +311,12 @@ sc_reference$celltype_mapping_reference <- factor(
   reference_labels[valid_reference_cells]
 )
 
-reference_assay <- first_existing(
-  c("SCT", "RNA"), Assays(sc_reference), "reference expression assay"
+reference_count_assay <- first_existing(
+  c("RNA", "SCT"), SeuratObject::Assays(sc_reference),
+  "reference raw-count assay"
 )
 query_assay <- first_existing(
-  c("SCT", "RNA", "Spatial"), Assays(visium_query),
+  c("SCT", "RNA", "Spatial"), SeuratObject::Assays(visium_query),
   "Visium expression assay"
 )
 
@@ -256,17 +324,35 @@ query_assay <- first_existing(
 # Hard label transfer with Seurat anchors and MapQuery
 # -----------------------------
 
-if (run_hard_label_transfer) {
-  if (!"SCT" %in% Assays(sc_reference) || !"SCT" %in% Assays(visium_query)) {
+hard_transfer_available <- "predicted.celltype" %in%
+  colnames(visium_query[[]])
+
+if (run_hard_label_transfer && reuse_existing_hard_transfer &&
+    hard_transfer_available) {
+  message("Reusing the completed Seurat hard-label transfer in visium_query.")
+} else if (run_hard_label_transfer) {
+  message("Starting Seurat SCT anchor transfer using PCA projection.")
+  if (!"SCT" %in% SeuratObject::Assays(sc_reference) ||
+      !"SCT" %in% SeuratObject::Assays(visium_query)) {
     stop("SCT assays are required for the configured SCT anchor transfer.")
   }
-  reference_reduction <- first_existing(
-    c("integrated.harmony", "harmony", "pca"),
-    Reductions(sc_reference), "reference PCA/Harmony reduction"
-  )
+  # Seurat's pcaproject mapping requires a PCA reduction with feature loadings.
+  # Harmony is retained for visualization but is not used as the projection
+  # basis for FindTransferAnchors/MapQuery.
+  if (!"pca" %in% SeuratObject::Reductions(sc_reference)) {
+    SeuratObject::DefaultAssay(sc_reference) <- "SCT"
+    set.seed(1)
+    sc_reference <- RunPCA(
+      sc_reference, assay = "SCT", npcs = n_pcs,
+      reduction.name = "pca", reduction.key = "PC_", verbose = FALSE
+    )
+  }
+  reference_reduction <- "pca"
   available_dimensions <- min(
     n_pcs,
-    ncol(Embeddings(sc_reference, reduction = reference_reduction))
+    ncol(SeuratObject::Embeddings(
+      sc_reference, reduction = reference_reduction
+    ))
   )
   transfer_dimensions <- seq_len(available_dimensions)
 
@@ -288,10 +374,12 @@ if (run_hard_label_transfer) {
     normalization.method = "SCT",
     reference.assay = "SCT",
     query.assay = "SCT",
+    reduction = "pcaproject",
     reference.reduction = reference_reduction,
     dims = transfer_dimensions
   )
 
+  message("Transfer anchors completed; projecting labels with MapQuery.")
   visium_query <- MapQuery(
     anchorset = transfer_anchors,
     query = visium_query,
@@ -313,18 +401,32 @@ if (run_hard_label_transfer) {
 # -----------------------------
 
 if (run_spotlight_deconvolution) {
-  reference_counts <- GetAssayData(
-    sc_reference, assay = reference_assay, layer = "counts"
+  message("Starting SPOTlight reference preparation and deconvolution.")
+  reference_cell_type_vector <- as_character_vector(
+    sc_reference[[]][["celltype_mapping_reference"]],
+    "scRNA reference cell types"
   )
-  sce_reference <- SingleCellExperiment(
+  reference_counts <- SeuratObject::GetAssayData(
+    sc_reference, assay = reference_count_assay, layer = "counts"
+  )
+  message(
+    "Recovered raw reference counts from the ", reference_count_assay,
+    " assay: ", nrow(reference_counts), " genes x ",
+    ncol(reference_counts), " cells."
+  )
+  sce_reference <- SingleCellExperiment::SingleCellExperiment(
     assays = list(counts = reference_counts),
     colData = S4Vectors::DataFrame(
-      cell_type = sc_reference$celltype_mapping_reference
+      cell_type = reference_cell_type_vector
     )
   )
+  message("Created the SingleCellExperiment reference.")
   sce_reference <- scuttle::logNormCounts(sce_reference)
-  SingleCellExperiment::colLabels(sce_reference) <-
-    factor(SummarizedExperiment::colData(sce_reference)$cell_type)
+  message("Completed log-normalization for SPOTlight marker selection.")
+  SingleCellExperiment::colLabels(sce_reference) <- factor(
+    reference_cell_type_vector
+  )
+  message("Assigned reference cell-type labels.")
 
   mitochondrial_genes <- read_optional_gene_list(mitochondrial_gene_file)
   plastid_genes <- read_optional_gene_list(plastid_gene_file)
@@ -335,10 +437,26 @@ if (run_spotlight_deconvolution) {
   variance_model <- scran::modelGeneVar(
     sce_reference, subset.row = eligible_genes
   )
-  hvg <- scran::getTopHVGs(variance_model, n = min(n_hvg, nrow(variance_model)))
+  message("Completed reference variance modeling.")
+  requested_hvg <- min(n_hvg, nrow(variance_model))
+  if (requireNamespace("scrapper", quietly = TRUE)) {
+    hvg_indices <- scrapper::chooseHighlyVariableGenes(
+      variance_model$bio,
+      top = requested_hvg,
+      bound = 0
+    )
+    hvg <- rownames(variance_model)[hvg_indices]
+  } else {
+    hvg <- scran::getTopHVGs(variance_model, n = requested_hvg)
+  }
+  message("Selected ", length(hvg), " highly variable genes.")
   marker_table <- build_marker_table(
-    sce_reference, eligible_genes, markers_per_type
+    sce_reference,
+    groups = reference_cell_type_vector,
+    genes_to_test = eligible_genes,
+    maximum_per_type = markers_per_type
   )
+  message("Completed SPOTlight marker and HVG selection.")
   write.csv(marker_table,
             file.path(table_dir, "SPOTlight_scRNA_marker_table.csv"),
             row.names = FALSE)
@@ -348,17 +466,24 @@ if (run_spotlight_deconvolution) {
 
   sce_reference_small <- downsample_reference(
     sce_reference,
-    groups = SummarizedExperiment::colData(sce_reference)$cell_type,
+    groups = as_character_vector(
+      SummarizedExperiment::colData(sce_reference)$cell_type,
+      "scRNA reference cell types"
+    ),
     maximum_per_type = reference_cells_per_type
   )
   reference_cell_types <- levels(droplevels(
-    factor(SummarizedExperiment::colData(sce_reference_small)$cell_type)
+    factor(as_character_vector(
+      SummarizedExperiment::colData(sce_reference_small)$cell_type,
+      "downsampled scRNA reference cell types"
+    ))
   ))
 
   spatial_assay <- first_existing(
-    c("RNA", "Spatial"), Assays(visium_query), "raw Visium count assay"
+    c("RNA", "Spatial"), SeuratObject::Assays(visium_query),
+    "raw Visium count assay"
   )
-  spatial_counts <- GetAssayData(
+  spatial_counts <- SeuratObject::GetAssayData(
     visium_query, assay = spatial_assay, layer = "counts"
   )
   all_coordinates <- get_all_tissue_coordinates(visium_query)
@@ -368,7 +493,9 @@ if (run_spotlight_deconvolution) {
     c("section_id", "domain_section", "section"),
     colnames(visium_query[[]]), "section metadata column"
   )
-  section_labels <- as.character(visium_query[[section_column, drop = TRUE]])
+  section_labels <- as_character_vector(
+    visium_query[[section_column, drop = TRUE]], section_column
+  )
   names(section_labels) <- colnames(visium_query)
   available_sections <- sort(unique(section_labels[!is.na(section_labels) &
                                                       nzchar(section_labels)]))
@@ -402,7 +529,7 @@ if (run_spotlight_deconvolution) {
       rownames(sce_reference_small), rownames(spatial_counts)
     )
     section_markers <- marker_table |>
-      filter(gene %in% common_genes)
+      dplyr::filter(gene %in% common_genes)
     section_hvg <- intersect(hvg, common_genes)
     if (!nrow(section_markers) || length(section_hvg) < 50L) {
       warning("Skipping ", section_id, ": insufficient shared markers/HVGs.")
@@ -426,7 +553,10 @@ if (run_spotlight_deconvolution) {
       x = section_reference,
       y = spatial_experiment,
       groups = as.character(
-        SummarizedExperiment::colData(section_reference)$cell_type
+        as_character_vector(
+          SummarizedExperiment::colData(section_reference)$cell_type,
+          "section reference cell types"
+        )
       ),
       mgs = section_markers,
       hvg = section_hvg,
@@ -480,7 +610,9 @@ if (run_spotlight_deconvolution) {
   colnames(proportion_metadata) <- safe_spotlight_name(
     colnames(proportion_metadata)
   )
-  visium_query <- AddMetaData(visium_query, proportion_metadata)
+  visium_query <- SeuratObject::AddMetaData(
+    visium_query, proportion_metadata
+  )
 
   maximum_index <- max.col(proportion_matrix, ties.method = "first")
   top_type <- colnames(proportion_matrix)[maximum_index]
@@ -500,7 +632,7 @@ if (run_spotlight_deconvolution) {
     SPOT_entropy_normalized = normalized_entropy,
     row.names = rownames(proportion_matrix)
   )
-  visium_query <- AddMetaData(visium_query, summary_metadata)
+  visium_query <- SeuratObject::AddMetaData(visium_query, summary_metadata)
 
   write.csv(
     cbind(spot = rownames(proportion_matrix), as.data.frame(proportion_matrix)),
@@ -508,7 +640,7 @@ if (run_spotlight_deconvolution) {
     row.names = FALSE
   )
   write.csv(
-    bind_rows(section_diagnostics),
+    dplyr::bind_rows(section_diagnostics),
     file.path(table_dir, "SPOTlight_section_diagnostics.csv"),
     row.names = FALSE
   )
@@ -574,7 +706,7 @@ if (file.exists(optional_module_marker_csv)) {
       )
     )
   }
-  write.csv(bind_rows(module_correlations),
+  write.csv(dplyr::bind_rows(module_correlations),
             file.path(table_dir, "SPOTlight_module_score_correlations.csv"),
             row.names = FALSE)
 }
@@ -585,7 +717,7 @@ if (file.exists(optional_module_marker_csv)) {
 
 query_reduction <- first_existing(
   c("umapharmony", "umap.harmony", "harmony.umap", "umap", "ref.umap"),
-  Reductions(visium_query), "Visium UMAP reduction"
+  SeuratObject::Reductions(visium_query), "Visium UMAP reduction"
 )
 spotlight_columns <- grep("^SPOT_", colnames(visium_query[[]]), value = TRUE)
 spotlight_columns <- setdiff(
@@ -652,8 +784,10 @@ if (length(threshold_plots)) {
          threshold_figure, width = 11, height = 5.5, dpi = 300)
 }
 
-Idents(visium_query) <- original_visium_idents
-stopifnot(identical(Idents(visium_query), original_visium_idents))
+SeuratObject::Idents(visium_query) <- original_visium_idents
+stopifnot(identical(
+  SeuratObject::Idents(visium_query), original_visium_idents
+))
 saveRDS(visium_query, output_rds, compress = FALSE)
 
 writeLines(

@@ -5,6 +5,7 @@ data/processed/*
 !data/processed/README.md
 *.rds
 *.RDS
+!data/reference/scRNA_reference/marker_list2.rds
 *.h5
 *.h5ad
 *.loom

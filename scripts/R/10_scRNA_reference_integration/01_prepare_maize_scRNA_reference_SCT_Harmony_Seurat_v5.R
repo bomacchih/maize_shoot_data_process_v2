@@ -4,6 +4,13 @@
 #   SRR11943512
 #   SRR11943513
 #
+# PRACTICE / RECONSTRUCTION SCRIPT
+# The large input matrices are not distributed through GitHub. This script is
+# retained as a complete, executable example for users who download the source
+# data and generate 10x-style gene-count matrices themselves. It does not read
+# SRA FASTQ files directly. The deposited processed Seurat RDS is the recommended
+# starting point when reconstruction from counts is not required.
+#
 # Expected project structure:
 # data/
 # ├── raw/
@@ -75,6 +82,9 @@ dir.create(session_dir, recursive = TRUE, showWarnings = FALSE)
 
 output_rds <- file.path(processed_dir, "sc_merged_filter_SCT2_inte.rds")
 overwrite_existing_output <- FALSE
+# Loading the existing 1.5-GB object is optional. Keep FALSE when the goal is
+# only to confirm that the completed reference is available and skip rebuilding.
+load_existing_output <- FALSE
 
 sra_runs <- c("SRR11943512", "SRR11943513")
 min_cells <- 3L
@@ -88,12 +98,56 @@ random_seed <- 2026L
 options(future.globals.maxSize = 8 * 1024^3)
 set.seed(random_seed)
 
-if (file.exists(output_rds) && !overwrite_existing_output) {
-  stop(
-    "The final reference already exists and will not be overwritten: ", output_rds,
-    "\nSet overwrite_existing_output <- TRUE only when intentionally rebuilding it."
+reuse_existing_output <- file.exists(output_rds) && !overwrite_existing_output
+
+if (reuse_existing_output) {
+  output_information <- file.info(output_rds)
+  if (is.na(output_information$size) || output_information$size <= 0) {
+    stop("The existing reference RDS is empty or unreadable: ", output_rds)
+  }
+
+  if (load_existing_output) {
+    message("Loading and validating the existing scRNA reference: ", output_rds)
+    sc_reference <- readRDS(output_rds)
+    if (!inherits(sc_reference, "Seurat")) {
+      stop("The existing reference RDS does not contain a Seurat object.")
+    }
+    required_assays <- c("RNA", "SCT")
+    required_reductions <- c("harmony", "umap.harmony")
+    required_metadata <- c("SRA_run", "harmony_clusters")
+    stopifnot(
+      all(required_assays %in% Assays(sc_reference)),
+      all(required_reductions %in% Reductions(sc_reference)),
+      all(required_metadata %in% colnames(sc_reference[[]]))
+    )
+    message(
+      "Validated existing Seurat object: ", ncol(sc_reference), " cells; ",
+      nrow(sc_reference), " genes."
+    )
+  }
+
+  reuse_record <- c(
+    paste0("existing_output=", output_rds),
+    paste0("file_size_bytes=", output_information$size),
+    paste0("load_existing_output=", load_existing_output),
+    "action=reused_existing_output_without_overwrite",
+    paste0("timestamp=", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"))
   )
-}
+  writeLines(
+    reuse_record,
+    file.path(table_dir, "scRNA_reference_existing_output_record.txt")
+  )
+  writeLines(
+    capture.output(sessionInfo()),
+    file.path(session_dir, "10_scRNA_reference_integration_sessionInfo.txt")
+  )
+
+  message("Existing final reference found; rebuild skipped safely: ", output_rds)
+  message(
+    "Set overwrite_existing_output <- TRUE only when intentionally rebuilding ",
+    "from the raw count matrices."
+  )
+} else {
 
 # -----------------------------
 # 2. Helper functions
@@ -216,8 +270,7 @@ detect_doublets_and_retain_singlets <- function(seurat_object, run_id) {
   list(object = seurat_object, summary = class_counts)
 }
 
-load_and_filter_library <- function(run_id) {
-  matrix_directory <- find_10x_matrix_directory(raw_reference_dir, run_id)
+load_and_filter_library <- function(run_id, matrix_directory) {
   message("Reading ", run_id, " from ", matrix_directory)
   counts <- read_gene_expression_matrix(matrix_directory)
 
@@ -241,7 +294,31 @@ load_and_filter_library <- function(run_id) {
 # 3. Load the two libraries and remove doublets separately
 # -----------------------------
 
-library_results <- lapply(sra_runs, load_and_filter_library)
+# Resolve and validate every input directory before starting doublet detection
+# or another computationally expensive step.
+matrix_directories <- setNames(
+  vapply(
+    sra_runs,
+    function(run_id) find_10x_matrix_directory(raw_reference_dir, run_id),
+    character(1)
+  ),
+  sra_runs
+)
+write.csv(
+  data.frame(
+    SRA_run = names(matrix_directories),
+    matrix_directory = unname(matrix_directories),
+    stringsAsFactors = FALSE
+  ),
+  file.path(table_dir, "scRNA_reference_input_matrix_directories.csv"),
+  row.names = FALSE
+)
+
+library_results <- Map(
+  f = load_and_filter_library,
+  run_id = names(matrix_directories),
+  matrix_directory = unname(matrix_directories)
+)
 names(library_results) <- sra_runs
 
 doublet_summary <- bind_rows(lapply(library_results, `[[`, "summary"))
@@ -380,6 +457,7 @@ sc_reference <- IntegrateLayers(
   orig.reduction = "pca",
   new.reduction = "harmony",
   assay = "SCT",
+  normalization.method = "SCT",
   dims = seq_len(integration_pcs),
   verbose = TRUE
 )
@@ -544,3 +622,4 @@ message("Cells: ", ncol(sc_reference), "; genes: ", nrow(sc_reference))
 message("Active identity: harmony_clusters")
 message("Figures: ", figure_dir)
 message("Tables: ", table_dir)
+}

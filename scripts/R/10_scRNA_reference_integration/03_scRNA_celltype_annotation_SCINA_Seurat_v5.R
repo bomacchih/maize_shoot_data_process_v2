@@ -9,8 +9,8 @@
 #
 # Reference inputs, in order of preference:
 #   1. in-memory Seurat object: sc_merged_filter_SCT2_inte
-#   2. data/processed/sce_ref.rds (plot-only when annotations already exist)
-#   3. data/processed/sc_merged_filter_SCT2_inte.rds
+#   2. data/processed/sc_merged_filter_SCT2_inte.rds
+#   3. data/processed/sce_ref.rds (plot-only when the full object is unavailable)
 #
 # A new RDS is written only when SCINA is run:
 #   data/processed/sc_merged_filter_SCT2_inte_SCINA.rds
@@ -60,40 +60,41 @@ prepare_signatures <- function(marker_table, available_genes,
   )
 
   marker_table <- marker_table |>
-    mutate(
+    dplyr::mutate(
       gene_id = trimws(as.character(gene_id)),
       cell_type = trimws(as.character(cell_type)),
-      input_order = seq_len(n())
+      input_order = seq_len(dplyr::n())
     ) |>
-    filter(!is.na(gene_id), nzchar(gene_id),
-           !is.na(cell_type), nzchar(cell_type),
-           gene_id %in% available_genes) |>
-    distinct(cell_type, gene_id, .keep_all = TRUE)
+    dplyr::filter(!is.na(gene_id), nzchar(gene_id),
+                  !is.na(cell_type), nzchar(cell_type),
+                  gene_id %in% available_genes) |>
+    dplyr::distinct(cell_type, gene_id, .keep_all = TRUE)
 
   if (!is.na(rank_column)) {
     decreasing_rank <- rank_column %in% c("avg_log2FC", "avg_logFC")
     rank_values <- suppressWarnings(as.numeric(marker_table[[rank_column]]))
     marker_table$rank_value <- if (decreasing_rank) -rank_values else rank_values
     marker_table <- marker_table |>
-      arrange(cell_type, is.na(rank_value), rank_value, input_order)
+      dplyr::arrange(cell_type, is.na(rank_value), rank_value, input_order)
   } else {
-    marker_table <- marker_table |> arrange(cell_type, input_order)
+    marker_table <- marker_table |>
+      dplyr::arrange(cell_type, input_order)
   }
 
   # Remove markers assigned to more than one cell type.
   shared_markers <- marker_table |>
-    distinct(cell_type, gene_id) |>
-    count(gene_id, name = "n_cell_types") |>
-    filter(n_cell_types > 1L) |>
-    pull(gene_id)
+    dplyr::distinct(cell_type, gene_id) |>
+    dplyr::count(gene_id, name = "n_cell_types") |>
+    dplyr::filter(n_cell_types > 1L) |>
+    dplyr::pull(gene_id)
 
   marker_table <- marker_table |>
-    filter(!gene_id %in% shared_markers) |>
-    group_by(cell_type) |>
-    slice_head(n = maximum_markers) |>
-    ungroup() |>
-    add_count(cell_type, name = "n_markers") |>
-    filter(n_markers >= 2L)
+    dplyr::filter(!gene_id %in% shared_markers) |>
+    dplyr::group_by(cell_type) |>
+    dplyr::slice_head(n = maximum_markers) |>
+    dplyr::ungroup() |>
+    dplyr::add_count(cell_type, name = "n_markers") |>
+    dplyr::filter(n_markers >= 2L)
 
   signatures <- split(marker_table$gene_id, marker_table$cell_type)
   signatures <- lapply(signatures, unique)
@@ -152,12 +153,12 @@ if (exists("sc_merged_filter_SCT2_inte", envir = .GlobalEnv,
            inherits = FALSE)) {
   reference <- get("sc_merged_filter_SCT2_inte", envir = .GlobalEnv)
   input_label <- "in-memory sc_merged_filter_SCT2_inte"
-} else if (file.exists(sce_rds)) {
-  reference <- readRDS(sce_rds)
-  input_label <- "sce_ref.rds"
 } else if (file.exists(seurat_rds)) {
   reference <- readRDS(seurat_rds)
   input_label <- "sc_merged_filter_SCT2_inte.rds"
+} else if (file.exists(sce_rds)) {
+  reference <- readRDS(sce_rds)
+  input_label <- "sce_ref.rds (plot-only fallback)"
 } else {
   stop("No supported reference object was found.")
 }

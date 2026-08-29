@@ -15,12 +15,20 @@ Selected vascular and SAM plots can be regenerated without rerunning deconvoluti
 
 Because both objects are large, the recommended procedure is to load them in RStudio as `sc_reference` and `visium_query` before sourcing the script. The workflow writes a new output object and does not overwrite either input.
 
+The lightweight `sce_ref.rds` can reproduce the SCINA validation plot but is not a substitute for the full annotated Seurat reference in this mapping workflow. If `sc_merged_filter_SCT2_inte_SCINA.rds` does not yet exist, first run:
+
+```r
+source("scripts/R/10_scRNA_reference_integration/03_scRNA_celltype_annotation_SCINA_Seurat_v5.R")
+```
+
+Step 03 now preferentially loads `sc_merged_filter_SCT2_inte.rds`, runs SCINA using the supplied marker table, and creates the required annotated RDS.
+
 ## Hard cell-type transfer
 
 The annotated scRNA-seq object is used as the reference and the Visium object as the query. Cells labeled `Unknown` are excluded from reference construction. The script:
 
 1. Uses the SCT assays of the reference and query.
-2. Creates a reference UMAP model from the reference PCA or Harmony reduction.
+2. Creates a reference UMAP model from the reference PCA reduction. PCA is used because Seurat's `pcaproject` mapping requires reference feature loadings; the Harmony reduction remains available for visualization.
 3. Identifies transfer anchors with `FindTransferAnchors()` using the first 30 dimensions.
 4. Calls `MapQuery()` with the SCINA cell-type labels as reference data.
 5. Stores the hard assignments in `predicted.celltype` and the associated transfer score in `predicted.celltype.score`.
