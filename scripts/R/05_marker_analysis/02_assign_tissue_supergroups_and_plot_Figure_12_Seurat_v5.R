@@ -29,6 +29,17 @@
 # supergroups of spatial information," in Supplementary_Tables_20251205.xlsx.
 # The table defines 12 anatomical tissue supergroups plus sample_vari, which
 # records sample-specific variation and is not treated as a tissue identity.
+#
+# DEMONSTRATION-ONLY WARNING:
+# Harmony cluster numbers are analysis-specific labels, not transferable
+# biological identities. The mapping below is valid only for the supplied maize
+# shoot demonstration objects, for which the spot-level harmony_clusters values
+# were verified to match exactly. For an independently processed dataset, users
+# must identify their own clusters by examining marker genes, structural-domain
+# distributions, spatial positions, and histology, and then replace the mapping
+# below with a dataset-specific cluster-to-supergroup table.
+# Step 04 also stores newly calculated clusters as harmony_clusters_recomputed.
+# This Figure 12 reproduction intentionally does not use that field.
 
 suppressPackageStartupMessages({
     library(Seurat)
@@ -62,6 +73,8 @@ umap_rotation_degrees <- 0
 umap_x_limits <- c(-8.5, 11.0)
 umap_y_limits <- c(-8.5, 8.5)
 
+# Demonstration mapping for the supplied maize shoot dataset. Do not reuse these
+# numeric cluster assignments for a newly integrated or reclustered dataset.
 cluster_to_supergroup <- data.frame(
     cluster = as.character(0:32),
     spatial_pattern = c(
@@ -386,7 +399,7 @@ pD <- SpatialDimPlot(
     # combined Seurat object. Using "hires" misaligns the image and spots.
     image.scale = "lowres",
     image.alpha = 1,
-    pt.size.factor = 1.75,
+    pt.size.factor = 3.5,
     alpha = c(1, 1),
     stroke = 0.1,
     crop = TRUE

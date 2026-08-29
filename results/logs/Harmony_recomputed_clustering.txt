@@ -1,0 +1,11 @@
+Reduction: harmony
+Dimensions: 1-30
+k.param: 20
+Graph: harmony_snn
+Clustering resolution: 2
+Clustering algorithm: 1
+Random seed: 1234
+Recomputed cluster count: 32
+Published cluster count: 33
+harmony_clusters_recomputed was calculated from the current Harmony graph.
+harmony_clusters was imported from metadata.csv for manuscript reproduction.

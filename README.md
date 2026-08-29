@@ -137,7 +137,12 @@ The integration workflow writes the main combined object to:
 data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
 ```
 
-Its active identity is set to `harmony_clusters` before saving.
+The object contains two deliberately separate cluster fields:
+
+- `harmony_clusters_recomputed` is calculated from the current Harmony reduction using `FindNeighbors()` and `FindClusters()` and is the appropriate starting point for a new analysis.
+- `harmony_clusters` is imported from `metadata.csv` and retained as the active identity to reproduce the published marker analysis and Figure 12 mapping exactly.
+
+Numeric cluster labels are analysis-specific. Users must characterize their recomputed clusters and create their own cluster-to-supergroup mapping rather than transferring the published mapping.
 
 ## Starting from Space Ranger outputs
 
@@ -186,7 +191,7 @@ docs/             Human-readable Markdown and rendered HTML reports
 
 Available reports include:
 
-- [QC, SCTransform, and Harmony integration](docs/QC_SCT_Harmony_workflow.md)
+- [QC, SCTransform, Harmony integration, and clustering](docs/QC_SCT_Harmony_workflow.md)
 - [Seurat v5 maize spatial dataset](docs/Maize_data_Seurat_v5.md)
 - [Tissue supergroups and Figure 12](docs/Tissue_supergroups_Figure_12_Seurat_v5.md)
 - [Structural-domain pseudobulk analysis](docs/Pseudobulk_structural_domains_Figure_8.md)

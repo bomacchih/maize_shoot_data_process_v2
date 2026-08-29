@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
 
 # Merge 14 individual maize shoot Seurat v5 objects and perform
-# SCTransform normalization followed by Harmony integration.
+# SCTransform normalization followed by Harmony integration, graph construction,
+# and unsupervised clustering.
 # After merging, cell names are standardized as BARCODE-1_1_SAMPLE_NUMBER
 # (for example, UL01_AAACAAGTATCTCCCA-1 becomes
 # AAACAAGTATCTCCCA-1_1_1). The original merged name is retained in
@@ -42,6 +43,8 @@
 #   results/figures/PCA_Harmony_before_after_UMAP.png
 #   results/figures/Harmony_UMAP_by_domain.png
 #   results/figures/Harmony_UMAP_domains_by_sample.png
+#   results/tables/harmony_clusters_recomputed_vs_published.csv
+#   results/logs/Harmony_recomputed_clustering.txt
 
 suppressPackageStartupMessages({
     library(Seurat)
@@ -57,6 +60,9 @@ max_pcs_to_test <- 50L
 n_pcs_use <- 30L
 minimum_total_reads_per_gene <- 100
 random_seed <- 1234L
+neighbor_k <- 20L
+clustering_resolution <- 2
+clustering_algorithm <- 1L
 
 sample_ids <- c(
     "UL01", "UL02", "UL04",
@@ -456,6 +462,105 @@ combined <- IntegrateLayers(
     verbose = FALSE
 )
 
+# Construct the shared-nearest-neighbor graph and calculate clusters from the
+# newly generated Harmony reduction. Store these clusters under a new metadata
+# name so the published demonstration labels imported from metadata.csv remain
+# unchanged. Resolution 2 matches the original exploratory workflow, but users
+# should evaluate an appropriate resolution for their own dataset.
+published_harmony_clusters_before_reclustering <- as.character(
+    combined$harmony_clusters
+)
+published_seurat_clusters_before_reclustering <- combined$seurat_clusters
+combined <- FindNeighbors(
+    object = combined,
+    reduction = "harmony",
+    dims = seq_len(n_pcs_use),
+    k.param = neighbor_k,
+    graph.name = c("harmony_nn", "harmony_snn"),
+    verbose = TRUE
+)
+set.seed(random_seed)
+combined <- FindClusters(
+    object = combined,
+    graph.name = "harmony_snn",
+    resolution = clustering_resolution,
+    algorithm = clustering_algorithm,
+    random.seed = random_seed,
+    cluster.name = "harmony_clusters_recomputed",
+    verbose = TRUE
+)
+recomputed_cluster_values <- as.character(
+    combined$harmony_clusters_recomputed
+)
+recomputed_cluster_levels <- as.character(sort(unique(as.integer(
+    recomputed_cluster_values
+))))
+combined$harmony_clusters_recomputed <- factor(
+    recomputed_cluster_values,
+    levels = recomputed_cluster_levels
+)
+# FindClusters() also refreshes the generic seurat_clusters field. Restore the
+# published value imported from metadata.csv so historical reference metadata
+# remain unchanged; the new clustering is retained under its explicit name.
+combined$seurat_clusters <- published_seurat_clusters_before_reclustering
+stopifnot(
+    identical(
+        as.character(combined$harmony_clusters),
+        published_harmony_clusters_before_reclustering
+    ),
+    identical(
+        as.character(combined$seurat_clusters),
+        as.character(published_seurat_clusters_before_reclustering)
+    ),
+    !anyNA(combined$harmony_clusters_recomputed)
+)
+
+# Record correspondence without assuming that cluster numbers are transferable.
+# The recomputed labels are the appropriate starting point for a new analysis;
+# the published labels are retained only to reproduce the manuscript example.
+cluster_comparison <- as.data.frame(
+    table(
+        harmony_clusters_recomputed = combined$harmony_clusters_recomputed,
+        harmony_clusters_published = combined$harmony_clusters
+    ),
+    stringsAsFactors = FALSE
+)
+write.csv(
+    cluster_comparison,
+    file = file.path(
+        "results",
+        "tables",
+        "harmony_clusters_recomputed_vs_published.csv"
+    ),
+    row.names = FALSE
+)
+writeLines(
+    c(
+        paste0("Reduction: harmony"),
+        paste0("Dimensions: 1-", n_pcs_use),
+        paste0("k.param: ", neighbor_k),
+        paste0("Graph: harmony_snn"),
+        paste0("Clustering resolution: ", clustering_resolution),
+        paste0("Clustering algorithm: ", clustering_algorithm),
+        paste0("Random seed: ", random_seed),
+        paste0(
+            "Recomputed cluster count: ",
+            nlevels(combined$harmony_clusters_recomputed)
+        ),
+        paste0(
+            "Published cluster count: ",
+            nlevels(combined$harmony_clusters)
+        ),
+        "harmony_clusters_recomputed was calculated from the current Harmony graph.",
+        "harmony_clusters was imported from metadata.csv for manuscript reproduction."
+    ),
+    con = file.path(
+        "results",
+        "logs",
+        "Harmony_recomputed_clustering.txt"
+    )
+)
+
 # UMAP after SCTransform + Harmony integration.
 set.seed(random_seed)
 combined <- RunUMAP(
@@ -566,6 +671,10 @@ stopifnot(
     ncol(Embeddings(combined, reduction = "pca")) == n_pcs_use,
     ncol(Embeddings(combined, reduction = "harmony")) == n_pcs_use,
     all(c("umap_pca", "umap_harmony") %in% Reductions(combined)),
+    all(c("harmony_nn", "harmony_snn") %in% Graphs(combined)),
+    "harmony_clusters_recomputed" %in% colnames(combined[[]]),
+    is.factor(combined$harmony_clusters_recomputed),
+    !anyNA(combined$harmony_clusters_recomputed),
     all(c("percent.mito", "percent.pltd") %in% colnames(combined[[]])),
     all(metadata_target_columns %in% colnames(combined[[]])),
     identical(as.character(combined$Barcode), colnames(combined)),
@@ -582,8 +691,10 @@ stopifnot(
     ))
 )
 
-# Set the imported Harmony cluster annotation as the active Seurat identity.
-# Use the general workflow object name rather than a dataset-specific object name.
+# Set the imported published Harmony cluster annotation as the active Seurat
+# identity for exact reproduction of the downstream demonstration. The newly
+# calculated clusters remain available as harmony_clusters_recomputed and should
+# be used as the starting point when adapting the workflow to a new dataset.
 Idents(combined) <- combined$harmony_clusters
 stopifnot(identical(
     as.character(Idents(combined)),

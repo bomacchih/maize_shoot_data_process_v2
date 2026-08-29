@@ -1,4 +1,4 @@
-# Quality control, SCTransform, PCA, and Harmony integration
+# Quality control, SCTransform, PCA, Harmony integration, and clustering
 
 This workflow reproduces the quality-control and integration steps described in the Bio-protocol manuscript for the 14 maize shoot Visium capture areas:
 
@@ -135,9 +135,13 @@ The integration script performs the following steps:
 9. Recalculates the final PCA with 30 dimensions.
 10. Generates an uncorrected PCA-based UMAP.
 11. Runs Seurat v5 `IntegrateLayers()` with `HarmonyIntegration` using PCs 1-30.
-12. Generates a Harmony-based UMAP and a before-versus-after integration figure.
-13. Plots the Harmony embedding by anatomical domain globally and separately for each sample.
-14. Validates and saves the combined Seurat object.
+12. Constructs `harmony_nn` and `harmony_snn` graphs from the Harmony reduction using `FindNeighbors()`.
+13. Calculates `harmony_clusters_recomputed` using `FindClusters(resolution = 2, random.seed = 1234)`.
+14. Retains the published `harmony_clusters` values imported from `metadata.csv` without overwriting them.
+15. Exports a recomputed-versus-published cluster contingency table and clustering log.
+16. Generates a Harmony-based UMAP and a before-versus-after integration figure.
+17. Plots the Harmony embedding by anatomical domain globally and separately for each sample.
+18. Restores imported `harmony_clusters` as the active identity, validates the object, and saves it.
 
 ## Computational resources and troubleshooting
 
@@ -236,6 +240,22 @@ Both panels are colored by `sample_id`. Better mixing after Harmony is consisten
 
 **Figure 6. Sample distributions before and after Harmony integration.** (A) UMAP generated from the uncorrected PCA representation after SCTransform normalization. (B) UMAP generated from the Harmony-integrated representation using PCs 1-30. Spots are colored by capture-area identity. Increased mixing of samples after integration is consistent with reduced sample-associated effects.
 
+## Recomputed and published cluster annotations
+
+The saved demonstration object deliberately contains two cluster fields with different purposes:
+
+- `harmony_clusters_recomputed` is generated from the current `harmony` reduction using the `harmony_snn` graph, clustering resolution 2, algorithm 1, and random seed 1234. This field demonstrates the standard Seurat neighbor-finding and clustering workflow and is the appropriate starting point when adapting the pipeline to a new dataset.
+- `harmony_clusters` is imported from `data/metadata/metadata.csv`. It contains the published cluster labels used by the marker-analysis and Figure 12 scripts. It remains the active identity in the saved demonstration object so the published results can be reproduced exactly.
+
+Cluster numbers are arbitrary analysis labels. Resolution 2 does not guarantee 33 clusters, and a recomputed cluster with a particular number is not expected to represent the same tissue as the published cluster carrying that number. Users must characterize recomputed clusters using marker genes, structural-domain distributions, spatial positions, and histology before defining tissue supergroups.
+
+The script records the two annotations without automatically translating between them:
+
+```text
+results/tables/harmony_clusters_recomputed_vs_published.csv
+results/logs/Harmony_recomputed_clustering.txt
+```
+
 ## Anatomical-domain diagnostics after Harmony
 
 Sample mixing should not be evaluated by itself. The corrected embedding must
@@ -300,6 +320,8 @@ The object retains `RNA` and `SCT` assays, the 14 sample identities, and the org
 - PCs retained for the Bio-protocol analysis: PCs 1-30.
 - PCA dimensions in the saved object: 30.
 - Harmony dimensions in the saved object: 30.
+- Recomputed clustering parameters: `harmony` reduction, dimensions 1-30, `k.param = 20`, resolution 2, algorithm 1, and random seed 1234.
+- The number of recomputed clusters is recorded at runtime in `results/logs/Harmony_recomputed_clustering.txt`; it is not assumed to equal 33.
 - Median mitochondrial percentage: 0.0185%; maximum: 6.61%.
 - Median plastid percentage: 0%; maximum: 0.91%.
 - Final Seurat object validation: passed.
@@ -310,6 +332,7 @@ The object retains `RNA` and `SCT` assays, the 14 sample identities, and the org
 - Do not interpret spots from the same section or capture area as independent biological replicates.
 - For pseudobulk or differential analyses, aggregate and model counts at the biological-replicate level rather than treating individual spots as replicates.
 - Use the Harmony reduction for integrated UMAP, neighbor finding, and clustering. Use raw RNA counts for count-based differential-expression or pseudobulk models.
+- For a new dataset, use `harmony_clusters_recomputed` as the starting cluster annotation and construct a new biological mapping. Use imported `harmony_clusters` only for reproducing the published demonstration.
 
 ---
 

@@ -20,6 +20,13 @@
 # differential-expression analysis described in the revised manuscript. Spots
 # from the same section or capture area are not independent biological
 # replicates; use raw-count pseudobulk methods for inferential domain comparisons.
+#
+# DEMONSTRATION-ONLY IDENTITY:
+# This script intentionally uses harmony_clusters, the published cluster labels
+# imported from metadata.csv, to reproduce the manuscript marker analysis and
+# Figure 12 mapping. Step 04 also calculates harmony_clusters_recomputed from the
+# current Harmony graph. Users analyzing their own data should characterize the
+# recomputed clusters and must not transfer the published numeric labels.
 
 suppressPackageStartupMessages({
     library(Seurat)
@@ -135,6 +142,7 @@ summary_lines <- c(
     paste0("Spots: ", ncol(combined)),
     paste0("Features: ", nrow(combined)),
     paste0("Identity field: harmony_clusters"),
+    paste0("Identity source: published labels imported from metadata.csv"),
     paste0("Identity levels: ", paste(levels(Idents(combined)), collapse = ", ")),
     "Assay: SCT",
     "Test: Wilcoxon rank-sum",

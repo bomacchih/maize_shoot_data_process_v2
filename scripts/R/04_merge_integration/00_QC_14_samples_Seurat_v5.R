@@ -191,7 +191,7 @@ combined$sample_domain <- factor(
 
 factor_metadata_columns <- c(
     "orig.ident_metadata_csv", "section_id", "section", "cca_clusters",
-    "seurat_clusters", "harmony_clusters", "ms_ve", "domain_section"
+    "seurat_clusters", "harmony_clusters", "ms_ve", "domain_section","sample_domain",
 )
 missing_factor_columns <- setdiff(
     factor_metadata_columns,

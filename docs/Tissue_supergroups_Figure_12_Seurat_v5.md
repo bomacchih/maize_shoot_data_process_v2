@@ -6,6 +6,8 @@ Last updated: 2026-08-29
 
 This page documents how the 33 unsupervised Harmony clusters in the integrated maize shoot spatial-transcriptomics dataset were related to structural domains and assigned to tissue supergroups. It also reproduces Figure 12, including the cluster UMAP, cluster-by-domain heatmap, supergroup UMAP, and spatial mapping of VR03 section 2.
 
+> **Demonstration-only warning:** Harmony cluster numbers are analysis-specific labels rather than transferable biological identities. In the supplied object, `harmony_clusters` contains the published labels imported from `metadata.csv`, whereas `harmony_clusters_recomputed` contains clusters calculated from the current Harmony graph in Step 04. This Figure 12 workflow intentionally uses imported `harmony_clusters` to reproduce the manuscript. For an independently processed, reintegrated, or reclustered dataset, users must characterize their recomputed clusters using marker genes, structural-domain distributions, spatial positions, and histology, and then create a dataset-specific cluster-to-supergroup mapping. Do not assume that cluster `0` or any other numeric label represents the same tissue across datasets or analysis runs.
+
 The complete executable scripts are:
 
 - [`scripts/R/05_marker_analysis/01_find_markers_harmony_clusters_SCT_Seurat_v5.R`](../scripts/R/05_marker_analysis/01_find_markers_harmony_clusters_SCT_Seurat_v5.R)
@@ -18,7 +20,7 @@ The examples assume that R is started from the repository root.
 ## Workflow summary
 
 1. Load the integrated Seurat v5 object.
-2. Use `harmony_clusters` as the 33-cluster annotation.
+2. Use imported `harmony_clusters` as the published 33-cluster annotation; do not substitute `harmony_clusters_recomputed` when reproducing Figure 12.
 3. Identify positive cluster markers with `FindAllMarkers()` for exploratory cluster characterization.
 4. Compare cluster markers with structural-domain distributions and histological positions.
 5. Assign clusters to the tissue supergroups defined in Supplementary Table 7-2.
@@ -114,6 +116,8 @@ These spot-level results support cluster annotation. They are not a substitute f
 
 The assignments were recovered from Supplementary Table 7-2, titled *The transfer of the unsupervised clusters to the supergroups of spatial information*.
 
+The table below is retained to reproduce the published maize shoot demonstration. It is not a universal annotation key. Users analyzing their own data should replace these assignments only after evaluating their own cluster markers and spatial/anatomical correspondence.
+
 | Cluster | Spatial interpretation | Supergroup |
 |---:|---|---|
 | 0 | P5, most cell types except mature veins | `leaf_meso` |
@@ -194,7 +198,7 @@ Panel A displays all tissue-covered spots using the existing `umap_harmony` redu
 
 ![Panel A: UMAP of the 33 Harmony clusters](../results/figures/Figure_12/Figure_12_A_clusters_UMAP.png)
 
-The workflow uses the existing cluster annotation rather than rerunning clustering. This prevents accidental differences in cluster numbers caused by changes in resolution, package version, or random seed.
+The Figure 12 workflow uses the imported published cluster annotation rather than `harmony_clusters_recomputed`. Step 04 performs standard neighbor finding and clustering separately, but its recomputed labels are not automatically translated to the published cluster numbers.
 
 ---
 
@@ -309,6 +313,7 @@ If the marker table has already been generated, the script also writes the ten h
 
 - Cluster annotation should combine marker genes, histological position, structural-domain distribution, and spatial coherence.
 - The cluster-to-supergroup mapping is specific to this integrated dataset and should not be transferred to a newly clustered dataset without validation.
+- For a new dataset, start from `harmony_clusters_recomputed`, characterize each cluster biologically, and replace the demonstration mapping with a dataset-specific table.
 - `sample_vari` should not be interpreted as a biological tissue identity.
 - The Harmony embedding is used for clustering and visualization, not as input for replicate-level differential-expression testing.
 - Spots are subsamples within biological replicates and should not be treated as independent experimental units for inferential domain comparisons.
