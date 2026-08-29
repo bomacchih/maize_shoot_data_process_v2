@@ -178,3 +178,11 @@ message(
     " significant marker rows representing ",
     length(significant_marker_genes_SCT_all), " unique genes."
 )
+
+
+session_dir <- file.path("results", "sessionInfo")
+dir.create(session_dir, recursive = TRUE, showWarnings = FALSE)
+writeLines(
+    capture.output(sessionInfo()),
+    file.path(session_dir, "05_marker_analysis_sessionInfo.txt")
+)

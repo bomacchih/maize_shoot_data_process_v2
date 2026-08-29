@@ -709,3 +709,11 @@ saveRDS(
         "maize_shoot_14samples_SCT_harmony_seurat_v5.rds"
     )
 )
+
+
+session_dir <- file.path("results", "sessionInfo")
+dir.create(session_dir, recursive = TRUE, showWarnings = FALSE)
+writeLines(
+    capture.output(sessionInfo()),
+    file.path(session_dir, "04_merge_integration_sessionInfo.txt")
+)

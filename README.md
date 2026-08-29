@@ -191,11 +191,13 @@ docs/             Human-readable Markdown and rendered HTML reports
 
 Available reports include:
 
-- [QC, SCTransform, Harmony integration, and clustering](docs/QC_SCT_Harmony_workflow.md)
-- [Seurat v5 maize spatial dataset](docs/Maize_data_Seurat_v5.md)
-- [Tissue supergroups and Figure 12](docs/Tissue_supergroups_Figure_12_Seurat_v5.md)
-- [Structural-domain pseudobulk analysis and Figure 13](docs/Pseudobulk_structural_domains_Figure_13.md)
-- [Developmental trends and GO enrichment](docs/Developmental_expression_trends_GO_Figure_14.md)
+- [02 — Load Space Ranger outputs](docs/02_Load_Space_Ranger_outputs.md)
+- [03 — Add spot metadata to Seurat v5 objects](docs/03_Add_spot_metadata_Seurat_v5.md)
+- [04 — QC, SCTransform, Harmony integration, and clustering](docs/04_QC_SCT_Harmony_workflow.md)
+- [04 — Seurat v5 maize spatial dataset](docs/04_Maize_data_Seurat_v5.md)
+- [05 — Tissue supergroups and Figure 12](docs/05_Tissue_supergroups_Figure_12_Seurat_v5.md)
+- [06 — Structural-domain pseudobulk analysis and Figure 13](docs/06_Pseudobulk_structural_domains_Figure_13.md)
+- [07 — Developmental trends and GO enrichment](docs/07_Developmental_expression_trends_GO_Figure_14.md)
 - [scRNA-seq reference QC and Harmony](docs/scRNA_reference_QC_and_Harmony.md)
 - [SCINA cell-type annotation](docs/scRNA_reference_SCINA_celltype_annotation.md)
 - [scRNA-to-Visium SPOTlight mapping](docs/scRNA_to_Visium_SPOTlight_mapping.md)

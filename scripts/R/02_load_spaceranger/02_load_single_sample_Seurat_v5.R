@@ -47,3 +47,11 @@ saveRDS(
     file = file.path("data", "processed", paste0(sample_id, "_seurat_v5.rds"))
 )
 
+
+session_dir <- file.path("results", "sessionInfo")
+dir.create(session_dir, recursive = TRUE, showWarnings = FALSE)
+writeLines(
+    capture.output(sessionInfo()),
+    file.path(session_dir, "02_load_spaceranger_sessionInfo.txt")
+)
+

@@ -1,4 +1,4 @@
-# Maize shoot spatial transcriptomics: QC and Harmony integration
+# 04. Maize shoot spatial transcriptomics: QC and Harmony integration
 
 **Seurat v5 reproducible walkthrough for 14 maize shoot Visium datasets**
 
@@ -636,7 +636,9 @@ Reference tutorial: [Maize embryonic leaf analysis and z-stack](https://ludvigla
 
 ## Session information
 
-Run this command at the end of the analysis to record the R version, operating system, and loaded package versions:
+The script writes the full R session record to:
+
+[`04_merge_integration_sessionInfo.txt`](../results/sessionInfo/04_merge_integration_sessionInfo.txt)
 
 ```r
 sessionInfo()

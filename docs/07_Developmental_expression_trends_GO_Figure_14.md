@@ -1,4 +1,4 @@
-# Developmental expression trends and GO enrichment
+# 07. Developmental expression trends and GO enrichment
 
 This workflow reconstructs Figure 14 from the revised Seurat v5 dataset. It orders the seven structural domains as:
 

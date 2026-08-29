@@ -521,3 +521,11 @@ message(
     length(vr03_section2_cells),
     " spots from VR03 section 2."
 )
+
+
+session_dir <- file.path("results", "sessionInfo")
+dir.create(session_dir, recursive = TRUE, showWarnings = FALSE)
+writeLines(
+    capture.output(sessionInfo()),
+    file.path(session_dir, "05_marker_analysis_sessionInfo.txt")
+)

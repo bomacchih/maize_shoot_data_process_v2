@@ -452,3 +452,11 @@ ggsave(
 
 message("QC complete: ", nrow(spot_qc), " spots and ", nrow(gene_qc), " genes.")
 message("Genes with at least 100 total reads: ", sum(gene_qc$pass_minimum_100_reads))
+
+
+session_dir <- file.path("results", "sessionInfo")
+dir.create(session_dir, recursive = TRUE, showWarnings = FALSE)
+writeLines(
+    capture.output(sessionInfo()),
+    file.path(session_dir, "04_merge_integration_sessionInfo.txt")
+)

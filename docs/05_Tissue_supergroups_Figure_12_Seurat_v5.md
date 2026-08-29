@@ -1,4 +1,4 @@
-# Maize shoot tissue-supergroup annotation and Figure 12
+# 05. Maize shoot tissue-supergroup annotation and Figure 12
 
 **Seurat v5 workflow for marker review, anatomical cluster annotation, and spatial visualization**
 
@@ -325,7 +325,9 @@ The tested workflow assigned all **20,090 spots** from all **33 clusters** witho
 
 ## Session information
 
-Run this command at the end of the analysis to record the R version, operating system, and loaded package versions:
+The script writes the full R session record to:
+
+[`05_marker_analysis_sessionInfo.txt`](../results/sessionInfo/05_marker_analysis_sessionInfo.txt)
 
 ```r
 sessionInfo()

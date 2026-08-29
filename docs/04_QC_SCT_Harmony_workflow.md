@@ -1,4 +1,4 @@
-# Quality control, SCTransform, PCA, Harmony integration, and clustering
+# 04. Quality control, SCTransform, PCA, Harmony integration, and clustering
 
 This workflow reproduces the quality-control and integration steps described in the Bio-protocol manuscript for the 14 maize shoot Visium capture areas:
 
@@ -338,7 +338,9 @@ The object retains `RNA` and `SCT` assays, the 14 sample identities, and the org
 
 ## Session information
 
-Run this command at the end of the analysis to record the R version, operating system, and loaded package versions:
+The script writes the full R session record to:
+
+[`04_merge_integration_sessionInfo.txt`](../results/sessionInfo/04_merge_integration_sessionInfo.txt)
 
 ```r
 sessionInfo()

@@ -1,4 +1,4 @@
-# Pseudobulk profiles of maize shoot structural domains
+# 06. Pseudobulk profiles of maize shoot structural domains
 
 **Replicate-aware Seurat v5 and edgeR workflow for Figure 13**
 
@@ -256,8 +256,8 @@ results/
 │       ├── replicate_PCA_coordinates.csv
 │       ├── domain_mean_PCA_coordinates.csv
 │       └── spatial_domain_vs_scRNAseq_Spearman_correlations.csv (optional)
-└── logs/
-    └── Figure_13_sessionInfo.txt
+└── sessionInfo/
+    └── 06_pseudobulk_analysis_sessionInfo.txt
 ```
 
 The script verifies that adding and joining assay layers does not change the active Seurat identity. It does not save a duplicate copy of the integrated Seurat object.
@@ -266,7 +266,9 @@ The script verifies that adding and joining assay layers does not change the act
 
 ## Session information
 
-Run this command at the end of the analysis to record the R version, operating system, and loaded package versions:
+The script writes the full R session record to:
+
+[`06_pseudobulk_analysis_sessionInfo.txt`](../results/sessionInfo/06_pseudobulk_analysis_sessionInfo.txt)
 
 ```r
 sessionInfo()

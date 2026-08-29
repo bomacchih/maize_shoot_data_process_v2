@@ -28,7 +28,7 @@
 #   results/figures/Figure_13/Figure_13_composite.png
 #   results/figures/Figure_13/Figure_13_composite.pdf
 #   results/figures/Figure_13/pseudobulk_replicate_PCA_diagnostic.png
-#   results/logs/Figure_13_sessionInfo.txt
+#   results/sessionInfo/06_pseudobulk_analysis_sessionInfo.txt
 
 suppressPackageStartupMessages({
     library(Seurat)
@@ -50,10 +50,12 @@ input_file <- file.path(
 table_dir <- file.path("results", "tables", "Figure_13")
 figure_dir <- file.path("results", "figures", "Figure_13")
 log_dir <- file.path("results", "logs")
+session_dir <- file.path("results", "sessionInfo")
 
 dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(log_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(session_dir, recursive = TRUE, showWarnings = FALSE)
 
 # These metadata columns define the experimental unit and anatomical group.
 replicate_column <- "sample_id"
@@ -690,7 +692,7 @@ stopifnot(
 session_information <- capture.output(sessionInfo())
 writeLines(
     session_information,
-    file.path(log_dir, "Figure_13_sessionInfo.txt")
+    file.path(session_dir, "06_pseudobulk_analysis_sessionInfo.txt")
 )
 
 message(
