@@ -1,11 +1,11 @@
 #!/usr/bin/env Rscript
 
 # Generate replicate-level pseudobulk profiles for the seven maize shoot
-# structural domains and reproduce Figure 8 (domain-mean PCA and hierarchical
+# structural domains and reproduce Figure 13 (domain-mean PCA and hierarchical
 # clustering) with Seurat v5 and edgeR.
 #
 # Run from the repository root:
-#   source("scripts/R/06_pseudobulk_analysis/01_pseudobulk_structural_domains_Figure_8_Seurat_v5.R")
+#   source("scripts/R/06_pseudobulk_analysis/01_pseudobulk_structural_domains_Figure_13_Seurat_v5.R")
 #
 # Experimental unit:
 #   sample_id is the biological-replicate identifier. Raw UMI counts from all
@@ -17,18 +17,18 @@
 #   data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
 #
 # Main outputs:
-#   results/tables/Figure_8/pseudobulk_library_metadata.csv
-#   results/tables/Figure_8/pseudobulk_raw_counts.csv.gz
-#   results/tables/Figure_8/pseudobulk_TMM_log2CPM.csv.gz
-#   results/tables/Figure_8/domain_mean_TMM_log2CPM.csv.gz
-#   results/tables/Figure_8/replicate_PCA_coordinates.csv
-#   results/tables/Figure_8/domain_mean_PCA_coordinates.csv
-#   results/figures/Figure_8/Figure_8_A_domain_mean_PCA.png
-#   results/figures/Figure_8/Figure_8_B_domain_mean_hierarchical_clustering.png
-#   results/figures/Figure_8/Figure_8_composite.png
-#   results/figures/Figure_8/Figure_8_composite.pdf
-#   results/figures/Figure_8/pseudobulk_replicate_PCA_diagnostic.png
-#   results/logs/Figure_8_sessionInfo.txt
+#   results/tables/Figure_13/pseudobulk_library_metadata.csv
+#   results/tables/Figure_13/pseudobulk_raw_counts.csv.gz
+#   results/tables/Figure_13/pseudobulk_TMM_log2CPM.csv.gz
+#   results/tables/Figure_13/domain_mean_TMM_log2CPM.csv.gz
+#   results/tables/Figure_13/replicate_PCA_coordinates.csv
+#   results/tables/Figure_13/domain_mean_PCA_coordinates.csv
+#   results/figures/Figure_13/Figure_13_A_domain_mean_PCA.png
+#   results/figures/Figure_13/Figure_13_B_domain_mean_hierarchical_clustering.png
+#   results/figures/Figure_13/Figure_13_composite.png
+#   results/figures/Figure_13/Figure_13_composite.pdf
+#   results/figures/Figure_13/pseudobulk_replicate_PCA_diagnostic.png
+#   results/logs/Figure_13_sessionInfo.txt
 
 suppressPackageStartupMessages({
     library(Seurat)
@@ -47,8 +47,8 @@ input_file <- file.path(
     "processed",
     "maize_shoot_14samples_SCT_harmony_seurat_v5.rds"
 )
-table_dir <- file.path("results", "tables", "Figure_8")
-figure_dir <- file.path("results", "figures", "Figure_8")
+table_dir <- file.path("results", "tables", "Figure_13")
+figure_dir <- file.path("results", "figures", "Figure_13")
 log_dir <- file.path("results", "logs")
 
 dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
@@ -466,7 +466,7 @@ ggsave(
     bg = "white"
 )
 
-# Figure 8A: descriptive PCA of the seven equal-weight domain mean profiles.
+# Figure 13A: descriptive PCA of the seven equal-weight domain mean profiles.
 domain_pca <- prcomp(
     t(domain_mean_log2cpm),
     center = TRUE,
@@ -573,7 +573,7 @@ if (requireNamespace("ggrepel", quietly = TRUE)) {
     )
 }
 
-# Figure 8B: Euclidean distance and complete-linkage clustering of the same
+# Figure 13B: Euclidean distance and complete-linkage clustering of the same
 # seven domain mean profiles used in panel A.
 domain_distance <- dist(t(domain_mean_log2cpm), method = "euclidean")
 domain_hclust <- hclust(domain_distance, method = "complete")
@@ -603,7 +603,7 @@ pB <- ggplot(dendrogram_data$segments) +
     )
 
 ggsave(
-    file.path(figure_dir, "Figure_8_A_domain_mean_PCA.png"),
+    file.path(figure_dir, "Figure_13_A_domain_mean_PCA.png"),
     pA,
     width = 7.2,
     height = 6.2,
@@ -613,7 +613,7 @@ ggsave(
 ggsave(
     file.path(
         figure_dir,
-        "Figure_8_B_domain_mean_hierarchical_clustering.png"
+        "Figure_13_B_domain_mean_hierarchical_clustering.png"
     ),
     pB,
     width = 6.0,
@@ -622,22 +622,22 @@ ggsave(
     bg = "white"
 )
 
-figure_8 <- (pA + pB) +
+figure_13 <- (pA + pB) +
     plot_layout(widths = c(1.15, 1.0)) +
     plot_annotation(tag_levels = "A") &
     theme(plot.tag = element_text(face = "bold", size = 16))
 
 ggsave(
-    file.path(figure_dir, "Figure_8_composite.png"),
-    figure_8,
+    file.path(figure_dir, "Figure_13_composite.png"),
+    figure_13,
     width = 13.2,
     height = 6.2,
     dpi = 600,
     bg = "white"
 )
 ggsave(
-    file.path(figure_dir, "Figure_8_composite.pdf"),
-    figure_8,
+    file.path(figure_dir, "Figure_13_composite.pdf"),
+    figure_13,
     width = 13.2,
     height = 6.2,
     device = grDevices::pdf,
@@ -690,11 +690,11 @@ stopifnot(
 session_information <- capture.output(sessionInfo())
 writeLines(
     session_information,
-    file.path(log_dir, "Figure_8_sessionInfo.txt")
+    file.path(log_dir, "Figure_13_sessionInfo.txt")
 )
 
 message(
-    "Figure 8 pseudobulk workflow complete: ",
+    "Figure 13 pseudobulk workflow complete: ",
     ncol(pseudobulk_counts),
     " replicate-domain libraries from ",
     length(unique(group_metadata$biological_replicate)),

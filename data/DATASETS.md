@@ -72,7 +72,7 @@ This order determines the merged-barcode suffixes `_1_1` through `_1_14`.
 | Maize GO mapping | `data/reference/developmental_trends/zea_go2.csv` | **PRESENT** | Enables local GO enrichment |
 | Maize gene-ID/name mapping | `data/reference/developmental_trends/maize_id_name.csv` | **PRESENT** | Used to label representative genes |
 | GO term descriptions | `data/reference/developmental_trends/go_term_descriptions.csv` | **OPTIONAL — MISSING** | Without it, GO identifiers/descriptions are taken from the available GO mapping when possible |
-| Optional scRNA domain profiles for pseudobulk correlation | User-specified CSV assigned to `scrna_reference_file` | **OPTIONAL — NOT CONFIGURED** | The Figure 8 script sets `scrna_reference_file <- NULL`; the first column must be gene IDs and remaining columns normalized profiles |
+| Optional scRNA domain profiles for pseudobulk correlation | User-specified CSV assigned to `scrna_reference_file` | **OPTIONAL — NOT CONFIGURED** | The Figure 13 script sets `scrna_reference_file <- NULL`; the first column must be gene IDs and remaining columns normalized profiles |
 
 ## Required Space Ranger output files
 

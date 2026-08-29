@@ -1,6 +1,6 @@
 # Pseudobulk profiles of maize shoot structural domains
 
-**Replicate-aware Seurat v5 and edgeR workflow for Figure 8**
+**Replicate-aware Seurat v5 and edgeR workflow for Figure 13**
 
 Last updated: 2026-08-25
 
@@ -8,14 +8,14 @@ This workflow reconstructs the pseudobulk analysis used to compare gene-expressi
 
 The complete executable script is:
 
-- [`scripts/R/06_pseudobulk_analysis/01_pseudobulk_structural_domains_Figure_8_Seurat_v5.R`](../scripts/R/06_pseudobulk_analysis/01_pseudobulk_structural_domains_Figure_8_Seurat_v5.R)
+- [`scripts/R/06_pseudobulk_analysis/01_pseudobulk_structural_domains_Figure_13_Seurat_v5.R`](../scripts/R/06_pseudobulk_analysis/01_pseudobulk_structural_domains_Figure_13_Seurat_v5.R)
 
 Run the script from the repository root:
 
 ```r
 source(file.path(
   "scripts", "R", "06_pseudobulk_analysis",
-  "01_pseudobulk_structural_domains_Figure_8_Seurat_v5.R"
+  "01_pseudobulk_structural_domains_Figure_13_Seurat_v5.R"
 ))
 ```
 
@@ -35,7 +35,7 @@ domain_levels <- c(
 )
 ```
 
-The replicate-level profiles are retained for quality assessment and any subsequent statistical modeling. Domain-level mean profiles are calculated only for descriptive visualization in Figure 8.
+The replicate-level profiles are retained for quality assessment and any subsequent statistical modeling. Domain-level mean profiles are calculated only for descriptive visualization in Figure 13.
 
 ---
 
@@ -69,8 +69,8 @@ where \(Y_{gs}\) is the raw UMI count for gene *g* in tissue spot *s*. Spots and
 
 The script exports:
 
-- [`results/tables/Figure_8/pseudobulk_library_metadata.csv`](../results/tables/Figure_8/pseudobulk_library_metadata.csv), listing the biological replicate, domain, number of contributing spots, library size, and normalization factor for every pseudobulk library;
-- `results/tables/Figure_8/pseudobulk_raw_counts.csv.gz`, containing replicate-domain raw counts.
+- [`results/tables/Figure_13/pseudobulk_library_metadata.csv`](../results/tables/Figure_13/pseudobulk_library_metadata.csv), listing the biological replicate, domain, number of contributing spots, library size, and normalization factor for every pseudobulk library;
+- `results/tables/Figure_13/pseudobulk_raw_counts.csv.gz`, containing replicate-domain raw counts.
 
 ---
 
@@ -93,7 +93,7 @@ pseudobulk_log2cpm <- edgeR::cpm(
 The normalized replicate-domain profiles are exported as:
 
 ```text
-results/tables/Figure_8/pseudobulk_TMM_log2CPM.csv.gz
+results/tables/Figure_13/pseudobulk_TMM_log2CPM.csv.gz
 ```
 
 ---
@@ -102,12 +102,12 @@ results/tables/Figure_8/pseudobulk_TMM_log2CPM.csv.gz
 
 PCA is first performed on all replicate-domain log2 CPM profiles. This diagnostic is used to determine whether replicates from the same structural domain show broadly consistent expression patterns and to identify sample-associated outliers.
 
-![Replicate-level pseudobulk PCA](../results/figures/Figure_8/pseudobulk_replicate_PCA_diagnostic.png)
+![Replicate-level pseudobulk PCA](../results/figures/Figure_13/pseudobulk_replicate_PCA_diagnostic.png)
 
 The corresponding coordinates are saved as:
 
 ```text
-results/tables/Figure_8/replicate_PCA_coordinates.csv
+results/tables/Figure_13/replicate_PCA_coordinates.csv
 ```
 
 Replicate dispersion should be inspected before domain means are interpreted. A single sample that is separated from all other replicates may indicate differences in tissue composition, section placement, library quality, or residual technical variation.
@@ -133,12 +133,12 @@ domain_mean_log2cpm <- vapply(
 )
 ```
 
-Each available biological replicate receives equal weight in its domain mean, regardless of the number of spots it contributed. These seven mean profiles are used only for the descriptive PCA and hierarchical clustering shown in Figure 8; they are not independent replicates and are not used for inferential testing.
+Each available biological replicate receives equal weight in its domain mean, regardless of the number of spots it contributed. These seven mean profiles are used only for the descriptive PCA and hierarchical clustering shown in Figure 13; they are not independent replicates and are not used for inferential testing.
 
 The domain means are exported as:
 
 ```text
-results/tables/Figure_8/domain_mean_TMM_log2CPM.csv.gz
+results/tables/Figure_13/domain_mean_TMM_log2CPM.csv.gz
 ```
 
 ---
@@ -155,14 +155,14 @@ domain_pca <- prcomp(
 )
 ```
 
-![Figure 8A: PCA of domain-level mean pseudobulk profiles](../results/figures/Figure_8/Figure_8_A_domain_mean_PCA.png)
+![Figure 13A: PCA of domain-level mean pseudobulk profiles](../results/figures/Figure_13/Figure_13_A_domain_mean_PCA.png)
 
 The four developing-leaf domains are outlined for visual reference. The gray arrow indicates the proposed developmental progression from SAM toward the developing leaf profiles; it is an interpretive annotation and is not calculated as a trajectory.
 
 The PCA coordinates and exact variance-explained values are saved in:
 
 ```text
-results/tables/Figure_8/domain_mean_PCA_coordinates.csv
+results/tables/Figure_13/domain_mean_PCA_coordinates.csv
 ```
 
 ---
@@ -183,23 +183,23 @@ domain_hclust <- hclust(
 )
 ```
 
-![Figure 8B: hierarchical clustering of domain-level mean profiles](../results/figures/Figure_8/Figure_8_B_domain_mean_hierarchical_clustering.png)
+![Figure 13B: hierarchical clustering of domain-level mean profiles](../results/figures/Figure_13/Figure_13_B_domain_mean_hierarchical_clustering.png)
 
 Branch height represents gene-expression dissimilarity. The analysis describes similarity among the seven domain means and does not provide an inferential test of differences between domains.
 
 ---
 
-## Figure 8
+## Figure 13
 
-![Figure 8: pseudobulk gene-expression profiles of maize shoot domains](../results/figures/Figure_8/Figure_8_composite.png)
+![Figure 13: pseudobulk gene-expression profiles of maize shoot domains](../results/figures/Figure_13/Figure_13_composite.png)
 
-**Figure 8. Pseudobulk gene-expression profiles of maize shoot domains.** Raw UMI counts were aggregated by biological replicate and structural domain, normalized using TMM, and transformed to log2 counts per million. Equal-weight replicate means were then calculated for descriptive domain-level visualization. (A) PCA showing the relationships among the shoot apical meristem (SAM), developing leaf primordia (P1-P5), coleoptile, and coleoptile vein (co-v). The dashed outline identifies developing leaf profiles, and the gray arrow indicates the proposed developmental progression. (B) Complete-linkage hierarchical clustering of Euclidean distances among the same domain-level mean profiles; branch height represents gene-expression dissimilarity. These panels are descriptive and are not used for inferential testing. Adapted from Figure 3A-B of Wu et al. [1].
+**Figure 13. Pseudobulk gene-expression profiles of maize shoot domains.** Raw UMI counts were aggregated by biological replicate and structural domain, normalized using TMM, and transformed to log2 counts per million. Equal-weight replicate means were then calculated for descriptive domain-level visualization. (A) PCA showing the relationships among the shoot apical meristem (SAM), developing leaf primordia (P1-P5), coleoptile, and coleoptile vein (co-v). The dashed outline identifies developing leaf profiles, and the gray arrow indicates the proposed developmental progression. (B) Complete-linkage hierarchical clustering of Euclidean distances among the same domain-level mean profiles; branch height represents gene-expression dissimilarity. These panels are descriptive and are not used for inferential testing. Adapted from Figure 3A-B of Wu et al. [1].
 
 The script exports both raster and vector versions:
 
 ```text
-results/figures/Figure_8/Figure_8_composite.png
-results/figures/Figure_8/Figure_8_composite.pdf
+results/figures/Figure_13/Figure_13_composite.png
+results/figures/Figure_13/Figure_13_composite.pdf
 ```
 
 ---
@@ -229,7 +229,7 @@ spearman_correlations <- cor(
 The optional result is written to:
 
 ```text
-results/tables/Figure_8/spatial_domain_vs_scRNAseq_Spearman_correlations.csv
+results/tables/Figure_13/spatial_domain_vs_scRNAseq_Spearman_correlations.csv
 ```
 
 Correlation is calculated only across genes present in both datasets. Gene identifiers and expression units should be harmonized before interpreting the result.
@@ -241,14 +241,14 @@ Correlation is calculated only across genes present in both datasets. Gene ident
 ```text
 results/
 ├── figures/
-│   └── Figure_8/
+│   └── Figure_13/
 │       ├── pseudobulk_replicate_PCA_diagnostic.png
-│       ├── Figure_8_A_domain_mean_PCA.png
-│       ├── Figure_8_B_domain_mean_hierarchical_clustering.png
-│       ├── Figure_8_composite.png
-│       └── Figure_8_composite.pdf
+│       ├── Figure_13_A_domain_mean_PCA.png
+│       ├── Figure_13_B_domain_mean_hierarchical_clustering.png
+│       ├── Figure_13_composite.png
+│       └── Figure_13_composite.pdf
 ├── tables/
-│   └── Figure_8/
+│   └── Figure_13/
 │       ├── pseudobulk_library_metadata.csv
 │       ├── pseudobulk_raw_counts.csv.gz
 │       ├── pseudobulk_TMM_log2CPM.csv.gz
@@ -257,7 +257,7 @@ results/
 │       ├── domain_mean_PCA_coordinates.csv
 │       └── spatial_domain_vs_scRNAseq_Spearman_correlations.csv (optional)
 └── logs/
-    └── Figure_8_sessionInfo.txt
+    └── Figure_13_sessionInfo.txt
 ```
 
 The script verifies that adding and joining assay layers does not change the active Seurat identity. It does not save a duplicate copy of the integrated Seurat object.
