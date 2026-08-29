@@ -1,10 +1,10 @@
 #!/usr/bin/env Rscript
 
 # Assign the 33 Harmony clusters to anatomically defined tissue supergroups and
-# reproduce Figure 7-8.4 (panels A-D) with Seurat v5.
+# reproduce Figure 12 (panels A-D) with Seurat v5.
 #
 # Run from the repository root:
-#   source("scripts/R/05_marker_analysis/02_assign_tissue_supergroups_and_plot_Figure_7_8_4_Seurat_v5.R")
+#   source("scripts/R/05_marker_analysis/02_assign_tissue_supergroups_and_plot_Figure_12_Seurat_v5.R")
 #
 # Input:
 #   data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
@@ -17,16 +17,16 @@
 #   results/tables/cluster_to_tissue_supergroup.csv
 #   results/tables/cluster_domain_counts.csv
 #   results/tables/top10_markers_per_cluster_for_annotation.csv (if available)
-#   results/figures/Figure_7_8_4/Figure_7_8_4_A_clusters_UMAP.png
-#   results/figures/Figure_7_8_4/Figure_7_8_4_B_cluster_domain_heatmap.png
-#   results/figures/Figure_7_8_4/Figure_7_8_4_C_supergroups_UMAP.png
-#   results/figures/Figure_7_8_4/Figure_7_8_4_D_VR03_section2_spatial.png
-#   results/figures/Figure_7_8_4/Figure_7_8_4_composite.png
-#   results/figures/Figure_7_8_4/Figure_7_8_4_composite.pdf
+#   results/figures/Figure_12/Figure_12_A_clusters_UMAP.png
+#   results/figures/Figure_12/Figure_12_B_cluster_domain_heatmap.png
+#   results/figures/Figure_12/Figure_12_C_supergroups_UMAP.png
+#   results/figures/Figure_12/Figure_12_D_VR03_section2_spatial.png
+#   results/figures/Figure_12/Figure_12_composite.png
+#   results/figures/Figure_12/Figure_12_composite.pdf
 #
 # Assignment source:
 # Supplementary Table 7-2, "The transfer of the unsupervised clusters to the
-# supergroups of spatial information," in Supplementary_Tables_20251104.xlsx.
+# supergroups of spatial information," in Supplementary_Tables_20251205.xlsx.
 # The table defines 12 anatomical tissue supergroups plus sample_vari, which
 # records sample-specific variation and is not treated as a tissue identity.
 
@@ -48,7 +48,7 @@ marker_file <- file.path(
     "markers_harmony_clusters_SCT_significant.csv"
 )
 table_dir <- file.path("results", "tables")
-figure_dir <- file.path("results", "figures", "Figure_7_8_4")
+figure_dir <- file.path("results", "figures", "Figure_12")
 
 dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
@@ -173,6 +173,23 @@ if (length(unmapped_clusters) > 0L) {
         paste(unmapped_clusters, collapse = ", ")
     )
 }
+missing_clusters <- setdiff(cluster_to_supergroup$cluster, unique(cluster_values))
+if (length(missing_clusters) > 0L) {
+    stop(
+        "The following expected Harmony clusters are absent from the object: ",
+        paste(missing_clusters, collapse = ", ")
+    )
+}
+
+domain_levels <- c("SAM", "P1_P2", "P3", "P4", "P5", "coleoptile", "co_v")
+domain_values <- trimws(as.character(combined$domains))
+unexpected_domains <- setdiff(unique(domain_values), domain_levels)
+if (length(unexpected_domains) > 0L || anyNA(domain_values)) {
+    stop(
+        "The domains metadata contains missing or unexpected values: ",
+        paste(unexpected_domains, collapse = ", ")
+    )
+}
 
 # Adding metadata does not change the active identity. Preserve and verify it.
 active_ident_before <- Idents(combined)
@@ -258,11 +275,10 @@ pA <- ggplot(umap_data, aes(UMAP_1, UMAP_2, color = cluster)) +
     theme(legend.key.height = grid::unit(3.2, "mm"))
 
 # Panel B: distribution of clusters across the seven structural domains.
-domain_levels <- c("SAM", "P1_P2", "P3", "P4", "P5", "coleoptile", "co_v")
 cluster_domain_counts <- as.data.frame(
     table(
         cluster = factor(cluster_values, levels = as.character(0:32)),
-        domain = factor(as.character(combined$domains), levels = domain_levels)
+        domain = factor(domain_values, levels = domain_levels)
     ),
     stringsAsFactors = FALSE
 )
@@ -391,7 +407,8 @@ if (file.exists(marker_file)) {
         c("avg_log2FC", "avg_logFC"),
         colnames(markers)
     )
-    if (length(fold_change_column) == 1L && "cluster" %in% colnames(markers)) {
+    fold_change_column <- fold_change_column[1]
+    if (!is.na(fold_change_column) && "cluster" %in% colnames(markers)) {
         markers$cluster <- trimws(as.character(markers$cluster))
         markers$supergroup <- unname(supergroup_lookup[markers$cluster])
         top10_markers <- markers %>%
@@ -427,7 +444,7 @@ if (file.exists(marker_file)) {
 
 # Save individual panels for flexible manuscript layout.
 ggsave(
-    file.path(figure_dir, "Figure_7_8_4_A_clusters_UMAP.png"),
+    file.path(figure_dir, "Figure_12_A_clusters_UMAP.png"),
     pA,
     width = 7.2,
     height = 6.3,
@@ -435,7 +452,7 @@ ggsave(
     bg = "white"
 )
 ggsave(
-    file.path(figure_dir, "Figure_7_8_4_B_cluster_domain_heatmap.png"),
+    file.path(figure_dir, "Figure_12_B_cluster_domain_heatmap.png"),
     pB,
     width = 4.2,
     height = 6.3,
@@ -443,7 +460,7 @@ ggsave(
     bg = "white"
 )
 ggsave(
-    file.path(figure_dir, "Figure_7_8_4_C_supergroups_UMAP.png"),
+    file.path(figure_dir, "Figure_12_C_supergroups_UMAP.png"),
     pC,
     width = 7.2,
     height = 6.3,
@@ -451,7 +468,7 @@ ggsave(
     bg = "white"
 )
 ggsave(
-    file.path(figure_dir, "Figure_7_8_4_D_VR03_section2_spatial.png"),
+    file.path(figure_dir, "Figure_12_D_VR03_section2_spatial.png"),
     pD,
     width = 7.0,
     height = 6.3,
@@ -459,7 +476,7 @@ ggsave(
     bg = "white"
 )
 
-figure_7_8_4 <- (
+figure_12 <- (
     (pA + pB + plot_layout(widths = c(1.7, 1.0))) /
         (pC + pD + plot_layout(widths = c(1.15, 1.0)))
 ) +
@@ -467,16 +484,16 @@ figure_7_8_4 <- (
     theme(plot.tag = element_text(face = "bold", size = 16))
 
 ggsave(
-    file.path(figure_dir, "Figure_7_8_4_composite.png"),
-    figure_7_8_4,
+    file.path(figure_dir, "Figure_12_composite.png"),
+    figure_12,
     width = 14.5,
     height = 12.0,
     dpi = 600,
     bg = "white"
 )
 ggsave(
-    file.path(figure_dir, "Figure_7_8_4_composite.pdf"),
-    figure_7_8_4,
+    file.path(figure_dir, "Figure_12_composite.pdf"),
+    figure_12,
     width = 14.5,
     height = 12.0,
     device = grDevices::pdf,
@@ -484,7 +501,7 @@ ggsave(
 )
 
 message(
-    "Figure 7-8.4 workflow complete. Assigned ",
+    "Figure 12 workflow complete. Assigned ",
     ncol(combined),
     " spots from 33 clusters to 12 anatomical tissue supergroups plus ",
     "sample_vari. Panel D contains ",

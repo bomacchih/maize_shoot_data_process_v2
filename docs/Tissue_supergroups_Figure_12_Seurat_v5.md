@@ -1,15 +1,15 @@
-# Maize shoot tissue-supergroup annotation and Figure 7-8.4
+# Maize shoot tissue-supergroup annotation and Figure 12
 
 **Seurat v5 workflow for marker review, anatomical cluster annotation, and spatial visualization**
 
-Last updated: 2026-08-25
+Last updated: 2026-08-29
 
-This page documents how the 33 unsupervised Harmony clusters in the integrated maize shoot spatial-transcriptomics dataset were related to structural domains and assigned to tissue supergroups. It also reproduces Figure 7-8.4, including the cluster UMAP, cluster-by-domain heatmap, supergroup UMAP, and spatial mapping of VR03 section 2.
+This page documents how the 33 unsupervised Harmony clusters in the integrated maize shoot spatial-transcriptomics dataset were related to structural domains and assigned to tissue supergroups. It also reproduces Figure 12, including the cluster UMAP, cluster-by-domain heatmap, supergroup UMAP, and spatial mapping of VR03 section 2.
 
 The complete executable scripts are:
 
 - [`scripts/R/05_marker_analysis/01_find_markers_harmony_clusters_SCT_Seurat_v5.R`](../scripts/R/05_marker_analysis/01_find_markers_harmony_clusters_SCT_Seurat_v5.R)
-- [`scripts/R/05_marker_analysis/02_assign_tissue_supergroups_and_plot_Figure_7_8_4_Seurat_v5.R`](../scripts/R/05_marker_analysis/02_assign_tissue_supergroups_and_plot_Figure_7_8_4_Seurat_v5.R)
+- [`scripts/R/05_marker_analysis/02_assign_tissue_supergroups_and_plot_Figure_12_Seurat_v5.R`](../scripts/R/05_marker_analysis/02_assign_tissue_supergroups_and_plot_Figure_12_Seurat_v5.R)
 
 The examples assume that R is started from the repository root.
 
@@ -26,7 +26,7 @@ The examples assume that R is started from the repository root.
 7. Generate the 33-cluster UMAP and the cluster-by-domain heatmap.
 8. Generate the tissue-supergroup UMAP using the same UMAP coordinates.
 9. Map the supergroups onto VR03 section 2.
-10. Export individual panels and the combined Figure 7-8.4.
+10. Export individual panels and the combined Figure 12.
 
 The original analysis defined **12 anatomical tissue supergroups**. The additional `sample_vari` category represents sample-specific variation and is not interpreted as a tissue identity. Therefore, 13 colors are displayed when `sample_vari` is included.
 
@@ -61,12 +61,12 @@ The seven structural domains are `SAM`, `P1_P2`, `P3`, `P4`, `P5`, `coleoptile`,
 
 ### Output figures
 
-- [`Figure_7_8_4_A_clusters_UMAP.png`](../results/figures/Figure_7_8_4/Figure_7_8_4_A_clusters_UMAP.png)
-- [`Figure_7_8_4_B_cluster_domain_heatmap.png`](../results/figures/Figure_7_8_4/Figure_7_8_4_B_cluster_domain_heatmap.png)
-- [`Figure_7_8_4_C_supergroups_UMAP.png`](../results/figures/Figure_7_8_4/Figure_7_8_4_C_supergroups_UMAP.png)
-- [`Figure_7_8_4_D_VR03_section2_spatial.png`](../results/figures/Figure_7_8_4/Figure_7_8_4_D_VR03_section2_spatial.png)
-- [`Figure_7_8_4_composite.png`](../results/figures/Figure_7_8_4/Figure_7_8_4_composite.png)
-- [`Figure_7_8_4_composite.pdf`](../results/figures/Figure_7_8_4/Figure_7_8_4_composite.pdf)
+- [`Figure_12_A_clusters_UMAP.png`](../results/figures/Figure_12/Figure_12_A_clusters_UMAP.png)
+- [`Figure_12_B_cluster_domain_heatmap.png`](../results/figures/Figure_12/Figure_12_B_cluster_domain_heatmap.png)
+- [`Figure_12_C_supergroups_UMAP.png`](../results/figures/Figure_12/Figure_12_C_supergroups_UMAP.png)
+- [`Figure_12_D_VR03_section2_spatial.png`](../results/figures/Figure_12/Figure_12_D_VR03_section2_spatial.png)
+- [`Figure_12_composite.png`](../results/figures/Figure_12/Figure_12_composite.png)
+- [`Figure_12_composite.pdf`](../results/figures/Figure_12/Figure_12_composite.pdf)
 
 ---
 
@@ -192,7 +192,7 @@ The script does not save a duplicate copy of the approximately 2.17-GB integrate
 
 Panel A displays all tissue-covered spots using the existing `umap_harmony` reduction and colors them by `harmony_clusters`.
 
-![Panel A: UMAP of the 33 Harmony clusters](../results/figures/Figure_7_8_4/Figure_7_8_4_A_clusters_UMAP.png)
+![Panel A: UMAP of the 33 Harmony clusters](../results/figures/Figure_12/Figure_12_A_clusters_UMAP.png)
 
 The workflow uses the existing cluster annotation rather than rerunning clustering. This prevents accidental differences in cluster numbers caused by changes in resolution, package version, or random seed.
 
@@ -216,7 +216,7 @@ cluster_domain_counts <- as.data.frame(table(
 ))
 ```
 
-![Panel B: distribution of clusters across structural domains](../results/figures/Figure_7_8_4/Figure_7_8_4_B_cluster_domain_heatmap.png)
+![Panel B: distribution of clusters across structural domains](../results/figures/Figure_12/Figure_12_B_cluster_domain_heatmap.png)
 
 Color intensity represents the number of spots. Structural domains are shown in developmental order, and clusters are ordered numerically from 0 at the bottom to 32 at the top.
 
@@ -228,7 +228,7 @@ This heatmap should be interpreted together with marker genes and histology. A c
 
 Panel C uses exactly the same UMAP coordinates as panel A but colors spots by `supergroup`.
 
-![Panel C: UMAP of tissue supergroups](../results/figures/Figure_7_8_4/Figure_7_8_4_C_supergroups_UMAP.png)
+![Panel C: UMAP of tissue supergroups](../results/figures/Figure_12/Figure_12_C_supergroups_UMAP.png)
 
 The following display controls are placed near the beginning of the plotting script:
 
@@ -274,15 +274,15 @@ pD <- SpatialDimPlot(
 )
 ```
 
-![Panel D: spatial supergroup mapping in VR03 section 2](../results/figures/Figure_7_8_4/Figure_7_8_4_D_VR03_section2_spatial.png)
+![Panel D: spatial supergroup mapping in VR03 section 2](../results/figures/Figure_12/Figure_12_D_VR03_section2_spatial.png)
 
 The combined Seurat object contains both low- and high-resolution scale information, but the stored low-resolution raster is correctly aligned with the spot coordinates. Selecting `image.scale = "hires"` causes visible image-spot misregistration in this object; therefore, panel D intentionally uses `lowres`.
 
 ---
 
-## Combined Figure 7-8.4
+## Combined Figure 12
 
-![Figure 7-8.4: unsupervised clustering and anatomical identification](../results/figures/Figure_7_8_4/Figure_7_8_4_composite.png)
+![Figure 12: unsupervised clustering and anatomical identification](../results/figures/Figure_12/Figure_12_composite.png)
 
 The figure is exported as a 600-dpi PNG and a vector PDF. Individual panels are also saved so their sizes can be adjusted during manuscript assembly without rerunning the analysis.
 
@@ -291,7 +291,7 @@ Run the complete annotation and figure workflow with:
 ```r
 source(file.path(
   "scripts", "R", "05_marker_analysis",
-  "02_assign_tissue_supergroups_and_plot_Figure_7_8_4_Seurat_v5.R"
+  "02_assign_tissue_supergroups_and_plot_Figure_12_Seurat_v5.R"
 ))
 ```
 
@@ -301,7 +301,7 @@ If the marker table has already been generated, the script also writes the ten h
 
 ## Suggested figure legend
 
-**Figure 7-8.4. Unsupervised clustering and anatomical identification of maize shoot tissue supergroups.** (A) UMAP of tissue-covered spots after SCTransform normalization and Harmony integration, colored by 33 unsupervised clusters. (B) Distribution of the clusters across seven structural domains. Color intensity indicates the number of spots in each cluster-domain combination. (C) UMAP showing the assignment of clusters to 12 anatomical tissue supergroups based on transcriptional similarity, marker-gene expression, structural-domain distribution, and histological correspondence. The `sample_vari` category represents sample-specific variation and is not considered a tissue supergroup. (D) Spatial mapping of tissue supergroups onto VR03 section 2; colors correspond to those in panel C. Abbreviations: ad, adaxial; ab, abaxial; co, coleoptile; co_v, coleoptile vein; epi, epidermis; meso, mesophyll. Adapted from Figure 4A-B and Supplementary Figure 13A and D of Wu et al. [1].
+**Figure 12. Unsupervised clustering and anatomical identification of maize shoot tissue supergroups.** (A) UMAP of tissue-covered spots after SCTransform normalization and Harmony integration, colored by 33 unsupervised clusters. (B) Distribution of the clusters across seven structural domains. Color intensity indicates the number of spots in each cluster-domain combination. (C) UMAP showing the assignment of clusters to 12 anatomical tissue supergroups based on transcriptional similarity, marker-gene expression, structural-domain distribution, and histological correspondence. The `sample_vari` category represents sample-specific variation and is not considered a tissue supergroup. (D) Spatial mapping of tissue supergroups onto VR03 section 2; colors correspond to those in panel C. Abbreviations: ad, adaxial; ab, abaxial; co, coleoptile; co_v, coleoptile vein; epi, epidermis; meso, mesophyll. Adapted from Figure 4A-B and Supplementary Figure 13A and D of Wu et al. [1].
 
 ---
 

@@ -188,7 +188,7 @@ Available reports include:
 
 - [QC, SCTransform, and Harmony integration](docs/QC_SCT_Harmony_workflow.md)
 - [Seurat v5 maize spatial dataset](docs/Maize_data_Seurat_v5.md)
-- [Tissue supergroups](docs/Tissue_supergroups_Figure_7_8_4_Seurat_v5.md)
+- [Tissue supergroups and Figure 12](docs/Tissue_supergroups_Figure_12_Seurat_v5.md)
 - [Structural-domain pseudobulk analysis](docs/Pseudobulk_structural_domains_Figure_8.md)
 - [Developmental trends and GO enrichment](docs/Developmental_expression_trends_GO_Figure_9.md)
 - [scRNA-seq reference QC and Harmony](docs/scRNA_reference_QC_and_Harmony.md)

@@ -1,0 +1,50 @@
+Input object: data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
+Spots: 20090
+Features: 23048
+Identity field: harmony_clusters
+Identity levels: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32
+Assay: SCT
+Test: Wilcoxon rank-sum
+only.pos: TRUE
+min.pct: 0.25
+logfc.threshold: 0.25
+Exploratory marker criterion: adjusted p-value < 0.05
+Separate pseudobulk DEG criterion: absolute log2 fold change > 1 and FDR < 0.05
+Candidate marker rows: 92473
+Significant marker rows: 64953
+Unique significant genes: 13638
+
+Significant marker rows by cluster:
+0: 4574
+1: 1322
+2: 2248
+3: 1640
+4: 2025
+5: 5661
+6: 1132
+7: 730
+8: 6346
+9: 573
+10: 5393
+11: 1141
+12: 333
+13: 1281
+14: 442
+15: 2258
+16: 1848
+17: 897
+18: 3309
+19: 215
+20: 3294
+21: 445
+22: 4881
+23: 2815
+24: 553
+25: 2034
+26: 227
+27: 1896
+28: 1817
+29: 563
+30: 582
+31: 745
+32: 1733
