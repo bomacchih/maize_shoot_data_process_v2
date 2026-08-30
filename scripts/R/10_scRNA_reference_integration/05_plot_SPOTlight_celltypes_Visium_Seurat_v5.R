@@ -79,7 +79,8 @@ if (!length(selected_features)) {
 }
 
 umap_reduction <- first_existing(
-  c("umapharmony", "umap.harmony", "harmony.umap", "umap", "ref.umap"),
+  c("umap_harmony", "umapharmony", "umap.harmony", "harmony.umap",
+    "umap", "ref.umap"),
   Reductions(object)
 )
 

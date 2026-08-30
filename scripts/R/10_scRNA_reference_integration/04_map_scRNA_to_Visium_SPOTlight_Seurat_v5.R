@@ -32,7 +32,9 @@ set.seed(1)
 run_hard_label_transfer <- TRUE
 run_spotlight_deconvolution <- TRUE
 reuse_existing_hard_transfer <- TRUE
+resume_spotlight_from_memory <- TRUE
 sections_to_run <- NULL       # NULL runs every section; use c("VR03_S2") to test
+scatterpie_sections <- c("VR03_S1", "VR03_S2", "VR03_S3", "VR03_S4")
 reference_cells_per_type <- 100L
 markers_per_type <- 100L
 n_hvg <- 3000L
@@ -168,36 +170,51 @@ build_marker_table <- function(sce, groups, genes_to_test,
   if (length(groups) != ncol(sce)) {
     stop("Marker-group vector length does not match the reference cells.")
   }
-  message("Scoring reference markers by cell type.")
+  if (!requireNamespace("presto", quietly = TRUE)) {
+    stop(
+      "The presto package is required for sparse AUC marker scoring. ",
+      "Install presto before running SPOTlight reference preparation."
+    )
+  }
+  message("Scoring reference markers by cell type with presto::wilcoxauc().")
   log_expression <- SummarizedExperiment::assay(
     sce, "logcounts", withDimnames = TRUE
-  )
-  marker_statistics <- scran::scoreMarkers(
+  )[genes_to_test, , drop = FALSE]
+  marker_statistics <- presto::wilcoxauc(
     log_expression,
-    groups = factor(groups),
-    subset.row = genes_to_test
+    y = factor(groups),
+    verbose = TRUE
   )
   message(
-    "Marker scoring returned statistics for ",
-    length(marker_statistics), " cell types."
+    "Marker scoring returned ", nrow(marker_statistics),
+    " gene-by-cell-type statistics."
   )
   rm(log_expression)
-  marker_tables <- lapply(names(marker_statistics), function(cell_type) {
-    marker_table <- as.data.frame(marker_statistics[[cell_type]])
-    weight_column <- first_existing(
-      c("mean.AUC", "median.AUC", "mean.logFC", "summary.logFC", "cohen"),
-      colnames(marker_table), "marker effect-size/AUC column"
+
+  required_marker_columns <- c("feature", "group", "auc", "logFC")
+  if (!all(required_marker_columns %in% colnames(marker_statistics))) {
+    stop(
+      "presto::wilcoxauc() did not return the expected columns: ",
+      paste(required_marker_columns, collapse = ", ")
     )
-    marker_table$gene <- rownames(marker_table)
-    marker_table$cluster <- cell_type
-    marker_table$weight <- suppressWarnings(as.numeric(marker_table[[weight_column]]))
-    marker_table |>
-      dplyr::filter(is.finite(weight), gene %in% genes_to_test) |>
-      dplyr::arrange(dplyr::desc(weight)) |>
-      dplyr::slice_head(n = maximum_per_type) |>
-      dplyr::select(gene, cluster, weight)
-  })
-  marker_table <- dplyr::bind_rows(marker_tables)
+  }
+  marker_table <- marker_statistics |>
+    dplyr::filter(
+      feature %in% genes_to_test,
+      is.finite(auc),
+      is.finite(logFC),
+      auc > 0.5,
+      logFC > 0
+    ) |>
+    dplyr::arrange(group, dplyr::desc(auc), dplyr::desc(logFC)) |>
+    dplyr::group_by(group) |>
+    dplyr::slice_head(n = maximum_per_type) |>
+    dplyr::ungroup() |>
+    dplyr::transmute(
+      gene = as.character(feature),
+      cluster = as.character(group),
+      weight = as.numeric(auc)
+    )
   if (!nrow(marker_table)) stop("No SPOTlight marker genes were retained.")
   marker_table
 }
@@ -219,6 +236,48 @@ normalize_rows <- function(matrix_object) {
   matrix_object[valid, ] <- matrix_object[valid, , drop = FALSE] /
     row_totals[valid]
   matrix_object
+}
+
+build_serialization_safe_output <- function(mapped_object, base_rds,
+                                            identities_to_restore) {
+  if (!file.exists(base_rds)) {
+    stop("Cannot construct the output because the base Visium RDS is missing: ",
+         base_rds)
+  }
+  output_object <- readRDS(base_rds)
+  if (!inherits(output_object, "Seurat")) {
+    stop("The base Visium RDS does not contain a Seurat object.")
+  }
+  if (!setequal(colnames(output_object), colnames(mapped_object))) {
+    stop("The base and mapped Visium objects do not contain the same spots.")
+  }
+
+  mapped_metadata <- mapped_object[[]]
+  output_columns <- grep(
+    "^(predicted\\.|prediction\\.score\\.|mapping\\.score|SPOT_)",
+    colnames(mapped_metadata),
+    value = TRUE
+  )
+  if (!length(output_columns)) {
+    stop("No transferred-label or SPOTlight metadata fields were found.")
+  }
+  output_metadata <- mapped_metadata[
+    colnames(output_object), output_columns, drop = FALSE
+  ]
+  output_object <- SeuratObject::AddMetaData(
+    output_object, metadata = output_metadata
+  )
+
+  identity_names <- names(identities_to_restore)
+  if (!is.null(identity_names) &&
+      all(colnames(output_object) %in% identity_names)) {
+    SeuratObject::Idents(output_object) <- identities_to_restore[
+      colnames(output_object)
+    ]
+  } else {
+    SeuratObject::Idents(output_object) <- identities_to_restore
+  }
+  output_object
 }
 
 project_root <- find_project_root()
@@ -249,6 +308,12 @@ figure_dir <- file.path(
 )
 table_dir <- file.path(
   project_root, "results", "tables", "12_scRNA_Visium_mapping"
+)
+proportion_checkpoint_rds <- file.path(
+  table_dir, "SPOTlight_all_proportions_checkpoint.rds"
+)
+diagnostic_checkpoint_rds <- file.path(
+  table_dir, "SPOTlight_section_diagnostics_checkpoint.rds"
 )
 session_dir <- file.path(project_root, "results", "sessionInfo")
 section_pie_dir <- file.path(figure_dir, "section_scatterpies")
@@ -483,8 +548,44 @@ if (run_spotlight_deconvolution) {
     c("RNA", "Spatial"), SeuratObject::Assays(visium_query),
     "raw Visium count assay"
   )
+  spatial_count_layers <- grep(
+    "^counts($|\\.)",
+    SeuratObject::Layers(visium_query[[spatial_assay]]),
+    value = TRUE
+  )
+  if (!length(spatial_count_layers)) {
+    stop("No raw count layer was found in the Visium ", spatial_assay, " assay.")
+  }
+  if (length(spatial_count_layers) > 1L) {
+    message(
+      "Joining ", length(spatial_count_layers), " Visium ", spatial_assay,
+      " count layers for SPOTlight."
+    )
+    visium_query[[spatial_assay]] <- SeuratObject::JoinLayers(
+      visium_query[[spatial_assay]],
+      # JoinLayers expects the layer-family search term, not the expanded list
+      # of counts.sample layer names, in SeuratObject 5.4.
+      layers = "counts",
+      new = "counts"
+    )
+    joined_count_layers <- grep(
+      "^counts($|\\.)",
+      SeuratObject::Layers(visium_query[[spatial_assay]]),
+      value = TRUE
+    )
+    if (!identical(joined_count_layers, "counts")) {
+      stop(
+        "Visium count-layer joining did not produce one `counts` layer. ",
+        "Remaining layers: ", paste(joined_count_layers, collapse = ", ")
+      )
+    }
+  }
   spatial_counts <- SeuratObject::GetAssayData(
     visium_query, assay = spatial_assay, layer = "counts"
+  )
+  message(
+    "Recovered joined Visium counts: ", nrow(spatial_counts),
+    " genes x ", ncol(spatial_counts), " spots."
   )
   all_coordinates <- get_all_tissue_coordinates(visium_query)
   xy_columns <- select_xy_columns(all_coordinates)
@@ -506,12 +607,47 @@ if (run_spotlight_deconvolution) {
   }
   if (!length(target_sections)) stop("No requested Visium sections were found.")
 
-  all_proportions <- matrix(
-    NA_real_, nrow = ncol(visium_query), ncol = length(reference_cell_types),
-    dimnames = list(colnames(visium_query), reference_cell_types)
-  )
-  section_diagnostics <- vector("list", length(target_sections))
-  names(section_diagnostics) <- target_sections
+  previous_proportions <- if (
+    resume_spotlight_from_memory &&
+      exists("all_proportions", envir = .GlobalEnv, inherits = FALSE)
+  ) {
+    get("all_proportions", envir = .GlobalEnv)
+  } else if (file.exists(proportion_checkpoint_rds)) {
+    readRDS(proportion_checkpoint_rds)
+  } else {
+    NULL
+  }
+  valid_previous_proportions <- is.matrix(previous_proportions) &&
+    identical(rownames(previous_proportions), colnames(visium_query)) &&
+    identical(colnames(previous_proportions), reference_cell_types)
+
+  if (valid_previous_proportions) {
+    all_proportions <- previous_proportions
+    message("Recovered an existing SPOTlight proportion checkpoint.")
+  } else {
+    all_proportions <- matrix(
+      NA_real_, nrow = ncol(visium_query), ncol = length(reference_cell_types),
+      dimnames = list(colnames(visium_query), reference_cell_types)
+    )
+  }
+
+  previous_diagnostics <- if (
+    resume_spotlight_from_memory &&
+      exists("section_diagnostics", envir = .GlobalEnv, inherits = FALSE)
+  ) {
+    get("section_diagnostics", envir = .GlobalEnv)
+  } else if (file.exists(diagnostic_checkpoint_rds)) {
+    readRDS(diagnostic_checkpoint_rds)
+  } else {
+    NULL
+  }
+  if (is.list(previous_diagnostics) &&
+      all(target_sections %in% names(previous_diagnostics))) {
+    section_diagnostics <- previous_diagnostics[target_sections]
+  } else {
+    section_diagnostics <- vector("list", length(target_sections))
+    names(section_diagnostics) <- target_sections
+  }
 
   for (section_id in target_sections) {
     message("Running SPOTlight for section: ", section_id)
@@ -522,6 +658,11 @@ if (run_spotlight_deconvolution) {
     )
     if (length(section_spots) < 10L) {
       warning("Skipping ", section_id, ": fewer than 10 aligned tissue spots.")
+      next
+    }
+    existing_section <- all_proportions[section_spots, , drop = FALSE]
+    if (all(rowSums(existing_section, na.rm = TRUE) > 0)) {
+      message("Reusing completed SPOTlight proportions for: ", section_id)
       next
     }
 
@@ -584,21 +725,15 @@ if (run_spotlight_deconvolution) {
       n_markers = nrow(section_markers)
     )
 
-    scatterpie_plot <- SPOTlight::plotSpatialScatterpie(
-      # SPOTlight 1.16.0 requires a coordinate matrix for image-free plots.
-      x = as.matrix(coordinates),
-      y = proportions,
-      cell_types = colnames(proportions),
-      img = FALSE,
-      scatterpie_alpha = 0.85,
-      pie_scale = 0.45
-    ) + ggtitle(paste("SPOTlight cell-type proportions:", section_id))
-    ggsave(
-      file.path(section_pie_dir, paste0(make.names(section_id), ".png")),
-      scatterpie_plot, width = 8, height = 7, dpi = 300
-    )
+    # Persist section-level progress so an interrupted R session can resume
+    # without repeating completed NMF/deconvolution calculations.
+    saveRDS(all_proportions, proportion_checkpoint_rds, compress = FALSE)
+    saveRDS(section_diagnostics, diagnostic_checkpoint_rds, compress = FALSE)
+    message("Saved SPOTlight checkpoint after: ", section_id)
+
   }
 
+  message("All requested SPOTlight section calculations are complete.")
   completed_spots <- rowSums(all_proportions, na.rm = TRUE) > 0
   proportion_matrix <- all_proportions[completed_spots, , drop = FALSE]
   if (!nrow(proportion_matrix)) {
@@ -606,13 +741,21 @@ if (run_spotlight_deconvolution) {
   }
   proportion_matrix <- normalize_rows(proportion_matrix)
   all_proportions[completed_spots, ] <- proportion_matrix
+  saveRDS(all_proportions, proportion_checkpoint_rds, compress = FALSE)
+  saveRDS(section_diagnostics, diagnostic_checkpoint_rds, compress = FALSE)
+  message(
+    "Saved the complete SPOTlight proportion checkpoint for ",
+    sum(completed_spots), " spots."
+  )
   proportion_metadata <- all_proportions
   colnames(proportion_metadata) <- safe_spotlight_name(
     colnames(proportion_metadata)
   )
+  message("Attaching SPOTlight proportions to the Visium metadata.")
   visium_query <- SeuratObject::AddMetaData(
     visium_query, proportion_metadata
   )
+  message("Attached SPOTlight proportion fields.")
 
   maximum_index <- max.col(proportion_matrix, ties.method = "first")
   top_type <- colnames(proportion_matrix)[maximum_index]
@@ -633,6 +776,7 @@ if (run_spotlight_deconvolution) {
     row.names = rownames(proportion_matrix)
   )
   visium_query <- SeuratObject::AddMetaData(visium_query, summary_metadata)
+  message("Attached SPOTlight summary fields.")
 
   write.csv(
     cbind(spot = rownames(proportion_matrix), as.data.frame(proportion_matrix)),
@@ -644,6 +788,65 @@ if (run_spotlight_deconvolution) {
     file.path(table_dir, "SPOTlight_section_diagnostics.csv"),
     row.names = FALSE
   )
+
+  # MapQuery can add transient projected reductions whose embedded UMAP model
+  # is not serializable in some Seurat/uwot combinations. Transfer the durable
+  # mapped metadata onto a clean copy of the original, already serializable
+  # Visium object. Its assays, images, Harmony reduction, and identities remain
+  # unchanged; only predicted-label and SPOTlight fields are added.
+  message("Building a serialization-safe mapped Visium object.")
+  visium_query <- build_serialization_safe_output(
+    mapped_object = visium_query,
+    base_rds = visium_rds,
+    identities_to_restore = original_visium_idents
+  )
+  message("Saving the SPOTlight-mapped Visium checkpoint.")
+  saveRDS(visium_query, output_rds, compress = FALSE)
+  message("Saved the SPOTlight-mapped Visium checkpoint: ", output_rds)
+
+  # Generate only the four serial VR03 scatter-pie panels used for Figure B.
+  sections_for_pies <- intersect(scatterpie_sections, target_sections)
+  for (section_id in sections_for_pies) {
+    section_spots <- names(section_labels)[section_labels == section_id]
+    section_spots <- intersect(
+      section_spots,
+      intersect(rownames(all_coordinates), rownames(all_proportions))
+    )
+    coordinate_data <- all_coordinates[section_spots, xy_columns, drop = FALSE]
+    coordinate_matrix <- cbind(
+      x = suppressWarnings(as.numeric(coordinate_data[[xy_columns[1L]]])),
+      y = suppressWarnings(as.numeric(coordinate_data[[xy_columns[2L]]]))
+    )
+    rownames(coordinate_matrix) <- section_spots
+    pie_proportions <- all_proportions[section_spots, , drop = FALSE]
+    valid_plot_spots <- rowSums(is.finite(coordinate_matrix)) == 2L &
+      rowSums(pie_proportions, na.rm = TRUE) > 0
+    coordinate_matrix <- coordinate_matrix[valid_plot_spots, , drop = FALSE]
+    pie_proportions <- pie_proportions[valid_plot_spots, , drop = FALSE]
+
+    if (!nrow(pie_proportions)) {
+      warning("Skipping scatter-pie plot for ", section_id,
+              ": no finite aligned coordinates.")
+      next
+    }
+    tryCatch({
+      scatterpie_plot <- SPOTlight::plotSpatialScatterpie(
+        x = coordinate_matrix,
+        y = pie_proportions,
+        cell_types = colnames(pie_proportions),
+        img = FALSE,
+        scatterpie_alpha = 0.85,
+        pie_scale = 0.45
+      ) + ggtitle(paste("SPOTlight cell-type proportions:", section_id))
+      ggsave(
+        file.path(section_pie_dir, paste0(make.names(section_id), ".png")),
+        scatterpie_plot, width = 8, height = 7, dpi = 300
+      )
+    }, error = function(error) {
+      warning("Scatter-pie plotting failed for ", section_id, ": ",
+              conditionMessage(error))
+    })
+  }
 }
 
 # -----------------------------
@@ -716,7 +919,8 @@ if (file.exists(optional_module_marker_csv)) {
 # -----------------------------
 
 query_reduction <- first_existing(
-  c("umapharmony", "umap.harmony", "harmony.umap", "umap", "ref.umap"),
+  c("umap_harmony", "umapharmony", "umap.harmony", "harmony.umap",
+    "umap", "ref.umap"),
   SeuratObject::Reductions(visium_query), "Visium UMAP reduction"
 )
 spotlight_columns <- grep("^SPOT_", colnames(visium_query[[]]), value = TRUE)

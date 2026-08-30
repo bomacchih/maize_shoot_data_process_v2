@@ -41,7 +41,7 @@ The scRNA count matrix is converted to a `SingleCellExperiment` and log-normaliz
 
 - Mitochondrial, plastid, and ribosomal genes are excluded using gene lists when supplied and conservative name patterns otherwise.
 - Approximately 3,000 HVGs are selected with `modelGeneVar()` and `getTopHVGs()`.
-- Cell-type markers are ranked using the first available AUC or effect-size statistic returned by `scoreMarkers()`.
+- Cell-type markers are ranked by one-versus-all AUC using `presto::wilcoxauc()` on the sparse log-normalized reference matrix. Genes with AUC > 0.5 and positive log fold change are eligible.
 - At most 100 markers are retained per cell type.
 - The reference is downsampled reproducibly to no more than 100 cells per cell type.
 
@@ -49,7 +49,7 @@ The retained markers and HVGs are written to `results/tables/12_scRNA_Visium_map
 
 ## Section-wise soft deconvolution
 
-The combined Visium dataset is separated using `section_id`. SPOTlight is then run independently for every section using raw counts from the Visium RNA or Spatial assay. Only genes shared between the scRNA reference and the section are used.
+The combined Visium dataset is separated using `section_id`. Before count extraction, sample-specific Seurat v5 `counts.*` layers in the Visium RNA or Spatial assay are joined into one `counts` layer. SPOTlight is then run independently for every section using these raw counts. Only genes shared between the scRNA reference and the section are used.
 
 For each section, SPOTlight performs seeded NMF to learn non-negative cell-type signatures, followed by non-negative least squares to estimate cell-type proportions for every spot. After removing any residual column, the retained cell-type proportions are normalized to sum to 1.
 
@@ -60,6 +60,25 @@ sections_to_run <- c("VR03_S2")
 ```
 
 Set `sections_to_run <- NULL` for all sections.
+
+### Recovery after an interrupted run
+
+After every completed section, the workflow saves the accumulating proportion matrix and section diagnostics to:
+
+- `results/tables/12_scRNA_Visium_mapping/SPOTlight_all_proportions_checkpoint.rds`
+- `results/tables/12_scRNA_Visium_mapping/SPOTlight_section_diagnostics_checkpoint.rds`
+
+The deconvolution results are also kept in the in-memory `all_proportions` matrix while the script is running. If a later post-processing or plotting step fails, source the script again with:
+
+```r
+resume_spotlight_from_memory <- TRUE
+```
+
+The script validates the spot and cell-type names, preferentially reuses the in-memory result, otherwise reads the disk checkpoint, and recomputes only incomplete sections. Therefore, restarting R does not require repeating completed section-level deconvolution.
+
+The primary mapped Seurat object is saved before optional plotting begins. Consequently, a graphics-device or scatter-pie error cannot discard a completed deconvolution run.
+
+For compatibility across Seurat and `uwot` versions, the final output is constructed from a clean reload of the original combined Visium RDS. The workflow transfers the durable Seurat prediction fields and all `SPOT_` metadata to this clean object before saving it. This preserves the original assays, spatial images, Harmony reduction, and active identities while excluding transient MapQuery projection models that can trigger recursive serialization errors on some Windows installations.
 
 ## Metadata added to the Visium object
 
@@ -93,9 +112,11 @@ This file must contain `gene_id` and `cell_type`. When present, the workflow cal
 
 The workflow generates:
 
-- One spatial scatter-pie plot per section in `results/figures/12_scRNA_Visium_mapping/section_scatterpies/`
+- Spatial scatter-pie plots for the four consecutive VR03 sections used in Figure B (`VR03_S1`–`VR03_S4`) in `results/figures/12_scRNA_Visium_mapping/section_scatterpies/`
 - Cell-type proportion maps on the Visium Harmony UMAP
 - Original-study threshold overlays on the UMAP
+
+Scatter-pie plotting is deliberately separated from deconvolution and wrapped in error handling. Spots with missing or non-finite image coordinates are excluded from a plot without affecting their estimated cell-type proportions in the saved dataset.
 
 The original-study visualization thresholds are:
 
