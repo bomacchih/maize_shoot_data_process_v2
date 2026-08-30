@@ -187,11 +187,11 @@ source(
 
 After a successful run, the runtime record is written to:
 
-`results/sessionInfo/12_scRNA_Visium_mapping_sessionInfo.txt`
+[12_scRNA_Visium_mapping_sessionInfo.txt](../results/sessionInfo/12_scRNA_Visium_mapping_sessionInfo.txt)
 
 The standalone script 05 additionally writes:
 
-`results/sessionInfo/12_scRNA_Visium_plotting_sessionInfo.txt`
+[12_scRNA_Visium_plotting_sessionInfo.txt](../results/sessionInfo/12_scRNA_Visium_plotting_sessionInfo.txt)
 
 ```r
 sessionInfo()
