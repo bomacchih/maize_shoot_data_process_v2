@@ -17,9 +17,14 @@ contains:
   `maize_shoot_14samples_SCT_harmony_seurat_v5.rds`;
 - the integrated scRNA reference `sc_merged_filter_SCT2_inte.rds`; and
 - the embryonic-leaf object
-  `XGE202122_S5_subset_embleaf_harmony_join.rds`, used as the authoritative
-  `umap.harmony` coordinate source for Monocle Figures 10A/10C and as a
-  SPOTlight plotting fallback.
+  `XGE202122_S5_subset_embleaf_harmony_join.rds`, which defines the 6,392-spot
+  SAM–P5 analysis scope and provides the authoritative `umap.harmony`
+  coordinates for both the Monocle and SPOTlight workflows.
+
+The derived file
+`XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds` is
+generated locally by recalculating Seurat label transfer and SPOTlight
+deconvolution on that subset; it is intentionally not tracked in Git.
 
 ## Important distinction
 

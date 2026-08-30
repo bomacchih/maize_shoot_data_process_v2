@@ -2,7 +2,10 @@
 #
 # Input:
 #   an in-memory Seurat object named `visium_mapped`, or
-#   data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds
+#   data/processed/XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds
+#
+# All UMAP panels use the exact `umap.harmony` coordinates and 6,392 SAM-P5
+# spots in XGE202122_S5_subset_embleaf_harmony_join.rds.
 
 suppressPackageStartupMessages({
   library(Seurat)
@@ -33,12 +36,34 @@ first_existing <- function(candidates, available, required = TRUE) {
   NA_character_
 }
 
+update_legacy_visium_object <- function(object) {
+  if (!inherits(object, "Seurat")) stop("Expected a Seurat object.")
+  identities_before <- Idents(object)
+  identity_names <- names(identities_before)
+
+  for (image_name in Images(object)) {
+    object@images[[image_name]] <- SeuratObject::UpdateSlots(
+      object@images[[image_name]]
+    )
+  }
+  object <- SeuratObject::UpdateSlots(object)
+  object <- SeuratObject::UpdateSeuratObject(object)
+
+  if (!is.null(identity_names) && all(colnames(object) %in% identity_names)) {
+    Idents(object) <- identities_before[colnames(object)]
+  } else {
+    Idents(object) <- identities_before
+  }
+  methods::validObject(object)
+  object
+}
+
 project_root <- find_project_root()
 input_rds <- file.path(
   project_root, "data", "processed",
-  "maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds"
+  "XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds"
 )
-existing_subset_rds <- file.path(
+coordinate_source_rds <- file.path(
   project_root, "data", "processed",
   "XGE202122_S5_subset_embleaf_harmony_join.rds"
 )
@@ -54,12 +79,61 @@ if (exists("visium_mapped", envir = .GlobalEnv, inherits = FALSE)) {
   object <- get("visium_mapped", envir = .GlobalEnv)
 } else if (file.exists(input_rds)) {
   object <- readRDS(input_rds)
-} else if (file.exists(existing_subset_rds)) {
-  object <- readRDS(existing_subset_rds)
+} else if (file.exists(coordinate_source_rds)) {
+  warning(
+    "The recalculated subset mapping output was not found; plotting the ",
+    "previously deposited SPOTlight fields from the coordinate-source RDS."
+  )
+  object <- readRDS(coordinate_source_rds)
 } else {
   stop("No mapped Visium object was found.")
 }
 stopifnot(inherits(object, "Seurat"))
+object <- update_legacy_visium_object(object)
+
+if (!file.exists(coordinate_source_rds)) {
+  stop("The required SAM-P5 coordinate source was not found: ",
+       coordinate_source_rds)
+}
+coordinate_source <- readRDS(coordinate_source_rds)
+stopifnot(inherits(coordinate_source, "Seurat"))
+coordinate_source <- update_legacy_visium_object(coordinate_source)
+coordinate_reduction <- "umap.harmony"
+if (!coordinate_reduction %in% Reductions(coordinate_source)) {
+  stop("The SAM-P5 coordinate source lacks `umap.harmony`.")
+}
+scope_cells <- colnames(coordinate_source)
+missing_scope_cells <- setdiff(scope_cells, colnames(object))
+if (length(missing_scope_cells)) {
+  stop(
+    "The plotting object is missing ", length(missing_scope_cells),
+    " spots required by the SAM-P5 coordinate source."
+  )
+}
+extra_query_cells <- setdiff(colnames(object), scope_cells)
+if (length(extra_query_cells)) {
+  stop(
+    "The in-memory/output plotting object contains ",
+    length(extra_query_cells), " spots outside SAM-P5. Run script 04 to ",
+    "recalculate mapping on the embryonic-leaf subset before plotting."
+  )
+}
+object <- subset(object, cells = scope_cells)
+if (ncol(object) != length(scope_cells) ||
+    !setequal(colnames(object), scope_cells)) {
+  stop("The plotting object does not exactly match the SAM-P5 subset.")
+}
+umap_embeddings <- Embeddings(
+  coordinate_source, reduction = coordinate_reduction
+)[colnames(object), 1:2, drop = FALSE]
+colnames(umap_embeddings) <- c("umapharmony_1", "umapharmony_2")
+object[[coordinate_reduction]] <- CreateDimReducObject(
+  embeddings = umap_embeddings,
+  key = "umapharmony_",
+  assay = DefaultAssay(object)
+)
+rm(coordinate_source, umap_embeddings)
+
 original_idents <- Idents(object)
 metadata_columns <- colnames(object[[]])
 
@@ -80,11 +154,7 @@ if (!length(selected_features)) {
   stop("No vascular or SAM SPOTlight proportion fields were found.")
 }
 
-umap_reduction <- first_existing(
-  c("umap_harmony", "umapharmony", "umap.harmony", "harmony.umap",
-    "umap", "ref.umap"),
-  Reductions(object)
-)
+umap_reduction <- coordinate_reduction
 
 umap_proportions <- FeaturePlot(
   object,

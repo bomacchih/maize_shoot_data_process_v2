@@ -1,6 +1,6 @@
 # Mapping scRNA-seq cell types onto maize Visium sections
 
-This workflow combines Seurat anchor transfer with section-wise SPOTlight deconvolution. It is implemented in:
+This workflow combines Seurat anchor transfer with section-wise SPOTlight deconvolution for the embryonic-leaf trajectory (SAM, P1_P2, P3, P4, and P5). It is implemented in:
 
 [`04_map_scRNA_to_Visium_SPOTlight_Seurat_v5.R`](../scripts/R/10_scRNA_reference_integration/04_map_scRNA_to_Visium_SPOTlight_Seurat_v5.R)
 
@@ -11,9 +11,13 @@ Selected vascular and SAM plots can be regenerated without rerunning deconvoluti
 ## Inputs
 
 - Annotated scRNA-seq reference: `data/processed/sc_merged_filter_SCT2_inte_SCINA.rds`
-- Combined Visium object: `data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds`
+- Embryonic-leaf Visium query and coordinate source: `data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds`
 
-Because both objects are large, the recommended procedure is to load them in RStudio as `sc_reference` and `visium_query` before sourcing the script. The workflow writes a new output object and does not overwrite either input.
+The Visium input contains 6,392 spots assigned only to `SAM`, `P1_P2`, `P3`, `P4`, or `P5`. Script 04 uses this subset for the calculations themselves—not only for plotting. Thus, `FindTransferAnchors()`, `MapQuery()`, marker-to-spot matching, and SPOTlight deconvolution are all evaluated on the same embryonic-leaf spot set. Coleoptile and `co_v` spots are outside the scope of this analysis.
+
+The deposited subset is also authoritative for the `umap.harmony` coordinates. If an in-memory `visium_query` is supplied, script 04 restricts it to these exact 6,392 barcodes and restores the deposited coordinates before any calculation. It stops if a required barcode is missing or if a structural domain outside SAM–P5 remains. The workflow writes a new output object and does not overwrite either input.
+
+The deposited subset contains legacy `VisiumV1` spatial-image objects. Scripts 04 and 05 automatically run `UpdateSlots()` on every image and `UpdateSeuratObject()` on the complete Seurat object before mapping or plotting. Active identities are restored and validated after this compatibility update, preventing the missing-`misc`-slot error under current SeuratObject versions.
 
 ### Choose the reference annotation field explicitly
 
@@ -43,7 +47,7 @@ Step 03 now preferentially loads `sc_merged_filter_SCT2_inte.rds`, runs SCINA us
 
 ## Hard cell-type transfer
 
-The annotated scRNA-seq object is used as the reference and the Visium object as the query. Cells labeled `Unknown` are excluded from reference construction. The script:
+The annotated scRNA-seq object is used as the reference and the 6,392-spot SAM–P5 Visium subset as the query. Cells labeled `Unknown` are excluded from reference construction. The script:
 
 1. Uses the SCT assays of the reference and query.
 2. Creates a reference UMAP model from the reference PCA reduction. PCA is used because Seurat's `pcaproject` mapping requires reference feature loadings; the Harmony reduction remains available for visualization.
@@ -51,7 +55,7 @@ The annotated scRNA-seq object is used as the reference and the Visium object as
 4. Calls `MapQuery()` with the SCINA cell-type labels as reference data.
 5. Stores the hard assignments in `predicted.celltype` and the associated transfer score in `predicted.celltype.score`.
 
-The transferred labels can be plotted on either the projected reference UMAP or the existing Harmony UMAP of the Visium object.
+The transferred labels are plotted on the exact `umap.harmony` coordinates stored in the embryonic-leaf subset. Because label transfer is recalculated after restricting the query, these results should not be assumed to equal labels previously calculated using all 20,090 spots.
 
 ## SPOTlight reference preparation
 
@@ -67,7 +71,7 @@ The retained markers and HVGs are written to `results/tables/12_scRNA_Visium_map
 
 ## Section-wise soft deconvolution
 
-The combined Visium dataset is separated using `section_id`. Before count extraction, sample-specific Seurat v5 `counts.*` layers in the Visium RNA or Spatial assay are joined into one `counts` layer. SPOTlight is then run independently for every section using these raw counts. Only genes shared between the scRNA reference and the section are used.
+The SAM–P5 subset is separated using `section_id`. Before count extraction, sample-specific Seurat v5 `counts.*` layers in the Visium RNA or Spatial assay are joined into one `counts` layer. SPOTlight is then run independently for every section using raw counts only from retained embryonic-leaf spots. Only genes shared between the scRNA reference and the section are used.
 
 For each section, SPOTlight performs seeded NMF to learn non-negative cell-type signatures, followed by non-negative least squares to estimate cell-type proportions for every spot. After removing any residual column, the retained cell-type proportions are normalized to sum to 1.
 
@@ -83,8 +87,8 @@ Set `sections_to_run <- NULL` for all sections.
 
 After every completed section, the workflow saves the accumulating proportion matrix and section diagnostics to:
 
-- `results/tables/12_scRNA_Visium_mapping/SPOTlight_all_proportions_checkpoint.rds`
-- `results/tables/12_scRNA_Visium_mapping/SPOTlight_section_diagnostics_checkpoint.rds`
+- `results/tables/12_scRNA_Visium_mapping/SPOTlight_subset_embleaf_all_proportions_checkpoint.rds`
+- `results/tables/12_scRNA_Visium_mapping/SPOTlight_subset_embleaf_section_diagnostics_checkpoint.rds`
 
 The deconvolution results are also kept in the in-memory `all_proportions` matrix while the script is running. If a later post-processing or plotting step fails, source the script again with:
 
@@ -96,7 +100,7 @@ The script validates the spot and cell-type names, preferentially reuses the in-
 
 The primary mapped Seurat object is saved before optional plotting begins. Consequently, a graphics-device or scatter-pie error cannot discard a completed deconvolution run.
 
-For compatibility across Seurat and `uwot` versions, the final output is constructed from a clean reload of the original combined Visium RDS. The workflow transfers the durable Seurat prediction fields and all `SPOT_` metadata to this clean object before saving it. This preserves the original assays, spatial images, Harmony reduction, and active identities while excluding transient MapQuery projection models that can trigger recursive serialization errors on some Windows installations.
+For compatibility across Seurat and `uwot` versions, the final output is constructed from a clean reload of the original SAM–P5 subset RDS. The workflow transfers the durable Seurat prediction fields and all `SPOT_` metadata to this clean object before saving it. This preserves the original assays, spatial images, authoritative `umap.harmony` reduction, and active identities while excluding transient MapQuery projection models that can trigger recursive serialization errors on some Windows installations.
 
 ## Metadata added to the Visium object
 
@@ -131,7 +135,7 @@ This file must contain `gene_id` and `cell_type`. When present, the workflow cal
 The workflow generates:
 
 - Spatial scatter-pie plots for the four consecutive VR03 sections used in Figure B (`VR03_S1`–`VR03_S4`) in `results/figures/12_scRNA_Visium_mapping/section_scatterpies/`
-- Cell-type proportion maps on the Visium Harmony UMAP
+- Cell-type proportion maps on the exact SAM–P5 `umap.harmony` coordinates
 - Original-study threshold overlays on the UMAP
 
 Scatter-pie plotting is deliberately separated from deconvolution and wrapped in error handling. Spots with missing or non-finite image coordinates are excluded from a plot without affecting their estimated cell-type proportions in the saved dataset.
@@ -143,9 +147,9 @@ The original-study visualization thresholds are:
 
 These thresholds are intended for visualization. They should not replace the 0.60 high-purity criterion used for downstream domain-specific testing.
 
-### Figure B and C plots from the existing processed subset
+### Figure B and C plots for the SAM–P5 subset
 
-The following plots were generated from `XGE202122_S5_subset_embleaf_harmony_join.rds`, which contains 6,392 Visium spots and the previously estimated proportions for 12 cell types. They document the expected plotting outputs without rerunning the complete section-wise deconvolution.
+The following committed plots were generated from `XGE202122_S5_subset_embleaf_harmony_join.rds`, which contains 6,392 Visium spots and previously estimated proportions for 12 cell types. They document the expected layout. After script 04 is rerun, script 05 preferentially uses `XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds`, containing label-transfer and deconvolution results recalculated on exactly this subset. If that recalculated output is absent, script 05 emits a warning before using the deposited prior proportions as a plotting fallback.
 
 ![SPOTlight deconvolution across four VR03 sections](../results/figures/12_scRNA_Visium_mapping/selected_celltypes/Figure_B_VR03_section_scatterpies.png)
 
@@ -153,7 +157,7 @@ The following plots were generated from `XGE202122_S5_subset_embleaf_harmony_joi
 
 ![SPOTlight-estimated cell-type proportions on the Visium Harmony UMAP](../results/figures/12_scRNA_Visium_mapping/selected_celltypes/Figure_C_SPOTlight_proportion_UMAPs.png)
 
-**Figure C. SPOTlight-estimated cell-type proportions on the Visium Harmony UMAP.** The continuous color scale ranges from light gray (0) to deeper red (higher proportion). Panels show `Vascular_tissue`, `Leaf_rim`, `Shoot_system_epidermis`, `Leaf_primordium`, `Pavement_cell_N`, `Leaf_guard_cell`, `Bundle_sheath`, `Mesophyll`, `Leaf_epidermis`, `Leaf_subsidiary_cell`, `Shoot_apical_meristem`, and `Pavement_cell_A`. Because the proportions at each 55-µm spot sum to 1, SPOTlight captures graded cell-type mixtures that complement the single best label assigned by Seurat.
+**Figure C. SPOTlight-estimated cell-type proportions on the embryonic-leaf Harmony UMAP.** All panels use the exact `umap.harmony` coordinates for the 6,392 SAM–P5 spots. The continuous color scale ranges from light gray (0) to deeper red (higher proportion). Panels show `Vascular_tissue`, `Leaf_rim`, `Shoot_system_epidermis`, `Leaf_primordium`, `Pavement_cell_N`, `Leaf_guard_cell`, `Bundle_sheath`, `Mesophyll`, `Leaf_epidermis`, `Leaf_subsidiary_cell`, `Shoot_apical_meristem`, and `Pavement_cell_A`. Because the proportions at each 55-µm spot sum to 1, SPOTlight captures graded cell-type mixtures that complement the single best label assigned by Seurat.
 
 ![Vascular and SAM threshold overlays](../results/figures/12_scRNA_Visium_mapping/selected_celltypes/selected_SPOTlight_thresholds_UMAP.png)
 
@@ -163,7 +167,7 @@ The following plots were generated from `XGE202122_S5_subset_embleaf_harmony_joi
 
 The mapped and deconvolved Visium object is written to:
 
-`data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds`
+`data/processed/XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds`
 
 The original active identities are restored before the output is saved.
 
@@ -176,7 +180,7 @@ sc_reference <- readRDS(
   "data/processed/sc_merged_filter_SCT2_inte_SCINA.rds"
 )
 visium_query <- readRDS(
-  "data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds"
+  "data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds"
 )
 source(
   "scripts/R/10_scRNA_reference_integration/04_map_scRNA_to_Visium_SPOTlight_Seurat_v5.R"

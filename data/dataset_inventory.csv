@@ -8,7 +8,7 @@ Curated spot metadata,data/metadata/metadata.csv,PRESENT,QC integration velocity
 Mitochondrial gene list,data/reference/maize_mitochondrial_genes.txt,PRESENT,QC and integration
 Plastid gene list,data/reference/maize_plastid_genes.txt,PRESENT,QC and integration
 Fourteen individual Seurat objects,data/processed/<sample_id>_seurat_v5.rds,PRESENT_14_OF_14,QC integration and Monocle 3
-Integrated Visium object,data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds,PRESENT,marker pseudobulk trend and mapping workflows
+Integrated Visium object,data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds,PRESENT,marker pseudobulk and trend workflows
 Cluster marker tables,results/tables/markers_harmony_clusters_SCT_*.csv,NOT_GENERATED,cluster annotation support
 Velocyto loom files,data/processed/<space_ranger_run_id>.loom,PUBLIC_ZENODO_DOWNLOAD_REQUIRED,RNA velocity
 SRR11943512 raw 10x matrix,data/raw/scRNA_reference/SRR11943512/filtered_feature_bc_matrix/,MISSING_BLOCKING_RAW_REBUILD,scRNA reference integration
@@ -16,9 +16,9 @@ SRR11943513 raw 10x matrix,data/raw/scRNA_reference/SRR11943513/filtered_feature
 Integrated scRNA reference,data/processed/sc_merged_filter_SCT2_inte.rds,PRESENT,scRNA downstream workflows
 Lightweight scRNA reference,data/processed/sce_ref.rds,PRESENT,scRNA plotting
 SCINA marker table,data/metadata/scRNA_reference/SCINA_marker_table.csv,PRESENT_GENERATED_FROM_MARKER_LIST2_RDS,SCINA annotation and downstream Visium mapping
-SCINA-annotated Seurat reference,data/processed/sc_merged_filter_SCT2_inte_SCINA.rds,NOT_GENERATED,Seurat label transfer and SPOTlight
-SPOTlight-mapped Visium object,data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds,NOT_GENERATED,complete SPOTlight output and plotting
-Embryonic-leaf Seurat UMAP coordinate source,data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds,PRESENT,Monocle Figures 10A and 10C plus SPOTlight Figure B and C plotting
+SCINA-annotated Seurat reference,data/processed/sc_merged_filter_SCT2_inte_SCINA.rds,PRESENT,Seurat label transfer and SPOTlight
+SPOTlight-mapped embryonic-leaf Visium object,data/processed/XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds,NOT_GENERATED,label transfer and SPOTlight recalculated on the 6392 SAM-P5 spots
+Embryonic-leaf Seurat analysis and UMAP source,data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds,PRESENT,defines the SAM-P5 calculation scope and exact UMAP coordinates for Monocle and SPOTlight
 Developmental gene subset,data/reference/developmental_trends/sub_gene.csv,PRESENT,Figure 9 trends
 Maize GO mapping,data/reference/developmental_trends/zea_go2.csv,PRESENT,Figure 9 GO enrichment
 Maize gene-name mapping,data/reference/developmental_trends/maize_id_name.csv,PRESENT,Figure 9 representative labels

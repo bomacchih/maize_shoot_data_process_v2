@@ -2,14 +2,19 @@
 #
 # Main inputs:
 #   data/processed/sc_merged_filter_SCT2_inte_SCINA.rds
-#   data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
+#   data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds
+#
+# Analysis scope:
+#   Only the 6,392 embryonic-leaf spots assigned to SAM, P1_P2, P3, P4,
+#   or P5 are used for both Seurat label transfer and SPOTlight deconvolution.
+#   The `umap.harmony` coordinates stored in this subset are retained.
 #
 # Recommended for large objects:
 #   Load both objects in RStudio as `sc_reference` and `visium_query` before
 #   sourcing this script. In-memory objects take precedence over RDS files.
 #
 # Output:
-#   data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds
+#   data/processed/XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds
 
 suppressPackageStartupMessages({
   library(Seurat)
@@ -31,7 +36,9 @@ set.seed(1)
 
 run_hard_label_transfer <- TRUE
 run_spotlight_deconvolution <- TRUE
-reuse_existing_hard_transfer <- TRUE
+# FALSE intentionally recalculates transfer labels for the SAM-P5 subset rather
+# than reusing labels previously calculated on the complete 14-sample object.
+reuse_existing_hard_transfer <- FALSE
 resume_spotlight_from_memory <- TRUE
 # NULL uses the first available field in the documented preference order.
 # Set this explicitly to "celltype_scina" for fully automated SCINA labels or
@@ -110,6 +117,29 @@ as_character_vector <- function(x, description = "value") {
     stop(description, " is not an atomic vector after extraction.")
   }
   as.character(x)
+}
+
+update_legacy_visium_object <- function(object) {
+  if (!inherits(object, "Seurat")) stop("Expected a Seurat object.")
+  identities_before <- SeuratObject::Idents(object)
+  identity_names <- names(identities_before)
+
+  for (image_name in SeuratObject::Images(object)) {
+    object@images[[image_name]] <- SeuratObject::UpdateSlots(
+      object@images[[image_name]]
+    )
+  }
+  object <- SeuratObject::UpdateSlots(object)
+  object <- SeuratObject::UpdateSeuratObject(object)
+
+  if (!is.null(identity_names) &&
+      all(colnames(object) %in% identity_names)) {
+    SeuratObject::Idents(object) <- identities_before[colnames(object)]
+  } else {
+    SeuratObject::Idents(object) <- identities_before
+  }
+  methods::validObject(object)
+  object
 }
 
 get_all_tissue_coordinates <- function(object) {
@@ -253,11 +283,19 @@ build_serialization_safe_output <- function(mapped_object, base_rds,
   if (!inherits(output_object, "Seurat")) {
     stop("The base Visium RDS does not contain a Seurat object.")
   }
+  output_object <- update_legacy_visium_object(output_object)
   if (!setequal(colnames(output_object), colnames(mapped_object))) {
     stop("The base and mapped Visium objects do not contain the same spots.")
   }
 
   mapped_metadata <- mapped_object[[]]
+  stale_output_columns <- grep(
+    "^(predicted\\.|prediction\\.score\\.|mapping\\.score|SPOT_)",
+    colnames(output_object[[]]), value = TRUE
+  )
+  if (length(stale_output_columns)) {
+    for (field in stale_output_columns) output_object[[field]] <- NULL
+  }
   output_columns <- grep(
     "^(predicted\\.|prediction\\.score\\.|mapping\\.score|SPOT_)",
     colnames(mapped_metadata),
@@ -292,21 +330,21 @@ reference_rds <- file.path(
 )
 visium_rds <- file.path(
   project_root, "data", "processed",
-  "maize_shoot_14samples_SCT_harmony_seurat_v5.rds"
+  "XGE202122_S5_subset_embleaf_harmony_join.rds"
 )
 output_rds <- file.path(
   project_root, "data", "processed",
-  "maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds"
+  "XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds"
 )
 optional_module_marker_csv <- file.path(
   project_root, "data", "metadata", "scRNA_reference",
   "independent_celltype_module_markers.csv"
 )
 mitochondrial_gene_file <- file.path(
-  project_root, "data", "metadata", "maize_mitochondrial_genes.txt"
+  project_root, "data", "reference", "maize_mitochondrial_genes.txt"
 )
 plastid_gene_file <- file.path(
-  project_root, "data", "metadata", "maize_plastid_genes.txt"
+  project_root, "data", "reference", "maize_plastid_genes.txt"
 )
 figure_dir <- file.path(
   project_root, "results", "figures", "12_scRNA_Visium_mapping"
@@ -315,10 +353,10 @@ table_dir <- file.path(
   project_root, "results", "tables", "12_scRNA_Visium_mapping"
 )
 proportion_checkpoint_rds <- file.path(
-  table_dir, "SPOTlight_all_proportions_checkpoint.rds"
+  table_dir, "SPOTlight_subset_embleaf_all_proportions_checkpoint.rds"
 )
 diagnostic_checkpoint_rds <- file.path(
-  table_dir, "SPOTlight_section_diagnostics_checkpoint.rds"
+  table_dir, "SPOTlight_subset_embleaf_section_diagnostics_checkpoint.rds"
 )
 session_dir <- file.path(project_root, "results", "sessionInfo")
 section_pie_dir <- file.path(figure_dir, "section_scatterpies")
@@ -348,21 +386,104 @@ if (exists("sc_reference", envir = .GlobalEnv, inherits = FALSE)) {
   )
 }
 
-if (exists("visium_query", envir = .GlobalEnv, inherits = FALSE)) {
-  visium_query <- get("visium_query", envir = .GlobalEnv)
-} else if (file.exists(visium_rds)) {
-  visium_query <- readRDS(visium_rds)
-} else {
-  stop("Load the combined Visium object as `visium_query`, or create: ",
-       visium_rds)
+if (!file.exists(visium_rds)) {
+  stop("The required SAM-P5 Visium subset was not found: ", visium_rds)
 }
 
+# The deposited subset is authoritative for both analysis membership and UMAP
+# coordinates. An in-memory query may contain additional spots, so restrict it
+# to the exact deposited subset before label transfer or deconvolution.
+visium_scope <- readRDS(visium_rds)
+stopifnot(inherits(visium_scope, "Seurat"))
+scope_cells <- colnames(visium_scope)
+scope_reduction <- "umap.harmony"
+if (!scope_reduction %in% SeuratObject::Reductions(visium_scope)) {
+  stop("The SAM-P5 subset lacks the required `umap.harmony` reduction.")
+}
+scope_embeddings <- SeuratObject::Embeddings(
+  visium_scope, reduction = scope_reduction
+)[, 1:2, drop = FALSE]
+
+if (exists("visium_query", envir = .GlobalEnv, inherits = FALSE)) {
+  visium_query <- get("visium_query", envir = .GlobalEnv)
+  stopifnot(inherits(visium_query, "Seurat"))
+  missing_scope_cells <- setdiff(scope_cells, colnames(visium_query))
+  if (length(missing_scope_cells)) {
+    stop(
+      "The in-memory `visium_query` is missing ", length(missing_scope_cells),
+      " spots required by the deposited SAM-P5 subset."
+    )
+  }
+  visium_query <- subset(visium_query, cells = scope_cells)
+} else {
+  visium_query <- visium_scope
+}
+
+# Deposited legacy VisiumV1 images can lack the `misc` slot required by current
+# SeuratObject. Upgrade all spatial images before MapQuery modifies the object.
+visium_query <- update_legacy_visium_object(visium_query)
+
+# Recreate the plotting reduction in the final query order so every UMAP plot
+# uses the exact coordinates from XGE202122_S5_subset_embleaf_harmony_join.rds.
+scope_embeddings <- scope_embeddings[colnames(visium_query), , drop = FALSE]
+colnames(scope_embeddings) <- c("umapharmony_1", "umapharmony_2")
+visium_query[[scope_reduction]] <- SeuratObject::CreateDimReducObject(
+  embeddings = scope_embeddings,
+  key = "umapharmony_",
+  assay = SeuratObject::DefaultAssay(visium_query)
+)
+rm(visium_scope, scope_embeddings)
+
 stopifnot(inherits(sc_reference, "Seurat"), inherits(visium_query, "Seurat"))
+if (ncol(visium_query) != length(scope_cells) ||
+    !setequal(colnames(visium_query), scope_cells)) {
+  stop("The Visium query does not exactly match the deposited SAM-P5 subset.")
+}
+
+domain_column <- first_existing(
+  c("domains", "domain", "structural_domain"), colnames(visium_query[[]]),
+  "structural-domain metadata column"
+)
+allowed_domains <- c("SAM", "P1_P2", "P3", "P4", "P5")
+query_domains <- as_character_vector(
+  visium_query[[domain_column, drop = TRUE]], domain_column
+)
+unexpected_domains <- setdiff(
+  unique(query_domains[!is.na(query_domains) & nzchar(query_domains)]),
+  allowed_domains
+)
+if (length(unexpected_domains)) {
+  stop(
+    "The Visium query contains domains outside the SAM-P5 scope: ",
+    paste(unexpected_domains, collapse = ", ")
+  )
+}
 message(
   "Loaded annotated scRNA reference (", ncol(sc_reference),
-  " cells) and Visium query (", ncol(visium_query), " spots)."
+  " cells) and SAM-P5 Visium query (", ncol(visium_query), " spots)."
 )
 original_visium_idents <- SeuratObject::Idents(visium_query)
+
+# Remove deposited/previous mapping fields when the corresponding calculation
+# is being redone. This prevents old full-query results from surviving in the
+# subset output when a section is skipped or a field name changes.
+if (run_hard_label_transfer && !reuse_existing_hard_transfer) {
+  previous_transfer_columns <- grep(
+    "^(predicted\\.|prediction\\.score\\.|mapping\\.score)",
+    colnames(visium_query[[]]), value = TRUE
+  )
+  if (length(previous_transfer_columns)) {
+    for (field in previous_transfer_columns) visium_query[[field]] <- NULL
+  }
+}
+if (run_spotlight_deconvolution) {
+  previous_spotlight_columns <- grep(
+    "^SPOT_", colnames(visium_query[[]]), value = TRUE
+  )
+  if (length(previous_spotlight_columns)) {
+    for (field in previous_spotlight_columns) visium_query[[field]] <- NULL
+  }
+}
 reference_metadata <- sc_reference[[]]
 visium_metadata <- visium_query[[]]
 
@@ -796,12 +917,12 @@ if (run_spotlight_deconvolution) {
 
   write.csv(
     cbind(spot = rownames(proportion_matrix), as.data.frame(proportion_matrix)),
-    file.path(table_dir, "SPOTlight_spot_celltype_proportions.csv"),
+    file.path(table_dir, "SPOTlight_subset_embleaf_spot_celltype_proportions.csv"),
     row.names = FALSE
   )
   write.csv(
     dplyr::bind_rows(section_diagnostics),
-    file.path(table_dir, "SPOTlight_section_diagnostics.csv"),
+    file.path(table_dir, "SPOTlight_subset_embleaf_section_diagnostics.csv"),
     row.names = FALSE
   )
 
@@ -882,14 +1003,20 @@ if (all(c("predicted.celltype", "SPOT_top_type") %in%
       as.character(metadata_final$SPOT_top_type[evaluable])
   )
   write.csv(agreement_table,
-            file.path(table_dir, "SPOTlight_vs_Seurat_label_agreement.csv"),
+            file.path(
+              table_dir,
+              "SPOTlight_subset_embleaf_vs_Seurat_label_agreement.csv"
+            ),
             row.names = FALSE)
   write.csv(
     data.frame(
       n_evaluable_spots = nrow(agreement_table),
       agreement_rate = mean(agreement_table$agreement)
     ),
-    file.path(table_dir, "SPOTlight_vs_Seurat_agreement_summary.csv"),
+    file.path(
+      table_dir,
+      "SPOTlight_subset_embleaf_vs_Seurat_agreement_summary.csv"
+    ),
     row.names = FALSE
   )
 }
@@ -926,7 +1053,10 @@ if (file.exists(optional_module_marker_csv)) {
     )
   }
   write.csv(dplyr::bind_rows(module_correlations),
-            file.path(table_dir, "SPOTlight_module_score_correlations.csv"),
+            file.path(
+              table_dir,
+              "SPOTlight_subset_embleaf_module_score_correlations.csv"
+            ),
             row.names = FALSE)
 }
 
@@ -934,11 +1064,10 @@ if (file.exists(optional_module_marker_csv)) {
 # UMAP visualizations and original-study thresholds
 # -----------------------------
 
-query_reduction <- first_existing(
-  c("umap_harmony", "umapharmony", "umap.harmony", "harmony.umap",
-    "umap", "ref.umap"),
-  SeuratObject::Reductions(visium_query), "Visium UMAP reduction"
-)
+query_reduction <- "umap.harmony"
+if (!query_reduction %in% SeuratObject::Reductions(visium_query)) {
+  stop("The mapped SAM-P5 query lacks the required `umap.harmony` reduction.")
+}
 spotlight_columns <- grep("^SPOT_", colnames(visium_query[[]]), value = TRUE)
 spotlight_columns <- setdiff(
   spotlight_columns,
