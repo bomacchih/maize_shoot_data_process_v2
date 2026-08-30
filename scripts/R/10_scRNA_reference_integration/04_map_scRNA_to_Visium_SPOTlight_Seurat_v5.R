@@ -33,6 +33,11 @@ run_hard_label_transfer <- TRUE
 run_spotlight_deconvolution <- TRUE
 reuse_existing_hard_transfer <- TRUE
 resume_spotlight_from_memory <- TRUE
+# NULL uses the first available field in the documented preference order.
+# Set this explicitly to "celltype_scina" for fully automated SCINA labels or
+# "celltype_scina_histo" for the curated annotation used by the original
+# 12-cell-type Figure B/C representation.
+reference_celltype_column <- NULL
 sections_to_run <- NULL       # NULL runs every section; use c("VR03_S2") to test
 scatterpie_sections <- c("VR03_S1", "VR03_S2", "VR03_S3", "VR03_S4")
 reference_cells_per_type <- 100L
@@ -361,11 +366,22 @@ original_visium_idents <- SeuratObject::Idents(visium_query)
 reference_metadata <- sc_reference[[]]
 visium_metadata <- visium_query[[]]
 
-celltype_column <- first_existing(
-  c("celltype_scina", "celltype_scina_histo", "predicted_cell_type",
-    "ident", "label"),
-  colnames(reference_metadata), "scRNA cell-type annotation column"
-)
+if (is.null(reference_celltype_column)) {
+  celltype_column <- first_existing(
+    c("celltype_scina", "celltype_scina_histo", "predicted_cell_type",
+      "ident", "label"),
+    colnames(reference_metadata), "scRNA cell-type annotation column"
+  )
+} else {
+  if (!reference_celltype_column %in% colnames(reference_metadata)) {
+    stop(
+      "Requested reference cell-type column was not found: ",
+      reference_celltype_column
+    )
+  }
+  celltype_column <- reference_celltype_column
+}
+message("Using scRNA reference cell-type field: ", celltype_column)
 reference_labels <- as_character_vector(
   reference_metadata[[celltype_column]], celltype_column
 )

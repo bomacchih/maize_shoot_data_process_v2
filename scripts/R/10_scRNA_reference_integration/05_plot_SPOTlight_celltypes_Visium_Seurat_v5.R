@@ -46,7 +46,9 @@ figure_dir <- file.path(
   project_root, "results", "figures", "12_scRNA_Visium_mapping",
   "selected_celltypes"
 )
+session_dir <- file.path(project_root, "results", "sessionInfo")
 dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(session_dir, recursive = TRUE, showWarnings = FALSE)
 
 if (exists("visium_mapped", envir = .GlobalEnv, inherits = FALSE)) {
   object <- get("visium_mapped", envir = .GlobalEnv)
@@ -260,33 +262,53 @@ if (length(image_names)) {
       numeric_columns <- colnames(coordinates)[
         vapply(coordinates, is.numeric, logical(1))
       ]
+      if (length(numeric_columns) < 2L) {
+        stop("Could not identify two numeric coordinates for ",
+             representative_image, ".")
+      }
       xy_columns <- numeric_columns[1:2]
     }
 
-    scatterpie_plot <- SPOTlight::plotSpatialScatterpie(
-      x = as.matrix(coordinates[, xy_columns, drop = FALSE]),
-      y = proportions,
-      cell_types = colnames(proportions),
-      img = FALSE,
-      scatterpie_alpha = 0.85,
-      pie_scale = 0.45
-    ) +
-      ggtitle(paste("SPOTlight proportions:", representative_image)) +
-      theme(
-        plot.background = element_rect(fill = "white", color = NA),
-        panel.background = element_rect(fill = "white", color = NA),
-        plot.title = element_text(color = "black", face = "bold", hjust = 0.5),
-        legend.text = element_text(color = "black"),
-        legend.title = element_text(color = "black")
+    coordinate_matrix <- cbind(
+      x = suppressWarnings(as.numeric(coordinates[[xy_columns[1L]]])),
+      y = suppressWarnings(as.numeric(coordinates[[xy_columns[2L]]]))
+    )
+    rownames(coordinate_matrix) <- rownames(coordinates)
+    finite_coordinates <- rowSums(is.finite(coordinate_matrix)) == 2L
+    coordinate_matrix <- coordinate_matrix[finite_coordinates, , drop = FALSE]
+    proportions <- proportions[rownames(coordinate_matrix), , drop = FALSE]
+
+    tryCatch({
+      scatterpie_plot <- SPOTlight::plotSpatialScatterpie(
+        x = coordinate_matrix,
+        y = proportions,
+        cell_types = colnames(proportions),
+        img = FALSE,
+        scatterpie_alpha = 0.85,
+        pie_scale = 0.45
+      ) +
+        ggtitle(paste("SPOTlight proportions:", representative_image)) +
+        theme(
+          plot.background = element_rect(fill = "white", color = NA),
+          panel.background = element_rect(fill = "white", color = NA),
+          plot.title = element_text(
+            color = "black", face = "bold", hjust = 0.5
+          ),
+          legend.text = element_text(color = "black"),
+          legend.title = element_text(color = "black")
+        )
+      ggsave(
+        file.path(figure_dir, "representative_VR03_SPOTlight_scatterpie.png"),
+        scatterpie_plot, width = 9, height = 7, dpi = 300
       )
-    ggsave(
-      file.path(figure_dir, "representative_VR03_SPOTlight_scatterpie.png"),
-      scatterpie_plot, width = 9, height = 7, dpi = 300
-    )
-    ggsave(
-      file.path(figure_dir, "representative_VR03_SPOTlight_scatterpie.pdf"),
-      scatterpie_plot, width = 9, height = 7
-    )
+      ggsave(
+        file.path(figure_dir, "representative_VR03_SPOTlight_scatterpie.pdf"),
+        scatterpie_plot, width = 9, height = 7
+      )
+    }, error = function(error) {
+      warning("Representative scatter-pie plotting failed: ",
+              conditionMessage(error))
+    })
 
     # Figure B: the four VR03 sections plotted separately with a shared legend.
     section_column <- first_existing(
@@ -345,29 +367,63 @@ if (length(image_names)) {
         section_coordinates <- coordinates[
           rownames(section_proportions), xy_columns, drop = FALSE
         ]
+        section_coordinate_matrix <- cbind(
+          x = suppressWarnings(as.numeric(
+            section_coordinates[[xy_columns[1L]]]
+          )),
+          y = suppressWarnings(as.numeric(
+            section_coordinates[[xy_columns[2L]]]
+          ))
+        )
+        rownames(section_coordinate_matrix) <- rownames(section_coordinates)
+        finite_coordinates <- rowSums(
+          is.finite(section_coordinate_matrix)
+        ) == 2L
+        section_coordinate_matrix <- section_coordinate_matrix[
+          finite_coordinates, , drop = FALSE
+        ]
+        section_proportions <- section_proportions[
+          rownames(section_coordinate_matrix), , drop = FALSE
+        ]
 
-        SPOTlight::plotSpatialScatterpie(
-          x = as.matrix(section_coordinates),
-          y = section_proportions,
-          cell_types = figure_b_celltypes,
-          img = FALSE,
-          scatterpie_alpha = 0.9,
-          pie_scale = 0.75
-        ) +
-          scale_fill_manual(
-            values = figure_b_palette,
-            breaks = figure_b_celltypes,
-            drop = FALSE
-          ) +
-          ggtitle(paste0("S", index)) +
-          theme(
-            plot.background = element_rect(fill = "white", color = NA),
-            panel.background = element_rect(fill = "white", color = NA),
-            plot.title = element_text(
-              color = "black", face = "bold", hjust = 0.5, size = 13
-            ),
-            legend.position = "none"
+        if (!nrow(section_proportions)) {
+          return(
+            ggplot() +
+              theme_void() +
+              ggtitle(paste0("S", index, " (no finite coordinates)"))
           )
+        }
+
+        tryCatch(
+          SPOTlight::plotSpatialScatterpie(
+            x = section_coordinate_matrix,
+            y = section_proportions,
+            cell_types = figure_b_celltypes,
+            img = FALSE,
+            scatterpie_alpha = 0.9,
+            pie_scale = 0.75
+          ) +
+            scale_fill_manual(
+              values = figure_b_palette,
+              breaks = figure_b_celltypes,
+              drop = FALSE
+            ) +
+            ggtitle(paste0("S", index)) +
+            theme(
+              plot.background = element_rect(fill = "white", color = NA),
+              panel.background = element_rect(fill = "white", color = NA),
+              plot.title = element_text(
+                color = "black", face = "bold", hjust = 0.5, size = 13
+              ),
+              legend.position = "none"
+            ),
+          error = function(error) {
+            warning("Scatter-pie plotting failed for ", section_name, ": ",
+                    conditionMessage(error))
+            ggplot() + theme_void() +
+              ggtitle(paste0("S", index, " (plot unavailable)"))
+          }
+        )
       })
 
       # Build one explicit legend because plotSpatialScatterpie can emit
@@ -416,4 +472,8 @@ if (length(image_names)) {
 
 Idents(object) <- original_idents
 stopifnot(identical(Idents(object), original_idents))
+writeLines(
+  capture.output(sessionInfo()),
+  file.path(session_dir, "12_scRNA_Visium_plotting_sessionInfo.txt")
+)
 message("Selected SPOTlight plots completed: ", figure_dir)

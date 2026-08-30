@@ -15,6 +15,24 @@ Selected vascular and SAM plots can be regenerated without rerunning deconvoluti
 
 Because both objects are large, the recommended procedure is to load them in RStudio as `sc_reference` and `visium_query` before sourcing the script. The workflow writes a new output object and does not overwrite either input.
 
+### Choose the reference annotation field explicitly
+
+The deposited annotated scRNA reference contains both `celltype_scina` and `celltype_scina_histo`. In script 04, use:
+
+```r
+reference_celltype_column <- "celltype_scina"
+```
+
+for the fully automated SCINA assignments. In the currently deposited object, these assignments include `G2_M_phase` and `S_phase`, but do not contain cells assigned to `Leaf_guard_cell` or `Pavement_cell_A`.
+
+To reproduce the original 12-tissue-cell-type Figure B/C representation, use:
+
+```r
+reference_celltype_column <- "celltype_scina_histo"
+```
+
+This curated field contains `Leaf_guard_cell` and `Pavement_cell_A` and excludes the two cell-cycle labels. Changing the annotation field changes the SPOTlight reference and therefore requires a new deconvolution checkpoint; the choice must be reported with the analysis.
+
 The lightweight `sce_ref.rds` can reproduce the SCINA validation plot but is not a substitute for the full annotated Seurat reference in this mapping workflow. If `sc_merged_filter_SCT2_inte_SCINA.rds` does not yet exist, first run:
 
 ```r
@@ -170,6 +188,10 @@ source(
 After a successful run, the runtime record is written to:
 
 `results/sessionInfo/12_scRNA_Visium_mapping_sessionInfo.txt`
+
+The standalone script 05 additionally writes:
+
+`results/sessionInfo/12_scRNA_Visium_plotting_sessionInfo.txt`
 
 ```r
 sessionInfo()

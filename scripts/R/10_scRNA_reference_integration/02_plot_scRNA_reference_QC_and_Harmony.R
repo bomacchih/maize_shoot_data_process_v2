@@ -69,7 +69,8 @@ if (inherits(reference, "Seurat")) {
   metadata <- reference[[]]
   reduction_names <- SeuratObject::Reductions(reference)
   umap_name <- first_existing(
-    c("umapharmony", "umap.harmony", "harmony.umap", "umap"),
+    c("umap_harmony", "umapharmony", "umap.harmony", "harmony.umap",
+      "umap"),
     reduction_names,
     "Harmony UMAP reduction"
   )
@@ -78,7 +79,8 @@ if (inherits(reference, "Seurat")) {
   metadata <- as.data.frame(SummarizedExperiment::colData(reference))
   reduction_names <- SingleCellExperiment::reducedDimNames(reference)
   umap_name <- first_existing(
-    c("UMAP.HARMONY", "umapharmony", "UMAP", "umap"),
+    c("UMAP_HARMONY", "UMAP.HARMONY", "umap_harmony", "umapharmony",
+      "UMAP", "umap"),
     reduction_names,
     "Harmony UMAP reduction"
   )

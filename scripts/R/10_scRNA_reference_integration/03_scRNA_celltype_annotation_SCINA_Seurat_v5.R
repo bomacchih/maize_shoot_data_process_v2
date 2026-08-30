@@ -272,7 +272,8 @@ if (is_seurat) {
   plot_metadata <- reference[[]]
   reductions <- SeuratObject::Reductions(reference)
   umap_name <- first_existing(
-    c("umapharmony", "umap.harmony", "harmony.umap", "umap"),
+    c("umap_harmony", "umapharmony", "umap.harmony", "harmony.umap",
+      "umap"),
     reductions, "Harmony UMAP reduction"
   )
   umap <- SeuratObject::Embeddings(reference, reduction = umap_name)
@@ -280,7 +281,8 @@ if (is_seurat) {
   plot_metadata <- as.data.frame(SummarizedExperiment::colData(reference))
   reductions <- SingleCellExperiment::reducedDimNames(reference)
   umap_name <- first_existing(
-    c("UMAP.HARMONY", "umapharmony", "UMAP", "umap"),
+    c("UMAP_HARMONY", "UMAP.HARMONY", "umap_harmony", "umapharmony",
+      "UMAP", "umap"),
     reductions, "Harmony UMAP reduction"
   )
   umap <- SingleCellExperiment::reducedDim(reference, umap_name)
