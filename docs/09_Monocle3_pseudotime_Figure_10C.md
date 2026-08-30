@@ -1,6 +1,6 @@
 # 09. Monocle 3 pseudotime analysis of maize embryonic leaves
 
-**SAM-rooted trajectory analysis and Figure 10C**
+**Transferred Seurat UMAP, interactive root selection, and Figures 10A and 10C**
 
 This workflow estimates pseudotime across five developing-shoot domains:
 
@@ -8,8 +8,10 @@ This workflow estimates pseudotime across five developing-shoot domains:
 
 The analysis uses the 14 biological replicates while retaining only curated,
 non-overlapping spots assigned to these five domains. The biological starting
-state is specified as the shoot apical meristem (`SAM`). Monocle 3 then selects
-the principal graph node containing the largest number of SAM spots as the root.
+state is expected to lie in the shoot apical meristem (`SAM`). By default,
+Monocle 3 opens an interactive Shiny GUI in which the user manually selects one
+or more principal graph nodes as the developmental starting point. The selected
+node identifiers are saved for reproducible non-interactive reruns.
 
 The executable script is:
 
@@ -31,16 +33,17 @@ DQ07_seurat_v5.rds    DQ08_seurat_v5.rds
 
 Each object must contain an `RNA` assay with one raw `counts` layer.
 
-### Combined Seurat object
+### Seurat coordinate-source object
 
 ```text
-data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
+data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds
 ```
 
-For manuscript reproduction, the script transfers the `umap_harmony`
-coordinates from this object into Monocle 3. This makes the geometry of Figure
-10C correspond to the Harmony UMAP used in the associated Seurat and RNA
-velocity panels.
+For manuscript reproduction, the script transfers the `umap.harmony`
+coordinates from this 6,392-spot embryonic-leaf Seurat object into Monocle 3.
+This makes the spot geometry of Figures 10A and 10C match the reference Seurat
+UMAP. Coordinates are reordered by barcode before assignment; the script stops
+if any retained Monocle spot is absent from the coordinate source.
 
 ### Curated spot metadata
 
@@ -129,25 +132,25 @@ cds <- align_cds(
 Repeated positional labels such as `Section1` are not used as the alignment
 group because the same label can occur in different capture areas.
 
-### 3. Transfer the Harmony UMAP for Figure 10C
+### 3. Transfer the Seurat Harmony UMAP for Figures 10A and 10C
 
 The default setting is:
 
 ```r
-use_seurat_harmony_umap <- TRUE
-seurat_umap_reduction <- "umap_harmony"
+use_seurat_reference_umap <- TRUE
+seurat_umap_reduction <- "umap.harmony"
 ```
 
-The script reads the two-dimensional Harmony UMAP from the combined Seurat
-object, matches it to retained Monocle barcodes, and installs it as the Monocle
-`UMAP` reduction before clustering and graph learning. This reproduces the
-coordinate system of the reference Figure 10C.
+The script reads the two-dimensional Harmony UMAP from
+`XGE202122_S5_subset_embleaf_harmony_join.rds`, matches it to retained Monocle
+barcodes, and installs it as the Monocle `UMAP` reduction before clustering and
+graph learning. This reproduces the coordinate system of the reference panels.
 
 For a new dataset, an independent Monocle UMAP can instead be calculated from
 the aligned PCA coordinates by changing:
 
 ```r
-use_seurat_harmony_umap <- FALSE
+use_seurat_reference_umap <- FALSE
 ```
 
 In that mode, the script uses cosine distance, 15 neighbors, and
@@ -171,23 +174,43 @@ cds <- learn_graph(
 `use_partition = FALSE` allows one graph to connect the SAM and developing-leaf
 regions. `close_loop = FALSE` retains a tree-like trajectory.
 
-### 5. Define the SAM root and calculate pseudotime
+### 5. Select the root manually and calculate pseudotime
 
-The biological root state is manually defined as `SAM`. The script identifies
-the principal graph node nearest to the largest number of SAM spots and passes
-that node explicitly to `order_cells()`:
+The default setting is:
 
 ```r
-cds <- order_cells(
-  cds,
-  reduction_method = "UMAP",
-  root_pr_nodes = sam_root_node
-)
+root_selection_mode <- "interactive"
 ```
 
-This root choice is an explicit biological assumption. Reversing or changing
-the root changes the interpretation of pseudotime. Pseudotime is a relative
-graph distance and is not chronological time.
+After graph learning, the script prints and saves a domain-colored guide with
+labeled principal graph points. It then calls `order_cells()` without supplying
+`root_pr_nodes` or `root_cells`. In an interactive RStudio session, this opens
+Monocle 3's **Choose your root nodes** Shiny GUI.
+
+In the GUI:
+
+1. Inspect the domain-colored guide and locate the SAM region.
+2. Click a node, or brush one or more nodes and click **Choose/unchoose**.
+3. Confirm that the intended root nodes are selected.
+4. Click **Done**.
+
+The selected identifiers are saved to:
+
+```text
+results/tables/09_monocle3_pseudotime/
+└── Monocle3_selected_root_principal_nodes.csv
+```
+
+To repeat the analysis with the same root without reopening the GUI, set:
+
+```r
+root_selection_mode <- "saved"
+```
+
+An `automatic_sam` mode is retained as an optional non-interactive fallback,
+but it is not the default. Any root choice is an explicit biological
+assumption. Changing the selected root changes pseudotime direction;
+pseudotime is a relative graph distance rather than chronological time.
 
 ## Run the workflow
 
@@ -201,6 +224,11 @@ source(
 )
 ```
 
+Run this script with `source()` in RStudio for the first analysis. Running it
+with `Rscript` is non-interactive and cannot display the root-selection GUI.
+After an interactive run has saved the selected node identifiers, `Rscript`
+can be used with `root_selection_mode <- "saved"`.
+
 Do not source `_verify_monocle_runtime.R`. That name referred to a temporary
 diagnostic file and is not part of the repository workflow.
 
@@ -210,6 +238,7 @@ diagnostic file and is not part of the repository workflow.
 
 ```text
 data/processed/monocle3/
+├── maize_shoot_SAM_P1_P2_P3_P4_P5_monocle3_before_root_selection.rds
 └── maize_shoot_SAM_P1_P2_P3_P4_P5_monocle3_pseudotime.rds
 ```
 
@@ -220,6 +249,7 @@ results/tables/09_monocle3_pseudotime/
 ├── Seurat_to_Monocle_barcode_matching.csv
 ├── retained_spots_by_sample_and_domain.csv
 ├── Monocle3_spot_pseudotime_and_metadata.csv
+├── Monocle3_selected_root_principal_nodes.csv
 └── Monocle3_pseudotime_parameters.csv
 ```
 
@@ -231,16 +261,27 @@ and UMAP coordinates.
 
 ```text
 results/figures/09_monocle3_pseudotime/
+├── Figure_10A_Seurat_Harmony_UMAP_by_domain.png
+├── Figure_10A_Seurat_Harmony_UMAP_by_domain.pdf
 ├── Figure_10C_monocle3_pseudotime.png
 ├── Figure_10C_monocle3_pseudotime.pdf
+├── Monocle3_root_selection_guide.png
 └── Monocle3_trajectory_by_domain.png
 ```
+
+## Figure 10A
+
+![Embryonic-leaf domains on the transferred Seurat Harmony UMAP](../results/figures/09_monocle3_pseudotime/Figure_10A_Seurat_Harmony_UMAP_by_domain.png)
+
+Spots are shown using the `umap.harmony` coordinates transferred from
+`XGE202122_S5_subset_embleaf_harmony_join.rds` and are colored by the five
+embryonic-leaf domains. No Monocle graph is displayed in panel A.
 
 ## Figure 10C
 
 The following image appears after the workflow has completed:
 
-![Monocle 3 pseudotime trajectory rooted in SAM](../results/figures/09_monocle3_pseudotime/Figure_10C_monocle3_pseudotime.png)
+![Monocle 3 pseudotime trajectory with a manually selected root](../results/figures/09_monocle3_pseudotime/Figure_10C_monocle3_pseudotime.png)
 
 Spots are colored from low to high pseudotime. The dark line represents the
 principal graph. Principal points are labeled to document the graph structure,
@@ -251,25 +292,28 @@ SAM, P1_P2, P3, P4, and P5.
 
 ![Monocle 3 trajectory colored by structural domain](../results/figures/09_monocle3_pseudotime/Monocle3_trajectory_by_domain.png)
 
-This diagnostic should be inspected to confirm that the SAM root is located in
-the expected anatomical region and that increasing pseudotime broadly follows
-the proposed progression toward later leaf primordia.
+This diagnostic should be inspected to confirm that the selected root is in the
+expected SAM region and that increasing pseudotime broadly follows the proposed
+progression toward later leaf primordia.
 
 ## Suggested figure legend
 
-**Figure 10C. Pseudotime trajectory of maize embryonic leaf development.**
-Monocle 3 trajectory inferred from spatial transcriptomic spots assigned to the
-shoot apical meristem (SAM) and successive leaf primordia (P1–P2, P3, P4, and
-P5). The Harmony UMAP coordinates from the processed Seurat object were
-transferred to Monocle 3 for graph learning and visualization. The trajectory
-was rooted in the principal graph node containing the largest number of SAM
-spots. Colors indicate increasing pseudotime, the dark line represents the
-learned principal graph, and numbered labels identify principal graph points.
+**Figure 10A and C. UMAP domains and pseudotime trajectory of maize embryonic
+leaf development.** (A) Harmony UMAP of spatial transcriptomic spots assigned
+to the shoot apical meristem (SAM) and successive leaf primordia (P1–P2, P3,
+P4, and P5), colored by structural domain. The coordinates were transferred
+from `XGE202122_S5_subset_embleaf_harmony_join.rds`. (C) Monocle 3 trajectory
+learned and displayed on the same UMAP coordinates. The biological starting
+node was selected manually from the SAM region using the Monocle 3
+root-selection GUI. Colors indicate increasing pseudotime, the dark line
+represents the learned principal graph, and numbered labels identify principal
+graph points.
 
 ## Interpretation and reproducibility notes
 
-- The SAM root is biologically specified rather than inferred without prior
-  information.
+- The starting node is selected manually. SAM is the biologically expected
+  root for manuscript reproduction, but users must justify the root for their
+  own experiment.
 - Spots from the same section or capture area are subsamples, not independent
   biological replicates.
 - The trajectory describes transcriptional continuity and does not establish
@@ -290,22 +334,29 @@ The script explicitly uses `SeuratObject::Assays()`,
 collision with Bioconductor assay accessors. Restart R and source the current
 repository script if this error appears.
 
-### The combined object lacks `umap_harmony`
+### The coordinate-source object lacks `umap.harmony`
 
-Run the step 04 integration workflow first or set:
+Download the deposited coordinate-source object or set:
 
 ```r
-use_seurat_harmony_umap <- FALSE
+use_seurat_reference_umap <- FALSE
 ```
 
 The latter calculates a new Monocle UMAP and will not reproduce the exact
-Figure 10C coordinate system.
+Figure 10A/10C coordinate system.
+
+### The root-selection GUI does not open
+
+Confirm that the script is being sourced in an interactive RStudio session and
+that `root_selection_mode <- "interactive"`. The GUI uses `shiny`; install it
+if necessary. A non-interactive `Rscript` process must use a previously saved
+root or the optional `automatic_sam` mode.
 
 ### Infinite pseudotime values
 
-Infinite values indicate spots that are not reachable from the selected SAM
-root. Confirm that `use_partition = FALSE`, inspect the domain-colored graph,
-and verify that the SAM and developing-leaf regions are connected appropriately.
+Infinite values indicate spots that are not reachable from the selected root.
+Confirm that `use_partition = FALSE`, inspect the domain-colored graph, and
+verify that the chosen root belongs to the intended connected trajectory.
 
 ## Session information
 

@@ -1,6 +1,6 @@
 # R and Python package requirements
 
-Audit date: 2026-08-26
+Audit date: 2026-08-30
 
 This list was extracted from the scripts in this repository. The installed R versions are the versions available in the environment used for the code audit; they are not strict version pins unless explicitly stated. Every completed analysis should retain its own `sessionInfo()` or Python version record.
 
@@ -25,6 +25,7 @@ This list was extracted from the scripts in this repository. The installed R ver
 | tidyr | 1.3.2 | Long/wide reshaping for developmental-trend analysis |
 | edgeR | 4.10.1 | TMM normalization and log2 CPM pseudobulk profiles |
 | monocle3 | 1.4.27 | Pseudotime and trajectory analysis |
+| shiny | 1.14.0 | Interactive Monocle 3 root-principal-node selection |
 | SingleCellExperiment | 1.34.0 | scRNA/Monocle/SPOTlight data exchange |
 | SummarizedExperiment | 1.42.0 | Assay and column-metadata access |
 | S4Vectors | 0.50.1 | Bioconductor metadata containers used during mapping |

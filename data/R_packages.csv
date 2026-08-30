@@ -10,6 +10,7 @@ dplyr,required,1.2.1,Metadata and table manipulation
 tidyr,required_for_developmental_trends,1.3.2,Table reshaping
 edgeR,required_for_pseudobulk,4.10.1,TMM normalization and log2 CPM
 monocle3,required_for_pseudotime,1.4.27,Pseudotime and trajectory analysis
+shiny,required_for_interactive_monocle_root_selection,1.14.0,Interactive Monocle root-principal-node selection
 SingleCellExperiment,required,1.34.0,Single-cell data exchange
 SummarizedExperiment,required,1.42.0,Assay and metadata access
 S4Vectors,required_for_SPOTlight_mapping,0.50.1,Bioconductor metadata containers

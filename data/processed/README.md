@@ -16,7 +16,10 @@ contains:
 - the integrated Visium object
   `maize_shoot_14samples_SCT_harmony_seurat_v5.rds`;
 - the integrated scRNA reference `sc_merged_filter_SCT2_inte.rds`; and
-- one additional processed RDS used as a plotting fallback.
+- the embryonic-leaf object
+  `XGE202122_S5_subset_embleaf_harmony_join.rds`, used as the authoritative
+  `umap.harmony` coordinate source for Monocle Figures 10A/10C and as a
+  SPOTlight plotting fallback.
 
 ## Important distinction
 

@@ -18,10 +18,9 @@ Lightweight scRNA reference,data/processed/sce_ref.rds,PRESENT,scRNA plotting
 SCINA marker table,data/metadata/scRNA_reference/SCINA_marker_table.csv,PRESENT_GENERATED_FROM_MARKER_LIST2_RDS,SCINA annotation and downstream Visium mapping
 SCINA-annotated Seurat reference,data/processed/sc_merged_filter_SCT2_inte_SCINA.rds,NOT_GENERATED,Seurat label transfer and SPOTlight
 SPOTlight-mapped Visium object,data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds,NOT_GENERATED,complete SPOTlight output and plotting
-SPOTlight plotting fallback,data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds,PRESENT,Figure B and C plotting
+Embryonic-leaf Seurat UMAP coordinate source,data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds,PRESENT,Monocle Figures 10A and 10C plus SPOTlight Figure B and C plotting
 Developmental gene subset,data/reference/developmental_trends/sub_gene.csv,PRESENT,Figure 9 trends
 Maize GO mapping,data/reference/developmental_trends/zea_go2.csv,PRESENT,Figure 9 GO enrichment
 Maize gene-name mapping,data/reference/developmental_trends/maize_id_name.csv,PRESENT,Figure 9 representative labels
 GO term descriptions,data/reference/developmental_trends/go_term_descriptions.csv,OPTIONAL_MISSING,Figure 9 GO labels
 Independent cell-type module markers,data/metadata/scRNA_reference/independent_celltype_module_markers.csv,OPTIONAL_MISSING,SPOTlight validation
-Seurat Harmony UMAP export,data/metadata/seurat_harmony_umap.csv,OPTIONAL_MISSING,Monocle reference reduction
