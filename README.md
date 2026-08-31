@@ -145,6 +145,16 @@ The object contains two deliberately separate cluster fields:
 
 Numeric cluster labels are analysis-specific. Users must characterize their recomputed clusters and create their own cluster-to-supergroup mapping rather than transferring the published mapping.
 
+### Metadata conventions differ between deposited objects
+
+In `maize_shoot_14samples_SCT_harmony_seurat_v5.rds`, `sample_id` identifies
+the biological replicate and `section_id` identifies the physical section. In
+`XGE202122_S5_subset_embleaf_harmony_join.rds`, the historical convention is
+different: `sample` identifies the biological replicate, whereas `sample_id`
+identifies the physical section. The RNA-velocity workflow resolves these as
+`biological_replicate` and `section_id` without modifying either source RDS.
+See [data/DATASETS.md](data/DATASETS.md#object-specific-metadata-conventions).
+
 ## Starting from Space Ranger outputs
 
 Each capture area should follow this layout:
@@ -164,7 +174,7 @@ The shell scripts contain installation- and project-specific settings for FASTQs
 
 ## RNA velocity
 
-Place one Velocyto loom file for each of the 14 samples in `data/raw/loom/`. Filenames must contain their sample IDs. The workflow has three data stages: (1) export raw RNA counts, metadata, PCA, and the exact `umap.harmony` coordinates from `XGE202122_S5_subset_embleaf_harmony_join.rds`; (2) use the existing Velocyto loom files, so BAM-to-loom processing is not rerun; and (3) reconstruct AnnData, merge the spliced/unspliced layers, and calculate stochastic and dynamical scVelo models using the same preprocessing, neighborhoods, moments, and UMAP.
+Place one Velocyto loom file for each of the 14 biological replicates in `data/raw/loom/`. Filenames must contain the biological-replicate IDs (`UL01`–`DQ08`), not section IDs such as `UL01_S2`. The workflow has three data stages: (1) export raw RNA counts, explicit `biological_replicate`/`section_id` metadata, PCA, and the exact `umap.harmony` coordinates from `XGE202122_S5_subset_embleaf_harmony_join.rds`; (2) use the existing Velocyto loom files, so BAM-to-loom processing is not rerun; and (3) reconstruct AnnData, merge the spliced/unspliced layers, and calculate stochastic and dynamical scVelo models using the same preprocessing, neighborhoods, moments, and UMAP.
 
 From RStudio at the repository root, export the Seurat data first:
 

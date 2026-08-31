@@ -119,7 +119,14 @@ sample_list <- lapply(sample_ids, function(sample_id) {
 names(sample_list) <- sample_ids
 ```
 
-The `sample_id` field is retained as the batch variable for Harmony. Spots are observations within capture areas; they are not treated as independent biological replicates for replicate-level differential-expression tests.
+In this full seven-domain object, `sample_id` identifies the biological
+replicate (`UL01`–`DQ08`) and is retained as the Harmony batch variable;
+`section_id` identifies the physical section (for example `UL01_S2`). This
+differs from the historical naming in
+`XGE202122_S5_subset_embleaf_harmony_join.rds`, where `sample` is the
+biological replicate and `sample_id` is the section. Spots are observations
+within capture areas; they are not treated as independent biological
+replicates for replicate-level differential-expression tests.
 
 ---
 

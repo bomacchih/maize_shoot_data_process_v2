@@ -45,6 +45,12 @@ This makes the spot geometry of Figures 10A and 10C match the reference Seurat
 UMAP. Coordinates are reordered by barcode before assignment; the script stops
 if any retained Monocle spot is absent from the coordinate source.
 
+The coordinate-source object's historical metadata uses `sample` for the
+biological replicate and `sample_id` for the physical section. The Monocle
+workflow does not infer those meanings from the coordinate source; it obtains
+the explicit replicate (`sample_id`) and section (`section_id`) annotations
+from `data/metadata/metadata.csv` below.
+
 ### Curated spot metadata
 
 ```text

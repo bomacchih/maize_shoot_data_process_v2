@@ -1,4 +1,4 @@
-sample_id,domains,n_spots,median_spliced_counts,median_unspliced_counts,median_unspliced_fraction,low_unspliced_diagnostic
+biological_replicate,domains,n_spots,median_spliced_counts,median_unspliced_counts,median_unspliced_fraction,low_unspliced_diagnostic
 DQ01,SAM,1,17529.0,1458.0,0.07678938220887976,False
 DQ01,P1_P2,30,2387.0,148.0,0.07031213194071478,False
 DQ01,P3,64,3860.5,286.0,0.07288633609632046,False

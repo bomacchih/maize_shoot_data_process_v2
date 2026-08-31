@@ -142,7 +142,7 @@ output_dir <- file.path(
 )
 session_dir <- file.path(project_root, "results", "sessionInfo")
 domain_levels <- c("SAM", "P1_P2", "P3", "P4", "P5")
-sample_levels <- c(
+biological_replicate_levels <- c(
   "UL01", "UL02", "UL04", "VR01", "VR02", "VR03", "VR04",
   "DQ01", "DQ02", "DQ03", "DQ04", "DQ06", "DQ07", "DQ08"
 )
@@ -164,8 +164,11 @@ if (is.na(domain_column)) {
     paste(colnames(metadata), collapse = ", ")
   )
 }
-if (!"sample_id" %in% colnames(metadata)) {
-  stop("The Seurat metadata does not contain sample_id.")
+if (!all(c("sample_id", "sample") %in% colnames(metadata))) {
+  stop(
+    "The embryonic-leaf Seurat metadata must contain both `sample_id` ",
+    "(section ID) and `sample` (biological replicate)."
+  )
 }
 
 keep_spots <- colnames(seurat_object)[
@@ -191,18 +194,17 @@ if (!identical(colnames(counts), colnames(seurat_object))) {
 
 metadata <- seurat_object[[]]
 metadata$barcode <- colnames(seurat_object)
-metadata$sample_id_original <- as.character(metadata$sample_id)
-if ("sample" %in% colnames(metadata) &&
-    all(as.character(metadata$sample) %in% sample_levels)) {
-  metadata$sample_id <- as.character(metadata$sample)
-} else {
-  metadata$sample_id <- sub("_S[0-9]+$", "", metadata$sample_id_original)
-}
-if (!all(metadata$sample_id %in% sample_levels)) {
+metadata$section_id <- as.character(metadata$sample_id)
+metadata$biological_replicate <- as.character(metadata$sample)
+if (!all(metadata$biological_replicate %in% biological_replicate_levels)) {
   stop(
-    "Could not convert sample_id to the canonical capture IDs. Values: ",
-    paste(unique(metadata$sample_id), collapse = ", ")
+    "The `sample` column does not contain the expected biological-replicate ",
+    "IDs. Values: ",
+    paste(unique(metadata$biological_replicate), collapse = ", ")
   )
+}
+if (anyNA(metadata$section_id) || any(metadata$section_id == "")) {
+  stop("The section-level `sample_id` column contains missing or empty values.")
 }
 metadata$domains <- factor(
   as.character(metadata[[domain_column]]),
@@ -256,6 +258,8 @@ manifest <- c(
   paste0("n_spots=", ncol(counts)),
   paste0("domain_column=", domain_column),
   paste0("domains=", paste(domain_levels, collapse = ",")),
+  "section_id_source=sample_id",
+  "biological_replicate_source=sample",
   paste0("umap_source=", umap_source),
   paste0("pca_source=", pca_source),
   "count_assay=RNA",
@@ -274,5 +278,7 @@ stopifnot(identical(
 
 message("Seurat export completed: ", output_dir)
 message("Exported ", nrow(counts), " genes x ", ncol(counts), " spots.")
+message("Biological replicate source: sample")
+message("Physical section source: sample_id")
 message("UMAP source: ", umap_source)
 message("PCA source: ", pca_source)

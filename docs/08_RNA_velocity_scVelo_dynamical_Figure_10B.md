@@ -47,18 +47,34 @@ the Seurat metadata and canonical barcodes. `pca.csv` contains the existing
 Seurat PCA, and `umap.csv` contains the exact `umap.harmony` coordinates used
 for the manuscript geometry.
 
-The deposited Seurat object uses section-level values such as `UL01_S2` in
-one metadata field. For loom matching, the exporter writes the canonical
-capture identifier (`UL01`) as `sample_id` and preserves the section-level
-value as `sample_id_original`.
+The two deposited Seurat objects use different historical metadata names:
+
+| Object | Biological replicate | Physical section |
+|---|---|---|
+| Full seven-domain object | `sample_id` (`UL01`) | `section_id` (`UL01_S2`) |
+| Embryonic-leaf subset used here | `sample` (`UL01`) | `sample_id` (`UL01_S2`) |
+
+The exporter does not rename or modify those source fields. It adds
+`biological_replicate` from the subset object's `sample` column and
+`section_id` from its `sample_id` column. The Python workflow uses
+`biological_replicate` for loom matching, biological-replicate/domain QC, and
+optional Harmony. It retains `section_id` as descriptive spot metadata.
+
+The default stochastic and dynamical kinetic fits do not use either identifier
+as a model covariate. Therefore, this naming distinction does not change the
+core velocity calculation after the same spots, loom layers, PCA, neighbors,
+and moments have been assembled correctly. It is nevertheless essential for
+correct loom assignment and QC. If `--use-harmony` is enabled, the distinction
+can change the result because Harmony is explicitly grouped by
+`biological_replicate`, which changes the neighbor graph and moments.
 
 The exporter does not modify the active Seurat identity. It verifies that
 `Idents()` is unchanged before finishing.
 
 ### Step 0: Use existing spliced and unspliced matrices
 
-The BAM-to-loom Velocyto step is not rerun. One deposited loom file per sample
-is placed in:
+The BAM-to-loom Velocyto step is not rerun. One deposited loom file per
+biological replicate is placed in:
 
 ```text
 data/raw/loom/
@@ -365,7 +381,8 @@ the outer protective tissues were excluded.
 - Velocity confidence measures internal agreement of neighboring velocity
   vectors. It does not prove the biological polarity of the trajectory.
 - Sparse unspliced counts can reduce velocity reliability. Inspect the
-  proportion and per-sample/domain QC tables before biological interpretation.
+  proportion and per-biological-replicate/domain QC tables before biological
+  interpretation.
 - The Visium spots contain mixtures of multiple cells. RNA velocity therefore
   describes changes in spot-level transcriptional states rather than literal
   single-cell lineage relationships.
@@ -379,9 +396,11 @@ the outer protective tissues were excluded.
 
 ### No SAM-P5 spots are found
 
-The deposited Seurat object may use values such as `UL01_S2` in `sample_id`.
-The current exporter and Python script canonicalize loom matching to `UL01`
-while preserving the original value as `sample_id_original`.
+In the embryonic-leaf subset, values such as `UL01_S2` in `sample_id` identify
+physical sections and must not be used to locate replicate-level loom files.
+Rerun the current exporter, which adds `biological_replicate` from `sample`
+and `section_id` from `sample_id`; the Python script matches looms using only
+`biological_replicate`.
 
 ### `Column(s) ['Barcode'] do not exist`
 

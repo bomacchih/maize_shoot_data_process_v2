@@ -38,6 +38,21 @@ The analysis scripts use the following samples, in this order:
 
 This order determines the merged-barcode suffixes `_1_1` through `_1_14`.
 
+## Object-specific metadata conventions
+
+The two deposited Seurat objects use different historical column names. Do
+not assume that `sample_id` has the same meaning in both objects.
+
+| Seurat object | Biological replicate | Physical section |
+|---|---|---|
+| `maize_shoot_14samples_SCT_harmony_seurat_v5.rds` | `sample_id` (for example `UL01`) | `section_id` (for example `UL01_S2`) |
+| `XGE202122_S5_subset_embleaf_harmony_join.rds` | `sample` (for example `UL01`) | `sample_id` (for example `UL01_S2`) |
+
+The RNA-velocity exporter leaves those source columns unchanged and adds the
+unambiguous fields `biological_replicate` and `section_id`. Loom matching,
+biological-replicate/domain QC, and optional Harmony use
+`biological_replicate`.
+
 ## Current inventory
 
 | Dataset | Expected location | Status | Used by / note |

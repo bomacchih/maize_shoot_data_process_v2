@@ -1,4 +1,4 @@
-sample_id,loom_file,spots_in_loom,target_metadata_spots,matched_spots,missing_target_spots
+biological_replicate,loom_file,spots_in_loom,target_metadata_spots,matched_spots,missing_target_spots
 UL01,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE20_UL01_B73V5S210_short_MTCL.loom,1286,333,333,0
 UL02,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE20_UL02_B73V5S210_short_MTCL.loom,943,214,214,0
 UL04,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE20_UL04_B73V5S210_short_MTCL.loom,950,187,187,0

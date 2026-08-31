@@ -52,7 +52,7 @@ from scipy import sparse
 from scipy.io import mmread
 
 
-SAMPLE_TO_SUFFIX = {
+BIOLOGICAL_REPLICATE_TO_SUFFIX = {
     "UL01": 1,
     "UL02": 2,
     "UL04": 3,
@@ -159,7 +159,8 @@ def parse_arguments() -> argparse.Namespace:
         "--use-harmony",
         action="store_true",
         help=(
-            "Optionally correct the PCA representation by sample_id before moments. "
+            "Optionally correct the PCA representation by biological replicate "
+            "before moments. "
             "Off by default because Harmony was not specified for RNA velocity in "
             "the manuscript method."
         ),
@@ -226,7 +227,7 @@ def configure_logging(table_dir: Path) -> None:
     )
 
 
-def find_one_loom(raw_dir: Path, sample_id: str) -> Path:
+def find_one_loom(raw_dir: Path, replicate_id: str) -> Path:
     """Find exactly one sample loom in the flat or legacy directory layout."""
     if not raw_dir.is_dir():
         raise FileNotFoundError(f"Loom directory not found: {raw_dir}")
@@ -235,7 +236,9 @@ def find_one_loom(raw_dir: Path, sample_id: str) -> Path:
 
     # Canonical layout: all loom files are directly under data/raw/loom/.
     candidates.extend(
-        path for path in raw_dir.glob("*.loom") if sample_id.lower() in path.name.lower()
+        path
+        for path in raw_dir.glob("*.loom")
+        if replicate_id.lower() in path.name.lower()
     )
 
     # Backward compatibility: allow data/raw/<sample>/.../*.loom or another
@@ -244,20 +247,20 @@ def find_one_loom(raw_dir: Path, sample_id: str) -> Path:
         candidates.extend(
             path
             for path in raw_dir.rglob("*.loom")
-            if sample_id.lower() in path.name.lower()
+            if replicate_id.lower() in path.name.lower()
         )
 
     candidates = sorted({path.resolve() for path in candidates})
     if len(candidates) == 0:
         raise FileNotFoundError(
-            f"No loom file found for {sample_id} under {raw_dir}. "
+            f"No loom file found for {replicate_id} under {raw_dir}. "
             "Expected a filename containing the sample ID, such as "
-            f"data/raw/loom/XGE20_{sample_id}_B73V5S210_short_MTCL.loom."
+            f"data/raw/loom/XGE20_{replicate_id}_B73V5S210_short_MTCL.loom."
         )
     if len(candidates) > 1:
         formatted = "\n  ".join(str(path) for path in candidates)
         raise RuntimeError(
-            f"More than one loom file was found for {sample_id}:\n  {formatted}\n"
+            f"More than one loom file was found for {replicate_id}:\n  {formatted}\n"
             "Keep one loom per sample or place each sample in its own directory."
         )
     return candidates[0]
@@ -278,7 +281,7 @@ def canonical_barcode(raw_barcode: str, sample_number: int) -> str:
     return f"{barcode}_1_{sample_number}"
 
 
-def set_stable_gene_ids(loom: ad.AnnData, sample_id: str) -> None:
+def set_stable_gene_ids(loom: ad.AnnData, replicate_id: str) -> None:
     """Prefer stable gene accessions when Velocyto stored symbols as var_names."""
     for column in ("Accession", "gene_id", "Gene"):
         if column not in loom.var.columns:
@@ -290,7 +293,7 @@ def set_stable_gene_ids(loom: ad.AnnData, sample_id: str) -> None:
 
     if loom.var_names.has_duplicates:
         logging.warning(
-            "%s contains duplicated gene identifiers; making them unique.", sample_id
+            "%s contains duplicated gene identifiers; making them unique.", replicate_id
         )
         loom.var_names_make_unique()
 
@@ -324,7 +327,7 @@ def read_seurat_export_metadata(export_dir: Path) -> pd.DataFrame:
         raise ValueError("Empty Seurat export file(s):\n  " + "\n  ".join(empty_files))
 
     metadata = pd.read_csv(paths["metadata"], dtype={"barcode": str})
-    required_columns = {"barcode", "sample_id", "domains"}
+    required_columns = {"barcode", "domains"}
     missing_columns = required_columns.difference(metadata.columns)
     if missing_columns:
         raise ValueError(
@@ -333,33 +336,57 @@ def read_seurat_export_metadata(export_dir: Path) -> pd.DataFrame:
     if metadata["barcode"].isna().any() or metadata["barcode"].duplicated().any():
         raise ValueError("spot_metadata.csv contains missing or duplicated barcodes.")
 
-    # In the deposited Seurat object, sample_id may identify a physical section
-    # (for example UL01_S2), while `sample` stores the capture/library ID used
-    # in loom filenames. Preserve the original field and canonicalize the
-    # matcher to UL01-DQ08.
-    original_sample_id = metadata["sample_id"].astype(str)
-    metadata["sample_id_original"] = original_sample_id
-    if "sample" in metadata.columns:
-        sample_column = metadata["sample"].astype(str)
-        if sample_column.isin(SAMPLE_TO_SUFFIX).all():
-            metadata["sample_id"] = sample_column
-        else:
-            metadata["sample_id"] = original_sample_id.str.replace(
-                r"_S[0-9]+$", "", regex=True
-            )
+    # Metadata convention for the deposited embryonic-leaf subset:
+    #   sample_id = physical section ID (for example UL01_S2)
+    #   sample    = biological replicate/capture library (for example UL01)
+    # New exports add explicit names. Older exports remain readable, but all
+    # matching, QC, and optional Harmony operations below use the explicit
+    # biological_replicate field rather than the ambiguous sample_id field.
+    if "biological_replicate" in metadata.columns:
+        biological_replicate = metadata["biological_replicate"].astype(str)
+    elif "sample" in metadata.columns:
+        biological_replicate = metadata["sample"].astype(str)
+    elif "sample_id" in metadata.columns:
+        biological_replicate = metadata["sample_id"].astype(str)
     else:
-        metadata["sample_id"] = original_sample_id.str.replace(
-            r"_S[0-9]+$", "", regex=True
+        raise ValueError(
+            "spot_metadata.csv has no biological-replicate field. Expected "
+            "`biological_replicate` or the source `sample` column."
         )
+    if not biological_replicate.isin(BIOLOGICAL_REPLICATE_TO_SUFFIX).all():
+        invalid = sorted(
+            biological_replicate[
+                ~biological_replicate.isin(BIOLOGICAL_REPLICATE_TO_SUFFIX)
+            ].unique()
+        )
+        raise ValueError(
+            "Biological-replicate values are not canonical UL01-DQ08 IDs: "
+            + ", ".join(invalid[:10])
+        )
+    metadata["biological_replicate"] = biological_replicate
+
+    if "section_id" not in metadata.columns:
+        if "sample_id_original" in metadata.columns:
+            metadata["section_id"] = metadata["sample_id_original"].astype(str)
+        elif "sample_id" in metadata.columns:
+            metadata["section_id"] = metadata["sample_id"].astype(str)
+        else:
+            metadata["section_id"] = "not_available"
 
     metadata = metadata.loc[
         metadata["domains"].isin(DOMAIN_ORDER)
-        & metadata["sample_id"].isin(SAMPLE_TO_SUFFIX)
+        & metadata["biological_replicate"].isin(BIOLOGICAL_REPLICATE_TO_SUFFIX)
     ].copy()
     if metadata.empty:
         raise ValueError("The Seurat export contains no SAM/P1_P2/P3/P4/P5 spots.")
     metadata["domains"] = pd.Categorical(
         metadata["domains"], categories=DOMAIN_ORDER, ordered=True
+    )
+    logging.info(
+        "Resolved metadata as %d biological replicates and %d physical sections; "
+        "loom matching and QC use biological_replicate.",
+        metadata["biological_replicate"].nunique(),
+        metadata["section_id"].nunique(),
     )
     metadata = metadata.set_index("barcode", drop=False)
     return metadata
@@ -434,19 +461,22 @@ def load_seurat_export(export_dir: Path) -> ad.AnnData:
 
 def validate_input_files(raw_dir: Path, metadata: pd.DataFrame) -> None:
     """Validate the inexpensive parts of the input contract before analysis."""
-    for sample_id in SAMPLE_TO_SUFFIX:
-        loom_path = find_one_loom(raw_dir, sample_id)
+    for replicate_id in BIOLOGICAL_REPLICATE_TO_SUFFIX:
+        loom_path = find_one_loom(raw_dir, replicate_id)
         if loom_path.stat().st_size == 0:
             raise ValueError(f"Loom file is empty: {loom_path}")
 
-        target_spots = int((metadata["sample_id"] == sample_id).sum())
+        target_spots = int(
+            (metadata["biological_replicate"] == replicate_id).sum()
+        )
         if target_spots == 0:
             raise ValueError(
-                f"metadata.csv has no retained SAM/P1_P2/P3/P4/P5 spots for {sample_id}."
+                "metadata.csv has no retained SAM/P1_P2/P3/P4/P5 spots for "
+                f"biological replicate {replicate_id}."
             )
         logging.info(
             "Validated %s: %s (%d bytes; %d target metadata spots)",
-            sample_id,
+            replicate_id,
             loom_path.name,
             loom_path.stat().st_size,
             target_spots,
@@ -460,9 +490,9 @@ def load_and_subset_looms(
     looms: list[ad.AnnData] = []
     matching_rows: list[dict[str, object]] = []
 
-    for sample_id, sample_number in SAMPLE_TO_SUFFIX.items():
-        loom_path = find_one_loom(raw_dir, sample_id)
-        logging.info("Loading %s: %s", sample_id, loom_path)
+    for replicate_id, sample_number in BIOLOGICAL_REPLICATE_TO_SUFFIX.items():
+        loom_path = find_one_loom(raw_dir, replicate_id)
+        logging.info("Loading biological replicate %s: %s", replicate_id, loom_path)
         # scVelo 0.3.x no longer exposes scv.read(). Scanpy's current loom
         # reader returns an AnnData object and preserves sparse count layers.
         loom = sc.read_loom(str(loom_path), sparse=True)
@@ -474,7 +504,7 @@ def load_and_subset_looms(
                 f"{loom_path} is missing layer(s): {', '.join(sorted(missing_layers))}"
             )
 
-        set_stable_gene_ids(loom, sample_id)
+        set_stable_gene_ids(loom, replicate_id)
         original_spots = loom.n_obs
         loom.obs_names = [
             canonical_barcode(barcode, sample_number) for barcode in loom.obs_names
@@ -482,13 +512,15 @@ def load_and_subset_looms(
         if loom.obs_names.has_duplicates:
             raise ValueError(f"Canonical barcodes are duplicated in {loom_path}")
 
-        expected = metadata.index[metadata["sample_id"].astype(str) == sample_id]
+        expected = metadata.index[
+            metadata["biological_replicate"].astype(str) == replicate_id
+        ]
         matched = expected.intersection(loom.obs_names, sort=False)
         missing = expected.difference(loom.obs_names, sort=False)
 
         matching_rows.append(
             {
-                "sample_id": sample_id,
+                "biological_replicate": replicate_id,
                 "loom_file": str(loom_path),
                 "spots_in_loom": original_spots,
                 "target_metadata_spots": len(expected),
@@ -499,19 +531,19 @@ def load_and_subset_looms(
 
         if len(matched) == 0:
             raise ValueError(
-                f"No {sample_id} loom barcodes matched the curated metadata. "
+                f"No {replicate_id} loom barcodes matched the curated metadata. "
                 "Check the sample-to-suffix mapping and loom barcode format."
             )
         if len(missing) > 0:
             logging.warning(
                 "%s: %d of %d target metadata spots were absent from the loom file.",
-                sample_id,
+                replicate_id,
                 len(missing),
                 len(expected),
             )
 
         loom = loom[matched, :].copy()
-        loom.obs["loom_sample_id"] = sample_id
+        loom.obs["loom_biological_replicate"] = replicate_id
         looms.append(loom)
 
     combined = ad.concat(
@@ -614,7 +646,7 @@ def export_qc(
     # on whether the source metadata called the identifier Barcode or barcode.
     qc_metadata["_spot_id_for_count"] = adata.obs_names.astype(str)
     summary = (
-        qc_metadata.groupby(["sample_id", "domains"], observed=True)
+        qc_metadata.groupby(["biological_replicate", "domains"], observed=True)
         .agg(
             n_spots=("_spot_id_for_count", "size"),
             median_spliced_counts=("spliced_counts", "median"),
@@ -808,7 +840,7 @@ def preprocess_and_run_velocities(adata: ad.AnnData, args: argparse.Namespace) -
 
             sce.pp.harmony_integrate(
                 adata,
-                key="sample_id",
+                key="biological_replicate",
                 basis="X_pca",
                 adjusted_basis="X_pca_harmony",
                 random_state=0,
@@ -1037,7 +1069,7 @@ def main() -> None:
 
     adata.uns["RNA_velocity_parameters"] = {
         "domains": DOMAIN_ORDER,
-        "samples": list(SAMPLE_TO_SUFFIX),
+        "biological_replicates": list(BIOLOGICAL_REPLICATE_TO_SUFFIX),
         "min_shared_counts": args.min_shared_counts,
         "n_top_genes": args.n_top_genes,
         "n_pcs": args.n_pcs,

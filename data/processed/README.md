@@ -21,6 +21,17 @@ contains:
   SAM–P5 analysis scope and provides the authoritative `umap.harmony`
   coordinates for both the Monocle and SPOTlight workflows.
 
+These objects use different historical metadata conventions:
+
+| Seurat object | Biological replicate | Physical section |
+|---|---|---|
+| `maize_shoot_14samples_SCT_harmony_seurat_v5.rds` | `sample_id` | `section_id` |
+| `XGE202122_S5_subset_embleaf_harmony_join.rds` | `sample` | `sample_id` |
+
+Downstream code must resolve the meaning by object rather than transferring
+the column name blindly. The RNA-velocity export adds explicit
+`biological_replicate` and `section_id` fields without changing either RDS.
+
 The derived file
 `XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds` is
 generated locally by recalculating Seurat label transfer and SPOTlight
