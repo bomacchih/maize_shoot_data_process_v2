@@ -68,7 +68,7 @@ This order determines the merged-barcode suffixes `_1_1` through `_1_14`.
 | SCINA-annotated Seurat reference | `data/processed/sc_merged_filter_SCT2_inte_SCINA.rds` | **PRESENT** | Required by the Seurat label-transfer and SPOTlight mapping script |
 | Independent module-marker table | `data/metadata/scRNA_reference/independent_celltype_module_markers.csv` | **OPTIONAL — MISSING** | Enables independent module-score validation of SPOTlight proportions |
 | SPOTlight-mapped embryonic-leaf Visium object | `data/processed/XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds` | **NOT GENERATED** | Script 04 recalculates Seurat label transfer and section-wise SPOTlight deconvolution on the 6,392 SAM–P5 spots; script 05 warns and falls back to prior deposited proportions only when this output is absent |
-| Velocyto loom files, one per sample | `data/processed/<space_ranger_run_id>.loom` | **PUBLIC ON ZENODO 22058284 — DOWNLOAD REQUIRED** | Place the 14 deposited loom files in `data/processed/`; the velocity script matches the canonical 14 sample IDs |
+| Velocyto loom files, one per sample | `data/raw/loom/<space_ranger_run_id>.loom` | **PUBLIC ON ZENODO 22058284 — DOWNLOAD REQUIRED** | Place the 14 deposited loom files in `data/raw/loom/`; the velocity script matches the canonical 14 sample IDs |
 | Monocle coordinate-source Seurat object | `data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds` | **PRESENT** | Required for exact Figure 10A/10C geometry; contains 6,392 embryonic-leaf spots and the `umap.harmony` reduction |
 | Developmental-trend gene subset | `data/reference/developmental_trends/sub_gene.csv` | **PRESENT** | Optional gene restriction used by the Figure 14 workflow |
 | Figure 14B GO enrichment | `data/reference/developmental_trends/Figure_14B_GO_enrichment_C1_C6_C7.csv` | **PRESENT** | Standardized Supplementary Table 6-2 values for C1, C6, and C7; columns are `cluster`, `GO_ID`, `GO_term`, and `p_value` |
@@ -91,7 +91,7 @@ data/raw/<sample_id>/outs/
     └── scalefactors_json.json
 ```
 
-`web_summary.html`, `cloupe.cloupe`, `raw_feature_bc_matrix.h5`, and the low-resolution image are useful archival outputs but are not read by the current R loaders. Zenodo 22058284 contains the web summaries and `.cloupe` files, but not the complete count-matrix and spatial `outs` folders. The STUtility loader may require the legacy `tissue_positions_list.csv` name when complete outputs use `tissue_positions.csv`. RNA velocity uses the 14 deposited loom files from `data/processed/`.
+`web_summary.html`, `cloupe.cloupe`, `raw_feature_bc_matrix.h5`, and the low-resolution image are useful archival outputs but are not read by the current R loaders. Zenodo 22058284 contains the web summaries and `.cloupe` files, but not the complete count-matrix and spatial `outs` folders. The STUtility loader may require the legacy `tissue_positions_list.csv` name when complete outputs use `tissue_positions.csv`. RNA velocity uses the 14 deposited loom files from `data/raw/loom/`.
 
 ## Script-by-script readiness
 
@@ -106,7 +106,7 @@ data/raw/<sample_id>/outs/
 | Assign tissue supergroups and plot | `scripts/R/05_marker_analysis/02_assign_tissue_supergroups...R` | **READY**: integrated RDS is present; marker table is optional for the top-marker export |
 | Pseudobulk analysis | `scripts/R/06_pseudobulk_analysis/01_pseudobulk...R` | **READY**: integrated RDS is present; optional scRNA correlation input is not configured |
 | Developmental trends and GO | `scripts/R/07_developmental_trends_GO/01_developmental...R` | **READY**: main RDS and three reference CSV files are present; GO description file is optional and missing |
-| RNA velocity | `scripts/python/08_RNA_velocity/01_scvelo_dynamical_RNA_velocity.py` | **PUBLIC INPUTS AVAILABLE; LOCAL DOWNLOAD REQUIRED**: download the 14 loom files from Zenodo 22058284 into `data/processed/`; the Python/scVelo environment and full numerical run still require verification |
+| RNA velocity | `scripts/R/08_RNA_velocity/01_export_Seurat_for_scVelo.R` and `scripts/python/08_RNA_velocity/01_scvelo_dynamical_RNA_velocity.py` | **INPUTS PRESENT LOCALLY / FULL DYNAMICAL RUN PENDING**: export the 6,392-spot SAM-P5 Seurat object, use the 14 loom files in `data/raw/loom/`, validate exact barcode/gene matching, and then run the scVelo dynamical model in the `maize-shoot-v2` environment |
 | Monocle 3 pseudotime | `scripts/R/09_monocle3_pseudotime/01_monocle3...R` | **READY FOR INTERACTIVE RSTUDIO RUN**: 14 sample RDS files, `metadata.csv`, and `XGE202122_S5_subset_embleaf_harmony_join.rds` are present; the first run opens a Shiny GUI for manual root-node selection and records the selected node(s) for reuse |
 | Build scRNA reference from raw data | `scripts/R/10_scRNA_reference_integration/01_prepare...R` | **PUBLIC RAW READS AVAILABLE, DOWNLOAD/PROCESSING REQUIRED**: obtain SRR11943512 and SRR11943513 from SRA; the processed integrated RDS is already present |
 | Plot scRNA QC/Harmony | `scripts/R/10_scRNA_reference_integration/02_plot...R` | **READY**: both preferred and alternative processed inputs are present |

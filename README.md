@@ -164,7 +164,15 @@ The shell scripts contain installation- and project-specific settings for FASTQs
 
 ## RNA velocity
 
-Place one Velocyto loom file for each of the 14 samples in `data/processed/`. Filenames must contain their sample IDs. Validate filenames and metadata correspondence without running the numerical analysis:
+Place one Velocyto loom file for each of the 14 samples in `data/raw/loom/`. Filenames must contain their sample IDs. The workflow has three data stages: (1) export raw RNA counts, metadata, PCA, and the exact `umap.harmony` coordinates from `XGE202122_S5_subset_embleaf_harmony_join.rds`; (2) use the existing Velocyto loom files, so BAM-to-loom processing is not rerun; and (3) reconstruct AnnData, merge the spliced/unspliced layers, and fit scVelo's dynamical model.
+
+From RStudio at the repository root, export the Seurat data first:
+
+```r
+source("scripts/R/08_RNA_velocity/01_export_Seurat_for_scVelo.R")
+```
+
+Then activate the Python environment and validate the exported files and loom inventory without loading the large matrices:
 
 ```bash
 python scripts/python/08_RNA_velocity/01_scvelo_dynamical_RNA_velocity.py --validate-files-only
@@ -176,7 +184,7 @@ Run the complete dynamical model with:
 python scripts/python/08_RNA_velocity/01_scvelo_dynamical_RNA_velocity.py
 ```
 
-The workflow retains SAM, P1_P2, P3, P4, and P5 spots, reports low-unspliced-fraction groups, fits the scVelo dynamical model, and exports an H5AD object, figures, tables, a run log, and Python package versions. Harmony correction is optional through `--use-harmony` and is off by default because it was not specified for RNA velocity in the manuscript method.
+The Python stage writes a Seurat-only AnnData checkpoint before adding the loom layers. It then retains matched SAM, P1_P2, P3, P4, and P5 spots, reports barcode/gene matching and low-unspliced-fraction groups, uses the exported PCA for moments, preserves the manuscript UMAP, fits the scVelo dynamical model, and exports the merged H5AD object, figures, tables, a run log, and Python package versions. `--recompute-pca` and `--use-harmony` are optional adaptations and are off by default.
 
 ## Outputs and reports
 
