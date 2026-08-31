@@ -207,6 +207,7 @@ Available reports include:
 - [05 — Tissue supergroups and Figure 12](docs/05_Tissue_supergroups_Figure_12_Seurat_v5.md)
 - [06 — Structural-domain pseudobulk analysis and Figure 13](docs/06_Pseudobulk_structural_domains_Figure_13.md)
 - [07 — Developmental trends and GO enrichment](docs/07_Developmental_expression_trends_GO_Figure_14.md)
+- [08 — Seurat/Velocyto integration, dynamical scVelo, and Figure 10B](docs/08_RNA_velocity_scVelo_dynamical_Figure_10B.md)
 - [09 — Monocle 3 UMAP transfer, interactive root selection, and Figures 10A/10C](docs/09_Monocle3_pseudotime_Figure_10C.md)
 - [scRNA-seq reference QC and Harmony](docs/scRNA_reference_QC_and_Harmony.md)
 - [SCINA cell-type annotation](docs/scRNA_reference_SCINA_celltype_annotation.md)
