@@ -35,7 +35,7 @@ The first five domains are used for developmental trajectory, RNA-velocity, and 
 | 5 | Find cluster markers and assign 12 tissue supergroups | [`scripts/R/05_marker_analysis/`](scripts/R/05_marker_analysis/) |
 | 6 | Generate replicate-level pseudobulk profiles and Figure 13 | [`scripts/R/06_pseudobulk_analysis/`](scripts/R/06_pseudobulk_analysis/) |
 | 7 | Cluster developmental expression trends, analyze GO enrichment, and generate Figure 14 | [`scripts/R/07_developmental_trends_GO/`](scripts/R/07_developmental_trends_GO/) |
-| 8 | Estimate dynamical RNA velocity with scVelo | [`scripts/python/08_RNA_velocity/`](scripts/python/08_RNA_velocity/) |
+| 8 | Compare stochastic and dynamical RNA velocity with scVelo | [`scripts/python/08_RNA_velocity/`](scripts/python/08_RNA_velocity/) |
 | 9 | Estimate pseudotime and trajectories with Monocle 3 | [`scripts/R/09_monocle3_pseudotime/`](scripts/R/09_monocle3_pseudotime/) |
 | 10 | Build and annotate the scRNA-seq reference; map cell types to Visium with Seurat and SPOTlight | [`scripts/R/10_scRNA_reference_integration/`](scripts/R/10_scRNA_reference_integration/) |
 | 11 | Reconstruct the embryonic-leaf TO-GCN, plot panels D/E, and prepare level-specific GO inputs | [`scripts/R/11_TO_GCN/`](scripts/R/11_TO_GCN/) and [`scripts/shell/11_TO_GCN/`](scripts/shell/11_TO_GCN/) |
@@ -60,7 +60,7 @@ maize_shoot_data_process_v2/
 ├── results/                        # Generated figures, tables, and run information
 ├── scripts/
 │   ├── R/                          # Seurat, Monocle 3, SCINA, and SPOTlight
-│   ├── python/                     # scVelo dynamical RNA velocity
+│   ├── python/                     # Paired stochastic/dynamical scVelo analysis
 │   └── shell/                      # Space Ranger processing
 ├── tests/                          # Validation utilities
 └── workflow/                       # Workflow-level orchestration files
@@ -164,7 +164,7 @@ The shell scripts contain installation- and project-specific settings for FASTQs
 
 ## RNA velocity
 
-Place one Velocyto loom file for each of the 14 samples in `data/raw/loom/`. Filenames must contain their sample IDs. The workflow has three data stages: (1) export raw RNA counts, metadata, PCA, and the exact `umap.harmony` coordinates from `XGE202122_S5_subset_embleaf_harmony_join.rds`; (2) use the existing Velocyto loom files, so BAM-to-loom processing is not rerun; and (3) reconstruct AnnData, merge the spliced/unspliced layers, and fit scVelo's dynamical model.
+Place one Velocyto loom file for each of the 14 samples in `data/raw/loom/`. Filenames must contain their sample IDs. The workflow has three data stages: (1) export raw RNA counts, metadata, PCA, and the exact `umap.harmony` coordinates from `XGE202122_S5_subset_embleaf_harmony_join.rds`; (2) use the existing Velocyto loom files, so BAM-to-loom processing is not rerun; and (3) reconstruct AnnData, merge the spliced/unspliced layers, and calculate stochastic and dynamical scVelo models using the same preprocessing, neighborhoods, moments, and UMAP.
 
 From RStudio at the repository root, export the Seurat data first:
 
@@ -178,13 +178,13 @@ Then activate the Python environment and validate the exported files and loom in
 python scripts/python/08_RNA_velocity/01_scvelo_dynamical_RNA_velocity.py --validate-files-only
 ```
 
-Run the complete dynamical model with:
+Run the complete paired comparison with:
 
 ```bash
 python scripts/python/08_RNA_velocity/01_scvelo_dynamical_RNA_velocity.py
 ```
 
-The Python stage writes a Seurat-only AnnData checkpoint before adding the loom layers. It then retains matched SAM, P1_P2, P3, P4, and P5 spots, reports barcode/gene matching and low-unspliced-fraction groups, uses the exported PCA for moments, preserves the manuscript UMAP, fits the scVelo dynamical model, and exports the merged H5AD object, figures, tables, a run log, and Python package versions. `--recompute-pca` and `--use-harmony` are optional adaptations and are off by default.
+The Python stage writes a Seurat-only AnnData checkpoint before adding the loom layers. It then retains matched SAM, P1_P2, P3, P4, and P5 spots, reports barcode/gene matching and low-unspliced-fraction groups, uses the exported PCA for shared moments, preserves the manuscript UMAP, calculates namespaced stochastic and dynamical velocities and graphs, and exports one combined H5AD object plus labeled comparison figures, tables, a run log, and Python package versions. `--recompute-pca` and `--use-harmony` are optional adaptations and are off by default.
 
 ## Outputs and reports
 
@@ -207,7 +207,7 @@ Available reports include:
 - [05 — Tissue supergroups and Figure 12](docs/05_Tissue_supergroups_Figure_12_Seurat_v5.md)
 - [06 — Structural-domain pseudobulk analysis and Figure 13](docs/06_Pseudobulk_structural_domains_Figure_13.md)
 - [07 — Developmental trends and GO enrichment](docs/07_Developmental_expression_trends_GO_Figure_14.md)
-- [08 — Seurat/Velocyto integration, dynamical scVelo, and Figure 10B](docs/08_RNA_velocity_scVelo_dynamical_Figure_10B.md)
+- [08 — Seurat/Velocyto integration, stochastic-versus-dynamical scVelo comparison, and Figure 10B](docs/08_RNA_velocity_scVelo_dynamical_Figure_10B.md)
 - [09 — Monocle 3 UMAP transfer, interactive root selection, and Figures 10A/10C](docs/09_Monocle3_pseudotime_Figure_10C.md)
 - [scRNA-seq reference QC and Harmony](docs/scRNA_reference_QC_and_Harmony.md)
 - [SCINA cell-type annotation](docs/scRNA_reference_SCINA_celltype_annotation.md)

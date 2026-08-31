@@ -61,7 +61,7 @@ Base and recommended R packages called explicitly through namespaces—such as `
 |---|---|---|
 | anndata | `anndata` | AnnData containers and H5AD output |
 | matplotlib | `matplotlib` | RNA-velocity figures |
-| numpy | `numpy` | Numerical arrays |
+| numpy | `numpy` | Numerical arrays; the RNA-velocity script includes a documented scalar-conversion compatibility fix for the scVelo 0.3.4 stochastic solver under NumPy 2 |
 | pandas | `pandas` | Metadata and exported tables |
 | scanpy | `scanpy` | Preprocessing, PCA, neighbors, and UMAP |
 | scvelo | `scvelo` | Dynamical RNA-velocity modeling |

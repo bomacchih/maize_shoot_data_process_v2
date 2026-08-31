@@ -1,6 +1,7 @@
-# 08. Dynamical RNA velocity of maize embryonic leaves
+# 08. Stochastic and dynamical RNA velocity of maize embryonic leaves
 
-**Seurat-to-AnnData transfer, Velocyto loom integration, and Figure 10B**
+**Seurat-to-AnnData transfer, Velocyto loom integration, and a controlled
+Figure 10B model comparison**
 
 This workflow estimates RNA velocity across five embryonic-leaf structural
 domains:
@@ -9,8 +10,10 @@ domains:
 
 It preserves the PCA, UMAP coordinates, and spot metadata from
 `XGE202122_S5_subset_embleaf_harmony_join.rds`, then adds spliced and
-unspliced UMI layers from the 14 Velocyto loom files. The final velocity field
-is estimated using scVelo's dynamical model, as specified in the manuscript.
+unspliced UMI layers from the 14 Velocyto loom files. Stochastic and dynamical
+velocity are calculated from the same filtered AnnData object, PCA, neighbor
+graph, moments, and UMAP coordinates. Separate namespaced layers and graphs
+ensure that one model does not overwrite the other.
 
 The workflow scripts are:
 
@@ -158,12 +161,26 @@ By default, the script uses the exported Seurat PCA and UMAP. It does not
 recalculate Harmony. `--recompute-pca` and `--use-harmony` are optional
 adaptations for a new dataset and are not used for manuscript reproduction.
 
-## Dynamical velocity model
+## Controlled stochastic-versus-dynamical comparison
 
-The manuscript describes the dynamical model. The correct calculation order
-is:
+The stochastic model is stored under `velocity_stochastic`. Dynamical
+parameters are then recovered, and the dynamical model is independently
+stored under `velocity_dynamical`:
 
 ```python
+scv.tl.velocity(
+    adata,
+    mode="stochastic",
+    vkey="velocity_stochastic",
+    filter_genes=False,
+)
+scv.tl.velocity_graph(
+    adata,
+    vkey="velocity_stochastic",
+    n_jobs=1,
+)
+scv.tl.velocity_confidence(adata, vkey="velocity_stochastic")
+
 scv.tl.recover_dynamics(
     adata,
     n_top_genes=2000,
@@ -174,15 +191,23 @@ scv.tl.recover_dynamics(
 scv.tl.velocity(
     adata,
     mode="dynamical",
+    vkey="velocity_dynamical",
+    filter_genes=False,
 )
 
 scv.tl.velocity_graph(
     adata,
+    vkey="velocity_dynamical",
     n_jobs=1,
 )
 
-scv.tl.velocity_confidence(adata)
+scv.tl.velocity_confidence(adata, vkey="velocity_dynamical")
 ```
+
+Both models share the same spots, filtered AnnData, PCA, neighbors, moments,
+and UMAP. Their model-specific velocity-gene fits and directed graphs remain
+separate. The script verifies the recorded modes and stops if dynamical
+inference silently falls back to stochastic velocity.
 
 The earlier exploratory script calculated stochastic velocity and then called
 `recover_dynamics(mode="dynamical")`. That call is invalid because
@@ -191,8 +216,16 @@ also does not replace an existing stochastic velocity layer. A dynamical
 analysis must explicitly rerun `velocity(mode="dynamical")` and then rebuild
 the velocity graph, as done here.
 
-The stochastic model can be useful as a faster sensitivity analysis, but it is
-not the primary model reported for this workflow.
+The paired run makes this methodological difference visible. The stochastic
+result is a sensitivity analysis and is expected to differ from the strict
+dynamical result.
+
+For scVelo 0.3.4 with NumPy 2, the script installs a narrowly scoped runtime
+compatibility function for scVelo's stochastic generalized least-squares
+calculation. NumPy 2 no longer implicitly converts a one-element array to a
+scalar. The compatibility function performs the same calculation and
+explicitly extracts that scalar; it does not change model parameters or the
+input data and does not modify the installed package files.
 
 ## Running the workflow
 
@@ -219,7 +252,7 @@ python scripts\python\08_RNA_velocity\01_scvelo_dynamical_RNA_velocity.py
 
 The validation-only mode checks the Seurat export, all 14 loom filenames, file
 sizes, and the presence of retained spots without loading the loom matrices or
-fitting the model.
+fitting either model. The ordinary command calculates both models.
 
 ## Outputs
 
@@ -228,13 +261,15 @@ fitting the model.
 ```text
 data/processed/RNA_velocity/
 ├── maize_shoot_SAM_P1_P2_P3_P4_P5_Seurat_export.h5ad
-└── maize_shoot_SAM_P1_P2_P3_P4_P5_scvelo_dynamical.h5ad
+└── maize_shoot_SAM_P1_P2_P3_P4_P5_scvelo_stochastic_dynamical.h5ad
 ```
 
 The first file is the Seurat-to-AnnData checkpoint. The second contains the
-matched Seurat expression matrix, spot metadata, exported PCA and UMAP,
-spliced/unspliced layers, moments, fitted dynamical parameters, velocities,
-velocity graph, and confidence measurements.
+matched expression matrix, metadata, exported PCA and UMAP,
+spliced/unspliced layers, shared moments, fitted dynamical parameters, both
+velocity layers, both directed graphs, and model-specific confidence fields.
+Only one combined model H5AD is written, so the expression data are not
+duplicated into separate stochastic and dynamical files.
 
 ### Tables and logs
 
@@ -255,7 +290,7 @@ Seurat export             6,392 spots x 40,109 genes
 Seurat/loom merge         6,392 spots x 39,756 shared genes
 Velocity model            2,000 highly variable genes
 PCA dimensions            30
-Velocity mode             dynamical
+Velocity modes            stochastic and dynamical
 ```
 
 ## Figures
@@ -276,20 +311,33 @@ This diagnostic summarizes the relative abundance of spliced and unspliced
 transcripts across the five structural domains. Low-unspliced groups are
 reported but are not automatically removed.
 
-### Figure 10B: dynamical RNA-velocity vectors
+### Figure 10B model comparison: velocity-vector grids
 
-![Dynamical RNA-velocity vectors on the Seurat Harmony UMAP](../results/figures/08_RNA_velocity/Figure_10B_scVelo_dynamical_velocity_grid.png)
+The following comparison is populated when the revised Python script
+completes. Before that rerun, the new stochastic and combined comparison PNGs
+will not yet exist in `results/figures/08_RNA_velocity/`.
 
-Arrows represent the dynamical RNA-velocity field projected onto the preserved
-Seurat Harmony UMAP. Spots are colored by structural domain.
+| Stochastic model | Dynamical model |
+|---|---|
+| ![Stochastic RNA-velocity vectors](../results/figures/08_RNA_velocity/Figure_10B_scVelo_stochastic_velocity_grid.png) | ![Dynamical RNA-velocity vectors](../results/figures/08_RNA_velocity/Figure_10B_scVelo_dynamical_velocity_grid.png) |
 
-### Dynamical velocity stream diagnostic
+Both panels use the same 6,392 spots, filtered genes, PCA, neighbor graph,
+moments, structural-domain colors, and transferred Seurat Harmony UMAP. Thus,
+velocity model is the intended analytical difference between the panels.
 
-![Dynamical RNA-velocity stream](../results/figures/08_RNA_velocity/scVelo_dynamical_velocity_stream.png)
+The script also writes one combined two-panel image:
 
-The stream representation is a smoothed visualization of the same dynamical
-velocity graph. It should be interpreted together with the arrow grid,
-spliced/unspliced QC, anatomical-domain progression, and Monocle pseudotime.
+![Side-by-side stochastic and dynamical velocity grids](../results/figures/08_RNA_velocity/Figure_10B_scVelo_stochastic_vs_dynamical_velocity_grid.png)
+
+### Smoothed stream diagnostics
+
+| Stochastic model | Dynamical model |
+|---|---|
+| ![Stochastic RNA-velocity stream](../results/figures/08_RNA_velocity/scVelo_stochastic_velocity_stream.png) | ![Dynamical RNA-velocity stream](../results/figures/08_RNA_velocity/scVelo_dynamical_velocity_stream.png) |
+
+Stream plots are smoothed visual summaries and can emphasize broad flow
+differently from arrow grids. Compare the two grids above when assessing model
+effects; do not compare a stochastic grid with a dynamical stream.
 
 ## Suggested figure legend
 
@@ -297,11 +345,13 @@ spliced/unspliced QC, anatomical-domain progression, and Monocle pseudotime.
 domains.** (A) Harmony UMAP of spatial transcriptomic spots assigned to the
 shoot apical meristem (SAM) and successive developing leaf domains (P1-P2, P3,
 P4, and P5). Coordinates and anatomical-domain annotations were transferred
-from the processed Seurat object. (B) RNA-velocity vectors estimated from
-Velocyto-derived spliced and unspliced UMI counts using scVelo's dynamical
-model and projected onto the same UMAP. Arrow direction indicates the inferred
-local transcriptional transition. Spots spanning multiple structural domains
-and spots belonging to the outer protective tissues were excluded.
+from the processed Seurat object. (B) Side-by-side RNA-velocity vectors
+estimated from Velocyto-derived spliced and unspliced UMI counts using
+scVelo's stochastic (left) and dynamical (right) models. Both models use the
+same filtered AnnData object, PCA, neighborhood moments, and UMAP. Arrow
+direction indicates the model-specific inferred local transcriptional
+transition. Spots spanning multiple structural domains and spots belonging to
+the outer protective tissues were excluded.
 
 ## Interpretation and limitations
 
@@ -310,6 +360,10 @@ and spots belonging to the outer protective tissues were excluded.
 - The dynamical model estimates gene-specific transcription, splicing, and
   degradation parameters and is more computationally demanding than the
   stochastic model.
+- scVelo is not supplied with the anatomical order `SAM → P5`; either model
+  may infer local directions that differ from that expected sequence.
+- Velocity confidence measures internal agreement of neighboring velocity
+  vectors. It does not prove the biological polarity of the trajectory.
 - Sparse unspliced counts can reduce velocity reliability. Inspect the
   proportion and per-sample/domain QC tables before biological interpretation.
 - The Visium spots contain mixtures of multiple cells. RNA velocity therefore
@@ -341,6 +395,14 @@ tutorials. The current script uses explicit filtering, normalization, log
 transformation, and Scanpy highly-variable-gene selection and does not pass
 `n_top_genes` to `filter_and_normalize()`.
 
+### `ValueError: setting an array element with a sequence`
+
+This error occurs in the default stochastic least-squares branch of scVelo
+0.3.4 under NumPy 2. The revised repository script detects this exact package
+combination and applies the documented scalar-extraction compatibility fix
+before calling `velocity(mode="stochastic")`. Pull the newest script and rerun
+the ordinary command from the beginning. Downgrading NumPy is not required.
+
 ### The analysis is slow
 
 `recover_dynamics()` is normally the longest step. Keep `n_jobs = 1` for a
@@ -361,6 +423,7 @@ The Python workflow writes exact package versions to:
 
 [`python_package_versions.json`](../results/tables/08_RNA_velocity/python_package_versions.json)
 
-The successful local run used Python 3.11.16, anndata 0.12.19, Scanpy 1.11.5,
-scVelo 0.3.4, NumPy 2.4.6, pandas 2.3.3, SciPy 1.17.1, matplotlib 3.11.1,
-and loompy 3.0.8.
+The earlier dynamical-only local run used Python 3.11.16, anndata 0.12.19,
+Scanpy 1.11.5, scVelo 0.3.4, NumPy 2.4.6, pandas 2.3.3, SciPy 1.17.1,
+matplotlib 3.11.1, and loompy 3.0.8. The paired rerun will refresh the JSON
+record using the same environment.

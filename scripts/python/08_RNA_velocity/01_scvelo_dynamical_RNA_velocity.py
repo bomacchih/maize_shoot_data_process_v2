@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Merge Seurat and Velocyto data and run dynamical RNA velocity.
+"""Merge Seurat and Velocyto data and compare stochastic/dynamical velocity.
 
 Expected project structure
 --------------------------
@@ -22,7 +22,9 @@ not run shell commands or Velocyto. It performs the Python/scVelo portion only.
 Run scripts/R/08_RNA_velocity/01_export_Seurat_for_scVelo.R first. This program
 reconstructs the Seurat data as AnnData, preserves its metadata/PCA/UMAP, joins
 spliced and unspliced loom layers by exact spot and gene identifiers, and then
-runs scVelo's dynamical model. Only SAM, P1_P2, P3, P4, and P5 are retained.
+runs scVelo's stochastic and dynamical models on the same preprocessing,
+neighborhood graph, moments, and Seurat UMAP. Only SAM, P1_P2, P3, P4, and P5
+are retained.
 
 Workflow references:
 - Sam Morabito, "RNA velocity analysis with scVelo" (Seurat export/merge).
@@ -37,6 +39,7 @@ import json
 import logging
 import re
 import sys
+import warnings
 from pathlib import Path
 
 import anndata as ad
@@ -74,6 +77,10 @@ DOMAIN_COLORS = {
     "P4": "#19BFC4",
     "P5": "#2C6DB2",
 }
+VELOCITY_KEYS = {
+    "stochastic": "velocity_stochastic",
+    "dynamical": "velocity_dynamical",
+}
 
 
 def project_root_from_script() -> Path:
@@ -84,7 +91,10 @@ def project_root_from_script() -> Path:
 def parse_arguments() -> argparse.Namespace:
     root = project_root_from_script()
     parser = argparse.ArgumentParser(
-        description="Run dynamical scVelo analysis for maize developing leaves."
+        description=(
+            "Compare stochastic and dynamical scVelo analyses for maize "
+            "developing leaves using identical preprocessing and coordinates."
+        )
     )
     parser.add_argument("--project-root", type=Path, default=root)
     parser.add_argument(
@@ -653,7 +663,100 @@ def use_existing_umap_if_available(adata: ad.AnnData) -> bool:
     return False
 
 
-def preprocess_and_run_velocity(adata: ad.AnnData, args: argparse.Namespace) -> None:
+def install_scvelo_numpy2_stochastic_compatibility() -> None:
+    """Fix scVelo 0.3.4 scalar assignment under NumPy 2 without changing GLS.
+
+    scVelo 0.3.4's default stochastic generalized least-squares branch assigns
+    a one-element NumPy array directly to one scalar element of ``gamma``.
+    NumPy 1.x accepted that implicit conversion; NumPy 2 raises
+    ``ValueError: setting an array element with a sequence``. This local shim
+    reproduces the same calculation and explicitly extracts that one scalar.
+    It changes neither filtering nor the stochastic model and is installed
+    only for the affected scVelo/NumPy combination.
+    """
+    scvelo_version = importlib.metadata.version("scvelo")
+    numpy_major = int(np.__version__.split(".", maxsplit=1)[0])
+    if scvelo_version != "0.3.4" or numpy_major < 2:
+        return
+
+    velocity_module = importlib.import_module("scvelo.tools.velocity")
+    optimization_module = importlib.import_module("scvelo.tools.optimization")
+    original_leastsq = velocity_module.leastsq_generalized
+    if getattr(original_leastsq, "_maize_numpy2_compatible", False):
+        return
+
+    def leastsq_generalized_numpy2(
+        x,
+        y,
+        x2,
+        y2,
+        res_std=None,
+        res2_std=None,
+        fit_offset=False,
+        fit_offset2=False,
+        perc=None,
+    ):
+        # The offset branches already unpack vectors into scalar values and do
+        # not exhibit this NumPy-2 failure. Preserve their installed behavior.
+        if fit_offset or fit_offset2:
+            return original_leastsq(
+                x,
+                y,
+                x2,
+                y2,
+                res_std,
+                res2_std,
+                fit_offset,
+                fit_offset2,
+                perc,
+            )
+
+        if perc is not None:
+            if isinstance(perc, (list, tuple)):
+                perc = perc[1]
+            weights = sparse.csr_matrix(
+                optimization_module.get_weight(x, y, perc=perc)
+                | optimization_module.get_weight(x, perc=perc)
+            ).astype(bool)
+            x = weights.multiply(x).tocsr()
+            y = weights.multiply(y).tocsr()
+
+        _, n_vars = x.shape
+        offset = np.zeros(n_vars, dtype="float32")
+        offset_ss = np.zeros(n_vars, dtype="float32")
+        gamma = np.ones(n_vars, dtype="float32")
+        if res_std is None or res2_std is None:
+            res_std = np.ones(n_vars)
+            res2_std = np.ones(n_vars)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            x = np.vstack(
+                (optimization_module.make_dense(x) / res_std, x2 / res2_std)
+            )
+            y = np.vstack(
+                (optimization_module.make_dense(y) / res_std, y2 / res2_std)
+            )
+
+        for index in range(n_vars):
+            design = np.c_[x[:, index]]
+            solution = np.linalg.pinv(design.T.dot(design)).dot(
+                design.T.dot(y[:, index])
+            )
+            gamma[index] = np.asarray(solution).reshape(-1)[0]
+
+        gamma[np.isnan(gamma)] = 0
+        return offset, offset_ss, gamma
+
+    leastsq_generalized_numpy2._maize_numpy2_compatible = True
+    velocity_module.leastsq_generalized = leastsq_generalized_numpy2
+    logging.warning(
+        "Applied the documented scVelo 0.3.4/NumPy 2 stochastic-GLS "
+        "scalar-conversion compatibility fix."
+    )
+
+
+def preprocess_and_run_velocities(adata: ad.AnnData, args: argparse.Namespace) -> None:
     # scVelo 0.3.4 removed n_top_genes from filter_and_normalize(), although
     # older tutorials pass it to that convenience wrapper. Run the component
     # operations explicitly so the workflow is compatible with the installed
@@ -726,6 +829,29 @@ def preprocess_and_run_velocity(adata: ad.AnnData, args: argparse.Namespace) -> 
     if "X_umap" not in adata.obsm:
         sc.tl.umap(adata, random_state=0)
 
+    # Calculate stochastic velocity first. Both models use the same filtered
+    # genes, PCA, neighbors, moments, and UMAP; their velocity layers and
+    # directed graphs are stored under separate keys.
+    install_scvelo_numpy2_stochastic_compatibility()
+    stochastic_vkey = VELOCITY_KEYS["stochastic"]
+    scv.tl.velocity(
+        adata,
+        mode="stochastic",
+        vkey=stochastic_vkey,
+        filter_genes=False,
+    )
+    if stochastic_vkey not in adata.layers:
+        raise RuntimeError("Stochastic velocity was not stored in AnnData.")
+    scv.tl.velocity_graph(
+        adata,
+        vkey=stochastic_vkey,
+        n_jobs=args.n_jobs,
+    )
+    scv.tl.velocity_confidence(adata, vkey=stochastic_vkey)
+    if adata.uns.get(f"{stochastic_vkey}_params", {}).get("mode") != "stochastic":
+        raise RuntimeError("scVelo did not retain the requested stochastic model.")
+    logging.info("Completed stochastic velocity and its directed graph.")
+
     # Dynamical mode requires kinetic-parameter recovery before velocity.
     scv.tl.recover_dynamics(
         adata,
@@ -733,9 +859,33 @@ def preprocess_and_run_velocity(adata: ad.AnnData, args: argparse.Namespace) -> 
         max_iter=args.max_iter,
         n_jobs=args.n_jobs,
     )
-    scv.tl.velocity(adata, mode="dynamical")
-    scv.tl.velocity_graph(adata, n_jobs=args.n_jobs)
-    scv.tl.velocity_confidence(adata)
+    if "fit_alpha" not in adata.var:
+        raise RuntimeError(
+            "recover_dynamics() did not add fit_alpha; refusing a silent "
+            "fallback to stochastic velocity."
+        )
+
+    dynamical_vkey = VELOCITY_KEYS["dynamical"]
+    scv.tl.velocity(
+        adata,
+        mode="dynamical",
+        vkey=dynamical_vkey,
+        filter_genes=False,
+    )
+    if dynamical_vkey not in adata.layers:
+        raise RuntimeError("Dynamical velocity was not stored in AnnData.")
+    if adata.uns.get(f"{dynamical_vkey}_params", {}).get("mode") != "dynamical":
+        raise RuntimeError(
+            "scVelo did not retain the requested dynamical model; check "
+            "recover_dynamics() output."
+        )
+    scv.tl.velocity_graph(
+        adata,
+        vkey=dynamical_vkey,
+        n_jobs=args.n_jobs,
+    )
+    scv.tl.velocity_confidence(adata, vkey=dynamical_vkey)
+    logging.info("Completed dynamical velocity and its directed graph.")
 
 
 def save_current_figure(path: Path) -> None:
@@ -760,32 +910,66 @@ def generate_figures(adata: ad.AnnData, figure_dir: Path) -> None:
     scv.pl.proportions(adata, groupby="domains", show=False)
     save_current_figure(figure_dir / "RNA_velocity_spliced_unspliced_proportions.png")
 
-    scv.pl.velocity_embedding_grid(
-        adata,
-        basis="umap",
-        color="domains",
-        palette=palette,
-        density=1.0,
-        arrow_length=3,
-        arrow_size=2,
-        frameon=False,
-        title="",
-        show=False,
-    )
-    save_current_figure(figure_dir / "Figure_10B_scVelo_dynamical_velocity_grid.png")
+    for mode, vkey in VELOCITY_KEYS.items():
+        model_label = f"{mode.title()} RNA velocity"
 
-    scv.pl.velocity_embedding_stream(
-        adata,
-        basis="umap",
-        color="domains",
-        palette=palette,
-        density=2,
-        max_length=1,
-        frameon=False,
-        title="",
-        show=False,
+        scv.pl.velocity_embedding_grid(
+            adata,
+            basis="umap",
+            vkey=vkey,
+            color="domains",
+            palette=palette,
+            density=1.0,
+            arrow_length=3,
+            arrow_size=2,
+            frameon=False,
+            title=model_label,
+            show=False,
+        )
+        save_current_figure(
+            figure_dir / f"Figure_10B_scVelo_{mode}_velocity_grid.png"
+        )
+
+        scv.pl.velocity_embedding_stream(
+            adata,
+            basis="umap",
+            vkey=vkey,
+            color="domains",
+            palette=palette,
+            density=2,
+            max_length=1,
+            frameon=False,
+            title=model_label,
+            show=False,
+        )
+        save_current_figure(figure_dir / f"scVelo_{mode}_velocity_stream.png")
+
+    # Create a publication-ready, directly comparable two-panel grid figure.
+    comparison_figure, axes = plt.subplots(1, 2, figsize=(16, 7))
+    for axis, (mode, vkey) in zip(axes, VELOCITY_KEYS.items()):
+        scv.pl.velocity_embedding_grid(
+            adata,
+            basis="umap",
+            vkey=vkey,
+            color="domains",
+            palette=palette,
+            density=1.0,
+            arrow_length=3,
+            arrow_size=2,
+            frameon=False,
+            title=f"{mode.title()} RNA velocity",
+            show=False,
+            ax=axis,
+        )
+    comparison_figure.tight_layout()
+    comparison_figure.savefig(
+        figure_dir
+        / "Figure_10B_scVelo_stochastic_vs_dynamical_velocity_grid.png",
+        dpi=300,
+        bbox_inches="tight",
+        facecolor="white",
     )
-    save_current_figure(figure_dir / "scVelo_dynamical_velocity_stream.png")
+    plt.close(comparison_figure)
 
 
 def package_versions() -> dict[str, str]:
@@ -849,7 +1033,7 @@ def main() -> None:
     )
 
     used_existing_umap = use_existing_umap_if_available(adata)
-    preprocess_and_run_velocity(adata, args)
+    preprocess_and_run_velocities(adata, args)
 
     adata.uns["RNA_velocity_parameters"] = {
         "domains": DOMAIN_ORDER,
@@ -860,7 +1044,12 @@ def main() -> None:
         "n_neighbors": args.n_neighbors,
         "max_iter": args.max_iter,
         "n_jobs": args.n_jobs,
-        "velocity_mode": "dynamical",
+        "velocity_modes": list(VELOCITY_KEYS),
+        "velocity_keys": VELOCITY_KEYS,
+        "comparison_design": (
+            "Both models use the same filtered AnnData, PCA, neighbors, "
+            "moments, and UMAP coordinates."
+        ),
         "harmony_used": args.use_harmony,
         "recomputed_pca": args.recompute_pca,
         "precomputed_umap_used": used_existing_umap,
@@ -869,7 +1058,7 @@ def main() -> None:
 
     output_h5ad = (
         args.processed_dir
-        / "maize_shoot_SAM_P1_P2_P3_P4_P5_scvelo_dynamical.h5ad"
+        / "maize_shoot_SAM_P1_P2_P3_P4_P5_scvelo_stochastic_dynamical.h5ad"
     )
     adata.write_h5ad(output_h5ad, compression="gzip")
     adata.obs.to_csv(args.table_dir / "RNA_velocity_spot_metadata.csv")
