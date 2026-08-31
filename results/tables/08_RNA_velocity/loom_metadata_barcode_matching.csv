@@ -1,0 +1,15 @@
+sample_id,loom_file,spots_in_loom,target_metadata_spots,matched_spots,missing_target_spots
+UL01,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE20_UL01_B73V5S210_short_MTCL.loom,1286,333,333,0
+UL02,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE20_UL02_B73V5S210_short_MTCL.loom,943,214,214,0
+UL04,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE20_UL04_B73V5S210_short_MTCL.loom,950,187,187,0
+VR01,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE21_VR01_B73V5S210_short_MTCL.loom,2026,691,691,0
+VR02,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE21_VR02_B73V5S210_short_MTCL.loom,1654,514,514,0
+VR03,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE21_VR03_B73V5S210_short_MTCL.loom,1935,520,520,0
+VR04,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE21_VR04_B73V5S210_short_MTCL.loom,2004,606,606,0
+DQ01,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE22_DQ01_B73V5S210_short_MTCL.loom,1618,447,447,0
+DQ02,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE22_DQ02_B73V5S210_short_MTCL.loom,1887,494,494,0
+DQ03,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE22_DQ03_B73V5S210_short_MTCL.loom,1614,385,385,0
+DQ04,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE22_DQ04_B73V5S210_short_MTCL.loom,1621,456,456,0
+DQ06,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE22_DQ06_B73V5S210_short_MTCL.loom,1729,490,490,0
+DQ07,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE22_DQ07_B73V5S210_short_MTCL.loom,2004,585,585,0
+DQ08,C:\Users\user\Dropbox\Git\maize_shoot_data_process_v2\data\raw\loom\XGE22_DQ08_B73V5S210_short_MTCL.loom,1889,470,470,0

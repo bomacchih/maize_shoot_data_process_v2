@@ -142,6 +142,10 @@ output_dir <- file.path(
 )
 session_dir <- file.path(project_root, "results", "sessionInfo")
 domain_levels <- c("SAM", "P1_P2", "P3", "P4", "P5")
+sample_levels <- c(
+  "UL01", "UL02", "UL04", "VR01", "VR02", "VR03", "VR04",
+  "DQ01", "DQ02", "DQ03", "DQ04", "DQ06", "DQ07", "DQ08"
+)
 
 if (!file.exists(input_rds)) stop("Input Seurat RDS not found: ", input_rds)
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
@@ -187,6 +191,19 @@ if (!identical(colnames(counts), colnames(seurat_object))) {
 
 metadata <- seurat_object[[]]
 metadata$barcode <- colnames(seurat_object)
+metadata$sample_id_original <- as.character(metadata$sample_id)
+if ("sample" %in% colnames(metadata) &&
+    all(as.character(metadata$sample) %in% sample_levels)) {
+  metadata$sample_id <- as.character(metadata$sample)
+} else {
+  metadata$sample_id <- sub("_S[0-9]+$", "", metadata$sample_id_original)
+}
+if (!all(metadata$sample_id %in% sample_levels)) {
+  stop(
+    "Could not convert sample_id to the canonical capture IDs. Values: ",
+    paste(unique(metadata$sample_id), collapse = ", ")
+  )
+}
 metadata$domains <- factor(
   as.character(metadata[[domain_column]]),
   levels = domain_levels,

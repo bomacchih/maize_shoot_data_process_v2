@@ -1,0 +1,11 @@
+{
+  "python": "3.11.16 | packaged by conda-forge | (main, Aug 21 2026, 22:37:11) [MSC v.1944 64 bit (AMD64)]",
+  "anndata": "0.12.19",
+  "scanpy": "1.11.5",
+  "scvelo": "0.3.4",
+  "numpy": "2.4.6",
+  "pandas": "2.3.3",
+  "scipy": "1.17.1",
+  "matplotlib": "3.11.1",
+  "loompy": "3.0.8"
+}

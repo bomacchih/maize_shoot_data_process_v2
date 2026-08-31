@@ -323,6 +323,25 @@ def read_seurat_export_metadata(export_dir: Path) -> pd.DataFrame:
     if metadata["barcode"].isna().any() or metadata["barcode"].duplicated().any():
         raise ValueError("spot_metadata.csv contains missing or duplicated barcodes.")
 
+    # In the deposited Seurat object, sample_id may identify a physical section
+    # (for example UL01_S2), while `sample` stores the capture/library ID used
+    # in loom filenames. Preserve the original field and canonicalize the
+    # matcher to UL01-DQ08.
+    original_sample_id = metadata["sample_id"].astype(str)
+    metadata["sample_id_original"] = original_sample_id
+    if "sample" in metadata.columns:
+        sample_column = metadata["sample"].astype(str)
+        if sample_column.isin(SAMPLE_TO_SUFFIX).all():
+            metadata["sample_id"] = sample_column
+        else:
+            metadata["sample_id"] = original_sample_id.str.replace(
+                r"_S[0-9]+$", "", regex=True
+            )
+    else:
+        metadata["sample_id"] = original_sample_id.str.replace(
+            r"_S[0-9]+$", "", regex=True
+        )
+
     metadata = metadata.loc[
         metadata["domains"].isin(DOMAIN_ORDER)
         & metadata["sample_id"].isin(SAMPLE_TO_SUFFIX)
@@ -580,10 +599,14 @@ def export_qc(
             table_dir / "Seurat_loom_merge_summary.csv", index=False
         )
 
+    qc_metadata = adata.obs.copy()
+    # Count rows through a temporary index-derived field instead of depending
+    # on whether the source metadata called the identifier Barcode or barcode.
+    qc_metadata["_spot_id_for_count"] = adata.obs_names.astype(str)
     summary = (
-        adata.obs.groupby(["sample_id", "domains"], observed=True)
+        qc_metadata.groupby(["sample_id", "domains"], observed=True)
         .agg(
-            n_spots=("Barcode", "size"),
+            n_spots=("_spot_id_for_count", "size"),
             median_spliced_counts=("spliced_counts", "median"),
             median_unspliced_counts=("unspliced_counts", "median"),
             median_unspliced_fraction=("unspliced_fraction", "median"),
@@ -631,10 +654,25 @@ def use_existing_umap_if_available(adata: ad.AnnData) -> bool:
 
 
 def preprocess_and_run_velocity(adata: ad.AnnData, args: argparse.Namespace) -> None:
-    scv.pp.filter_and_normalize(
+    # scVelo 0.3.4 removed n_top_genes from filter_and_normalize(), although
+    # older tutorials pass it to that convenience wrapper. Run the component
+    # operations explicitly so the workflow is compatible with the installed
+    # API and the numerical intent remains unchanged.
+    scv.pp.filter_genes(
         adata,
         min_shared_counts=args.min_shared_counts,
-        n_top_genes=args.n_top_genes,
+    )
+    scv.pp.normalize_per_cell(adata)
+    sc.pp.log1p(adata)
+    sc.pp.highly_variable_genes(
+        adata,
+        n_top_genes=min(args.n_top_genes, adata.n_vars),
+        flavor="seurat",
+        subset=True,
+    )
+    logging.info(
+        "Retained %d highly variable genes after explicit scVelo/Scanpy preprocessing.",
+        adata.n_vars,
     )
 
     exported_pcs = adata.obsm.get("X_pca")
