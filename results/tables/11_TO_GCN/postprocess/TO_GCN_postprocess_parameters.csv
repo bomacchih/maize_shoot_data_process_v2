@@ -1,0 +1,7 @@
+"parameter","value"
+"level_source","original TO-GCN Node_level.csv"
+"ordered_domains","SAM;P1_P2;P3;P4;P5"
+"positive_PCC_cutoff","0.95"
+"maximum_edges_plotted","50000"
+"GO_test","one-sided Fisher exact / hypergeometric"
+"multiple_testing","Benjamini-Hochberg FDR"

@@ -82,7 +82,7 @@ def parse_arguments() -> argparse.Namespace:
         type=Path,
         default=None,
         help=(
-            "Directory containing the loom files. Defaults to data/processed, "
+            "Directory containing the loom files. Defaults to data/raw/loom, "
             "where the Zenodo record should be downloaded. "
             "Legacy per-sample subdirectories are also supported."
         ),
@@ -159,7 +159,7 @@ def parse_arguments() -> argparse.Namespace:
 def configure_paths(args: argparse.Namespace) -> argparse.Namespace:
     root = args.project_root.resolve()
     args.project_root = root
-    args.raw_dir = (args.raw_dir or root / "data" / "processed").resolve()
+    args.raw_dir = (args.raw_dir or root / "data" / "raw" / "loom").resolve()
     args.metadata = (
         args.metadata or root / "data" / "metadata" / "metadata.csv"
     ).resolve()
@@ -318,7 +318,9 @@ def load_and_subset_looms(
     for sample_id, sample_number in SAMPLE_TO_SUFFIX.items():
         loom_path = find_one_loom(raw_dir, sample_id)
         logging.info("Loading %s: %s", sample_id, loom_path)
-        loom = scv.read(str(loom_path), cache=False)
+        # scVelo 0.3.x no longer exposes scv.read(). Scanpy's current loom
+        # reader returns an AnnData object and preserves sparse count layers.
+        loom = sc.read_loom(str(loom_path), sparse=True)
 
         required_layers = {"spliced", "unspliced"}
         missing_layers = required_layers.difference(loom.layers.keys())

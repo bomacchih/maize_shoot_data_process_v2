@@ -1,0 +1,7 @@
+parameter	value
+number_of_features	5
+ordered_domains	SAM;P1_P2;P3;P4;P5
+positive_PCC_cutoff	0.95
+TF_input	../input/TF_expression.tsv
+all_gene_input	../input/All_gene_expression.tsv
+seed_input	../input/seeds.txt

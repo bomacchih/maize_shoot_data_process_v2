@@ -2,7 +2,7 @@
 
 Reproducible workflows for processing, integrating, and analyzing spatial transcriptomes from developing maize shoots. This repository contains the revised R, Python, and shell pipelines associated with the Bio-protocol manuscript and the original *Plant Biotechnology Journal* study.
 
-The workflow covers 10x Genomics Visium processing, Seurat v5 quality control and integration, anatomical annotation, pseudobulk analysis, developmental expression trends, RNA velocity, Monocle 3 pseudotime, maize scRNA-seq reference construction, SCINA annotation, and SPOTlight deconvolution.
+The workflow covers 10x Genomics Visium processing, Seurat v5 quality control and integration, anatomical annotation, pseudobulk analysis, developmental expression trends, RNA velocity, Monocle 3 pseudotime, maize scRNA-seq reference construction, SCINA annotation, SPOTlight deconvolution, and time-ordered gene coexpression network (TO-GCN) reconstruction.
 
 > **Project status:** the repository is being prepared for manuscript revision and reproducible release. Scripts use project-relative paths, but some raw-data workflows still require external files or local configuration. Check [data/DATASETS.md](data/DATASETS.md) before running an analysis.
 
@@ -38,6 +38,7 @@ The first five domains are used for developmental trajectory, RNA-velocity, and 
 | 8 | Estimate dynamical RNA velocity with scVelo | [`scripts/python/08_RNA_velocity/`](scripts/python/08_RNA_velocity/) |
 | 9 | Estimate pseudotime and trajectories with Monocle 3 | [`scripts/R/09_monocle3_pseudotime/`](scripts/R/09_monocle3_pseudotime/) |
 | 10 | Build and annotate the scRNA-seq reference; map cell types to Visium with Seurat and SPOTlight | [`scripts/R/10_scRNA_reference_integration/`](scripts/R/10_scRNA_reference_integration/) |
+| 11 | Reconstruct the embryonic-leaf TO-GCN, plot panels D/E, and prepare level-specific GO inputs | [`scripts/R/11_TO_GCN/`](scripts/R/11_TO_GCN/) and [`scripts/shell/11_TO_GCN/`](scripts/shell/11_TO_GCN/) |
 
 The numbered directories indicate the intended execution order. Within a directory, run scripts in filename order.
 
@@ -202,6 +203,7 @@ Available reports include:
 - [scRNA-seq reference QC and Harmony](docs/scRNA_reference_QC_and_Harmony.md)
 - [SCINA cell-type annotation](docs/scRNA_reference_SCINA_celltype_annotation.md)
 - [scRNA-to-Visium SPOTlight mapping](docs/scRNA_to_Visium_SPOTlight_mapping.md)
+- [11 — Embryonic-leaf TO-GCN, panels D/E, and GO input](docs/11_TO_GCN_embryonic_leaf.md)
 
 ## Reproducibility notes
 

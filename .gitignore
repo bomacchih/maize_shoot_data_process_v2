@@ -47,5 +47,10 @@ desktop.ini
 results/logs/public_readiness_report.json
 results/logs/public_readiness_report.md
 
+# Downloaded/compiled TO-GCN dependencies and very large regenerated edge list
+external/TO-GCN/
+bin/TO-GCN/
+results/tables/11_TO_GCN/original_TO_GCN/C1+.csv
+
 # Machine-specific analysis paths
 config/local_paths.yaml
