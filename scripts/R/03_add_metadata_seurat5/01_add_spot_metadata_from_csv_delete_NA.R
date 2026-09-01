@@ -13,8 +13,8 @@
 # Expected metadata file:
 # data/metadata/UL01_metadata/filename.csv
 #
-# The first CSV column must be named Barcode. The second column contains the
-# metadata values, and its column name will be used as the metadata type.
+# The CSV must contain `Barcode` plus the ten metadata columns listed in
+# `columns_to_import` below. Only spots matched to the CSV are retained.
 
 library(Seurat)
 
@@ -59,6 +59,9 @@ local({
         seurat_object_name,
         envir = .GlobalEnv
     )
+
+    # Preserve the active identities for the spots that remain after matching.
+    active_ident_before <- SeuratObject::Idents(seurat_object)
 
     # Select and read the metadata CSV file.
     metadata_file <- file.choose()
@@ -181,6 +184,8 @@ local({
         cells = matched_cell_ids
     )
 
+    expected_active_ident <- active_ident_before[matched_cell_ids]
+
     metadata_index <- metadata_index[matched_spots]
     cell_ids <- matched_cell_ids
 
@@ -214,6 +219,13 @@ local({
         object = seurat_object,
         metadata = metadata_to_add
     )
+
+    if (!identical(
+        as.character(SeuratObject::Idents(seurat_object)),
+        as.character(expected_active_ident)
+    )) {
+        stop("The active identities changed unexpectedly during metadata import.")
+    }
 
     # Replace the original object in the Global Environment.
     assign(

@@ -1,14 +1,13 @@
-R
+RStudio example
 
-sample_id<-readRDS("data/processed/sample_id.rds")
-source("scripts/R/03_add_metadata/01_add_spot_metadata_from_csv.R")
+sample_id <- readRDS("data/processed/sample_id_seurat_v5.rds")
 
-# add all annotated metadata to each data
-# including "sample_id"
-            "domains"
-            "section"
-            "section_id"
-            "ms_ve"
-# add metadata to each biological sample one by one
-# if use ./data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5
-# metadata already implemented.
+# Import the required curated fields and remove spots absent from the CSV:
+source("scripts/R/03_add_metadata_seurat5/01_add_spot_metadata_from_csv_delete_NA.R")
+
+# Alternatively, import every CSV metadata field without removing unmatched
+# spots (their existing values are retained, otherwise they remain NA):
+source("scripts/R/03_add_metadata_seurat5/02_add_spot_metadata_from_csv_without_delete_NA.R")
+
+# The integrated object already contains the curated metadata:
+# data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds

@@ -21,6 +21,7 @@ This list was extracted from the scripts in this repository. The installed R ver
 | ggplot2 | 4.0.3 | Figures |
 | patchwork | 1.3.2 | Multi-panel figures |
 | harmony | 2.0.5 | Batch integration through Harmony |
+| sctransform | 0.4.3 | SCTransform v2 normalization and SCT model handling |
 | dplyr | 1.2.1 | Table and metadata manipulation |
 | tidyr | 1.3.2 | Long/wide reshaping for developmental-trend analysis |
 | edgeR | 4.10.1 | TMM normalization and log2 CPM pseudobulk profiles |
@@ -35,6 +36,7 @@ This list was extracted from the scripts in this repository. The installed R ver
 | SpatialExperiment | 1.22.0 | Spatial data containers for SPOTlight |
 | scuttle | 1.22.0 | scRNA-seq log normalization for SPOTlight reference preparation |
 | scran | 1.40.0 | HVG and marker scoring for SPOTlight |
+| presto | 1.0.0 | Sparse one-versus-all AUC marker scoring for SPOTlight reference preparation |
 | SPOTlight | 1.16.0 | Visium spot cell-type deconvolution and scatter-pie plots |
 | SCINA | **1.2.0** | Cell-type annotation; the script explicitly validates against version 1.2.0 |
 | scales | 1.4.0 | Continuous color-scale bounds in SPOTlight UMAP plots |
@@ -44,6 +46,8 @@ This list was extracted from the scripts in this repository. The installed R ver
 | Package | Audit version | Behavior when absent |
 |---|---:|---|
 | ggrepel | 0.9.8 | Labels use simpler placement when unavailable |
+| scrapper | 1.6.3 | The SPOTlight workflow falls back to deprecated `scran::getTopHVGs()` when unavailable |
+| readxl | Not audited | Required only when reading the recovered TO-GCN TF workbook; the CSV fallback does not require it |
 | GO.db | Not installed | GO descriptions must come from the supplied reference CSV/mapping |
 | AnnotationDbi | 1.74.0 | Used with `GO.db` to retrieve GO term descriptions |
 
@@ -64,7 +68,7 @@ Base and recommended R packages called explicitly through namespaces—such as `
 | numpy | `numpy` | Numerical arrays; the RNA-velocity script includes a documented scalar-conversion compatibility fix for the scVelo 0.3.4 stochastic solver under NumPy 2 |
 | pandas | `pandas` | Metadata and exported tables |
 | scanpy | `scanpy` | Preprocessing, PCA, neighbors, and UMAP |
-| scvelo | `scvelo` | Dynamical RNA-velocity modeling |
+| scvelo | `scvelo` | Paired stochastic and dynamical RNA-velocity modeling |
 | scipy | `scipy` | Sparse matrices and numerical routines |
 | loompy | `loompy` | Reading Velocyto loom files |
 | h5py | `h5py` | HDF5/H5AD input-output support |
@@ -82,7 +86,7 @@ Base and recommended R packages called explicitly through namespaces—such as `
 | Software | Role |
 |---|---|
 | 10x Genomics Space Ranger | Reference construction and Visium `count` processing |
-| Velocyto.py 0.17 series | Generation of spliced/unspliced loom files before scVelo analysis |
+| Velocyto.py 0.17.15 | Generation of spliced/unspliced loom files before scVelo analysis |
 
 These command-line tools are not installed through the R or Python package lists. Their executable versions and reference-build parameters should be recorded separately.
 

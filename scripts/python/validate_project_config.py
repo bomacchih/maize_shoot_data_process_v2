@@ -748,7 +748,7 @@ def validate_script_consistency(
         (marker, "marker_adjusted_p_cutoff", regex_assignment("marker_adjusted_p_cutoff", get_nested(config, "marker_analysis.adjusted_p_value_cutoff"))),
     ])
 
-    trends = "scripts/R/07_developmental_trends_GO/01_developmental_expression_trends_and_GO_Figure_9_Seurat_v5.R"
+    trends = "scripts/R/07_developmental_trends_GO/01_developmental_expression_trends_and_GO_Figure_14_Seurat_v5.R"
     checks.extend([
         (trends, "number_of_clusters", regex_assignment("number_of_clusters", get_nested(config, "developmental_trends_and_go.trend_clusters"))),
         (trends, "representatives_per_cluster", regex_assignment("representatives_per_cluster", get_nested(config, "developmental_trends_and_go.representative_genes_per_cluster"))),

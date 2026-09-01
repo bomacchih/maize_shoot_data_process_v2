@@ -13,7 +13,11 @@ The STUtility route saves `data/processed/<sample_id>_stutility.rds`. The Seurat
 
 The script writes the full R session record to:
 
-[`02_load_spaceranger_sessionInfo.txt`](../results/sessionInfo/02_load_spaceranger_sessionInfo.txt)
+`results/sessionInfo/02_load_spaceranger_sessionInfo.txt`
+
+This file is created by either loader when that script is run. It is not
+included as a pre-generated result because no loader was executed during this
+documentation-only revision.
 
 ```r
 sessionInfo()

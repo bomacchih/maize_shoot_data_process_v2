@@ -2,7 +2,7 @@
 
 **Seurat v5 reproducible walkthrough for 14 maize shoot Visium datasets**
 
-Last updated: 2026-08-25
+Last updated: 2026-09-01
 
 This page documents quality control (QC), curated spot selection, normalization, principal-component analysis (PCA), and Harmony integration for 14 maize shoot spatial-transcriptomics datasets. It follows the narrative organization of the original [STUtility maize walkthrough](https://ludvigla.github.io/STUtility_web_site/Maize_data.html), while using the current Seurat v5 workflow and repository structure.
 
@@ -27,7 +27,9 @@ The examples below assume that R is started from the repository root.
 8. Retain 30 PCs, as selected from the elbow plot and used in the Bio-protocol workflow.
 9. Generate a pre-integration UMAP from the PCA reduction.
 10. Integrate the 14 samples with Harmony using Seurat v5 `IntegrateLayers()`.
-11. Generate a post-integration UMAP and save the combined object.
+11. Build Harmony nearest-neighbor graphs and calculate `harmony_clusters_recomputed` at resolution 2.
+12. Generate a post-integration UMAP.
+13. Restore the imported published `harmony_clusters` as the active identity and save the combined demonstration object.
 
 ---
 
@@ -489,7 +491,7 @@ This plot is a diagnostic visualization. Sample mixing alone does not prove that
 
 ## Integrate the samples with Harmony
 
-Harmony integration is performed through the Seurat v5 one-line integration interface. The 30 retained PCs are used, and `sample_id` defines the sample-specific layers to be aligned.
+Harmony integration is performed through the Seurat v5 one-line integration interface using the 30 retained PCs. The merged SCT assay already contains sample-specific layers derived from the 14 input objects. The script does not pass a separate `group.by` argument to `IntegrateLayers()`; therefore, `sample_id` should be interpreted as retained biological-replicate metadata rather than an explicitly supplied Harmony grouping parameter.
 
 ```r
 combined <- IntegrateLayers(
@@ -597,7 +599,7 @@ The verified output object contains:
 | Active identity levels | 33 (`0–32`) |
 | Reductions | `pca`, `umap_pca`, `harmony`, `umap_harmony` |
 
-The object contains all 14 imported CSV fields plus current pipeline metadata, including `old_colname`, `percent.mito`, `percent.pltd`, `nCount_RNA`, `nFeature_RNA`, `nCount_SCT`, and `nFeature_SCT`. It has **23 metadata columns in total**. The revised workflow stores `domains`, `sample_id`, `sample_domain`, and eight additional annotation columns as factors, for 11 factor metadata fields in total; the saved `active.ident` is `harmony_clusters`. Obsolete `nCount_Spatial` and `nFeature_Spatial` fields are not retained. The previously validated RDS was approximately **2.17 GB** and should be regenerated to incorporate the revised metadata typing and new domain-diagnostic figures.
+The object contains all imported CSV fields plus current pipeline metadata, including `old_colname`, `percent.mito`, `percent.pltd`, `nCount_RNA`, `nFeature_RNA`, `nCount_SCT`, `nFeature_SCT`, and `harmony_clusters_recomputed`. The revised workflow stores the designated categorical annotations as factors; the saved `active.ident` is the imported published `harmony_clusters`. Obsolete `nCount_Spatial` and `nFeature_Spatial` fields are not retained. Exact object size and metadata-column count may vary with the installed Seurat version and should be read from the saved object rather than treated as fixed protocol parameters.
 
 ---
 
@@ -605,23 +607,28 @@ The object contains all 14 imported CSV fields plus current pipeline metadata, i
 
 ### Clustering
 
-Clustering can be performed on the Harmony reduction after selecting and reporting a resolution.
+The integration script performs graph construction and clustering on the Harmony reduction. Recomputed labels are stored separately so the imported published annotation is not overwritten.
 
 ```r
 combined <- FindNeighbors(
   combined,
   reduction = "harmony",
-  dims = 1:30
+  dims = 1:30,
+  k.param = 20,
+  graph.name = c("harmony_nn", "harmony_snn")
 )
 
 combined <- FindClusters(
   combined,
-  resolution = 0.5,
-  random.seed = 1234
+  graph.name = "harmony_snn",
+  resolution = 2,
+  algorithm = 1,
+  random.seed = 1234,
+  cluster.name = "harmony_clusters_recomputed"
 )
 ```
 
-The clustering resolution should be evaluated using anatomical correspondence, spatial coherence, and established marker genes rather than selected only from UMAP appearance.
+The clustering resolution should be evaluated using anatomical correspondence, spatial coherence, and established marker genes rather than selected only from UMAP appearance. The current resolution-2 run generated 32 recomputed clusters; it is not expected to reproduce the numbering of the 33 imported published clusters.
 
 ### Differential expression and pseudobulk analysis
 

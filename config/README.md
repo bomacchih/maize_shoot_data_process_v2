@@ -22,8 +22,11 @@ here will not change an analysis run.
 Fields marked `null`, `not_explicit`, or `missing_blocking` are intentionally
 unresolved. They should not be replaced with guessed values. In particular,
 the current Visium integration script does not define numeric spot-level QC
-cutoffs, does not run clustering, and imports `harmony_clusters` from curated
-metadata.
+cutoffs. It does run `FindNeighbors()` and `FindClusters()` on the Harmony
+reduction and stores those labels as `harmony_clusters_recomputed`. Published
+`harmony_clusters` values are imported separately from curated metadata and
+restored as the active identity only for exact reproduction of the manuscript
+demonstration.
 
 ## Local paths
 
@@ -44,7 +47,9 @@ the record files into `data/processed/` without renaming them. See
 
 The record contains 14 web summaries, 14 `.cloupe` files, 14 Velocyto `.loom`
 files, the 14 per-sample Seurat objects, and the combined Visium and scRNA RDS
-objects. It does not contain complete Space Ranger `outs` folders: the matrix
+objects. Place downloaded loom files in `data/raw/loom/`; place the other
+processed downloads in `data/processed/` as documented in the data inventory.
+The record does not contain complete Space Ranger `outs` folders: the matrix
 H5 and spatial image/position/scalefactor files needed to rebuild the individual
 Seurat objects are not present in the record.
 

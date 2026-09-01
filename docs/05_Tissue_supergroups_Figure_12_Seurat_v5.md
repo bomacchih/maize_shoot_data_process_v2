@@ -273,7 +273,7 @@ pD <- SpatialDimPlot(
   cols = supergroup_colors,
   image.scale = "lowres",
   image.alpha = 1,
-  pt.size.factor = 1.75,
+  pt.size.factor = 3.5,
   crop = TRUE
 )
 ```

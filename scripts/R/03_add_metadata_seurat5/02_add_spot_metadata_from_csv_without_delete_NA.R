@@ -13,8 +13,8 @@
 # Expected metadata file:
 # data/metadata/UL01_metadata/filename.csv
 #
-# The first CSV column must be named Barcode. The second column contains the
-# metadata values, and its column name will be used as the metadata type.
+# The CSV must contain `Barcode`. Every remaining CSV column is imported as a
+# metadata field; unmatched spots are retained with their existing value or NA.
 
 library(Seurat)
 

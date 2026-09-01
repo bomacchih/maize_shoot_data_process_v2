@@ -8,9 +8,13 @@ Run the environment audit from the repository root:
 Rscript tests/R/validate_R_environment.R
 ```
 
-The current audit result is 24 exact package-version matches, zero version
+The current inventory contains 26 required package-version checks. The earlier
+audit matched all 26 required packages with zero version
 warnings, and zero missing required packages. This includes Shiny 1.14.0 for
-the interactive Monocle 3 root-principal-node selection workflow.
+the interactive Monocle 3 root-principal-node selection workflow,
+`sctransform` 0.4.3 for SCT model handling, and `presto` 1.0.0 for sparse AUC
+marker scoring. Rerun the command above after changing the active R library;
+the report is environment-specific rather than a permanent installation claim.
 
 ## SCINA
 

@@ -21,7 +21,7 @@ visium:
   cloupe_files: data/processed/<sample_id>_cloupe.cloupe
   processed_objects: data/processed
   curated_metadata: data/metadata/metadata.csv
-  loom_root: data/processed
+  loom_root: data/raw/loom
 
 scrna_reference:
   raw_matrix_root: data/raw/scRNA_reference

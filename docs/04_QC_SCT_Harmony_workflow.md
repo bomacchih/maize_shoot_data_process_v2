@@ -127,21 +127,22 @@ The integration script performs the following steps:
 1. Loads and updates the 14 Seurat v5 objects.
 2. Standardizes the expression assay name to `RNA` when necessary.
 3. Adds `sample_id`, `orig.ident`, `percent.mito`, and `percent.pltd` metadata.
-4. Merges the objects while retaining the 14 sample-specific RNA count layers.
-5. Removes genes with fewer than 100 total reads across the combined dataset, as specified in the Bio-protocol.
-6. Normalizes each sample layer using SCTransform v2 with 3,000 variable features.
-7. Calculates 50 PCs for the scree/elbow diagnostic.
-8. Records the automatic elbow candidate but retains PCs 1-30 for the Bio-protocol analysis.
-9. Recalculates the final PCA with 30 dimensions.
-10. Generates an uncorrected PCA-based UMAP.
-11. Runs Seurat v5 `IntegrateLayers()` with `HarmonyIntegration` using PCs 1-30.
-12. Constructs `harmony_nn` and `harmony_snn` graphs from the Harmony reduction using `FindNeighbors()`.
-13. Calculates `harmony_clusters_recomputed` using `FindClusters(resolution = 2, random.seed = 1234)`.
-14. Retains the published `harmony_clusters` values imported from `metadata.csv` without overwriting them.
-15. Exports a recomputed-versus-published cluster contingency table and clustering log.
-16. Generates a Harmony-based UMAP and a before-versus-after integration figure.
-17. Plots the Harmony embedding by anatomical domain globally and separately for each sample.
-18. Restores imported `harmony_clusters` as the active identity, validates the object, and saves it.
+4. Retains only barcodes present in `metadata.csv` and assigned to one of the seven accepted, non-overlapping structural domains.
+5. Merges the curated objects while retaining the 14 sample-specific RNA count layers.
+6. Removes genes with fewer than 100 total reads across the curated combined dataset, as specified in the Bio-protocol.
+7. Normalizes each sample layer using SCTransform v2 with 3,000 variable features.
+8. Calculates 50 PCs for the scree/elbow diagnostic.
+9. Records the automatic elbow candidate but retains PCs 1-30 for the Bio-protocol analysis.
+10. Recalculates the final PCA with 30 dimensions.
+11. Generates an uncorrected PCA-based UMAP.
+12. Runs Seurat v5 `IntegrateLayers()` with `HarmonyIntegration` using PCs 1-30.
+13. Constructs `harmony_nn` and `harmony_snn` graphs from the Harmony reduction using `FindNeighbors()`.
+14. Calculates `harmony_clusters_recomputed` using `FindClusters(resolution = 2, random.seed = 1234)`.
+15. Retains the published `harmony_clusters` values imported from `metadata.csv` without overwriting them.
+16. Exports a recomputed-versus-published cluster contingency table and clustering log.
+17. Generates a Harmony-based UMAP and a before-versus-after integration figure.
+18. Plots the Harmony embedding by anatomical domain globally and separately for each sample.
+19. Restores imported `harmony_clusters` as the active identity, validates the object, and saves it.
 
 ## Computational resources and troubleshooting
 
@@ -313,22 +314,22 @@ The object retains `RNA` and `SCT` assays, the 14 sample identities, and the org
 
 ### Verified result for the current 14-sample test run
 
-- Tissue spots: 23,160.
+- Curated tissue spots retained for integration: 20,090.
 - Raw merged feature set: 40,109 genes.
-- Genes retained after the 100-read rule: 23,550.
-- Automatic strongest elbow candidate: PC 6.
+- Genes retained after the 100-read rule: 23,048.
+- Automatic strongest elbow candidate: PC 5.
 - PCs retained for the Bio-protocol analysis: PCs 1-30.
 - PCA dimensions in the saved object: 30.
 - Harmony dimensions in the saved object: 30.
 - Recomputed clustering parameters: `harmony` reduction, dimensions 1-30, `k.param = 20`, resolution 2, algorithm 1, and random seed 1234.
-- The number of recomputed clusters is recorded at runtime in `results/logs/Harmony_recomputed_clustering.txt`; it is not assumed to equal 33.
-- Median mitochondrial percentage: 0.0185%; maximum: 6.61%.
+- Recomputed cluster count: 32; imported published cluster count: 33.
+- Median mitochondrial percentage: approximately 0.0191%; maximum: approximately 3.74%.
 - Median plastid percentage: 0%; maximum: 0.91%.
 - Final Seurat object validation: passed.
 
 ## Notes for downstream analyses
 
-- Tissue spots that overlap two or more anatomical domains should be excluded from domain-level comparisons, as described in the manuscript. They do not need to be removed from the full object before integration.
+- Tissue spots that overlap two or more anatomical domains are excluded before QC summarization and integration by retaining only barcodes in the curated metadata table with one of the seven accepted domain labels.
 - Do not interpret spots from the same section or capture area as independent biological replicates.
 - For pseudobulk or differential analyses, aggregate and model counts at the biological-replicate level rather than treating individual spots as replicates.
 - Use the Harmony reduction for integrated UMAP, neighbor finding, and clustering. Use raw RNA counts for count-based differential-expression or pseudobulk models.

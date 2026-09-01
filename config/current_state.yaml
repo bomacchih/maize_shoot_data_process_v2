@@ -1,7 +1,7 @@
 schema_version: 1
 
 snapshot:
-  date: "2026-08-28"
+  date: "2026-09-01"
   status: documentation_snapshot
   scripts_read_this_file: false
   source: current constants and defaults in repository scripts
@@ -63,11 +63,12 @@ paths:
   cloupe_files: data/processed/<sample_id>_cloupe.cloupe
   individual_visium_objects: data/processed/<sample_id>_seurat_v5.rds
   integrated_visium_object: data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
-  loom_files: data/processed/<space_ranger_run_id>.loom
+  loom_files: data/raw/loom/<space_ranger_run_id>.loom
   scrna_reference_raw: data/raw/scRNA_reference/<SRA_run>/filtered_feature_bc_matrix/
   integrated_scrna_reference: data/processed/sc_merged_filter_SCT2_inte.rds
   annotated_scrna_reference: data/processed/sc_merged_filter_SCT2_inte_SCINA.rds
-  spotlight_output: data/processed/maize_shoot_14samples_celltype_mapped_SPOTlight_seurat_v5.rds
+  spotlight_query: data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds
+  spotlight_output: data/processed/XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds
 
 data_readiness:
   source: data/dataset_inventory.csv
@@ -78,6 +79,10 @@ data_readiness:
     - fourteen_individual_Seurat_objects
     - integrated_Visium_object
     - integrated_scRNA_reference
+    - cluster_marker_tables
+    - SCINA_annotated_reference
+    - embryonic_leaf_Seurat_UMAP_source
+    - SPOTlight_mapped_embryonic_leaf_Visium_object
     - developmental_gene_subset
     - maize_GO_mapping
     - maize_gene_name_mapping
@@ -92,14 +97,10 @@ data_readiness:
     - maize_gene_annotation_GTF
     - Space_Ranger_matrix_and_spatial_outputs_for_14_samples
     - raw_scRNA_reference_matrices_for_rebuild
-  not_generated:
-    - cluster_marker_tables
-    - SCINA_annotated_reference
-    - SPOTlight_mapped_Visium_object
+  not_generated: []
   optional_missing:
     - GO_term_descriptions
     - independent_cell_type_module_markers
-    - Seurat_Harmony_UMAP_export_for_Monocle_reference
 
 public_data_archive:
   provider: Zenodo
@@ -187,10 +188,17 @@ visium_normalization_and_integration:
     metric: cosine
     status: explicit_Seurat_5.5.1_settings
   clustering:
-    performed_by_current_integration_script: false
-    resolution: null
-    identity_field: harmony_clusters
-    identity_source: data/metadata/metadata.csv
+    performed_by_current_integration_script: true
+    graph: harmony_snn
+    dimensions: 1-30
+    k_param: 20
+    resolution: 2
+    algorithm: 1
+    random_seed: 1234
+    recomputed_identity_field: harmony_clusters_recomputed
+    published_identity_field: harmony_clusters
+    active_identity_after_save: harmony_clusters
+    published_identity_source: data/metadata/metadata.csv
 
 marker_analysis:
   assay: SCT
@@ -240,7 +248,11 @@ developmental_trends_and_go:
   go_terms_to_display: 29
 
 rna_velocity:
-  model: scVelo_dynamical
+  models:
+    - stochastic
+    - dynamical
+  primary_interpretation: dynamical
+  comparison_design: same_filtered_genes_PCA_neighbors_moments_and_Seurat_UMAP
   sample_domains:
     - SAM
     - P1_P2
@@ -274,7 +286,9 @@ monocle3:
   cores: 1
   use_partition_for_graph: false
   close_loop: false
-  root_selection: most_frequent_principal_graph_node_among_SAM_spots
+  root_selection_default: interactive_GUI_manual_SAM_associated_principal_node
+  root_selection_saved_mode: reuse_recorded_principal_node_IDs
+  root_selection_optional_fallback: most_frequent_principal_graph_node_among_SAM_spots
 
 scrna_reference:
   sra_runs:
@@ -332,7 +346,9 @@ scina:
 spotlight_mapping:
   hard_label_transfer: true
   spotlight_deconvolution: true
-  sections_to_run: null
+  query_scope: 6392_SAM_P1_P2_P3_P4_P5_spots
+  coordinate_source: data/processed/XGE202122_S5_subset_embleaf_harmony_join.rds
+  sections_to_run: all_sections_present_in_subset
   reference_cells_per_type: 100
   markers_per_type: 100
   highly_variable_genes: 3000
@@ -357,7 +373,7 @@ space_ranger_reference:
 known_reproducibility_gaps:
   - Numeric Visium spot-level QC thresholds are absent.
   - The Harmony grouping variable is not explicitly supplied.
-  - Visium clustering is not recreated; harmony_clusters is imported from metadata.
+  - Recomputed Visium clusters are stored as harmony_clusters_recomputed; published harmony_clusters are imported from metadata and restored as the active identity for demonstration reproduction.
   - Space Ranger FASTQ, image, and transcriptome paths remain machine-specific.
   - Zenodo 22058284 provides web summaries, cloupe files, loom files, and processed RDS objects, but not complete Space Ranger count-matrix and spatial outputs.
   - The original SRR11943512 and SRR11943513 10x-style matrices are still needed only to rebuild the integrated scRNA reference from raw counts; downstream workflows can start from the deposited combined RDS.
