@@ -1,0 +1,448 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+
+\section{Public-readiness audit}\label{public-readiness-audit}
+
+\begin{itemize}
+\tightlist
+\item
+  Status: \textbf{NOT READY}
+\item
+  Repository: \texttt{maize\_shoot\_data\_process\_v2}
+\item
+  Generated: 2026-09-01T04:14:01.152337+00:00
+\item
+  Summary: 7 passed, 8 warnings, 3 blockers
+\end{itemize}
+
+Potential secret values are redacted; locations identify where manual
+review is required.
+
+\subsection{Blocker}\label{blocker}
+
+\subsubsection{LICENSE\_MISSING}\label{license_missing}
+
+Choose and add a license before describing the repository as reusable
+open-source software.
+
+\subsubsection{TRACKED\_SENSITIVE\_FILES}\label{tracked_sensitive_files}
+
+Sensitive credential or large analysis-data formats are tracked.
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{data/reference/scRNA\_reference/marker\_list2.rds}
+\end{itemize}
+
+\subsubsection{HISTORY\_SENSITIVE\_FILES}\label{history_sensitive_files}
+
+Sensitive credential or large analysis-data formats occur in reachable
+Git history.
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{data/reference/scRNA\_reference/marker\_list2.rds}
+\end{itemize}
+
+\subsection{Warn}\label{warn}
+
+\subsubsection{CITATION\_MISSING}\label{citation_missing}
+
+Add CITATION.cff so GitHub can display a machine-readable citation.
+
+\subsubsection{SECURITY\_POLICY\_MISSING}\label{security_policy_missing}
+
+Add SECURITY.md or enable an appropriate private vulnerability-reporting
+route.
+
+\subsubsection{LARGE\_TRACKED\_FILES}\label{large_tracked_files}
+
+Review tracked files of 10 MiB or larger; consider Zenodo or release
+assets when they are generated outputs.
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{results/figures/Figure\_7\_8\_4/Figure\_7\_8\_4\_composite.png\ (10.1\ MiB)}
+\item
+  \texttt{results/tables/Figure\_13/pseudobulk\_TMM\_log2CPM.csv.gz\ (12.9\ MiB)}
+\end{itemize}
+
+\subsubsection{CURRENT\_PERSONAL\_PATHS}\label{current_personal_paths}
+
+Personal absolute filesystem paths are present; decide whether to
+replace them with variables or examples.
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{docs/08\_RNA\_velocity\_scVelo\_dynamical\_Figure\_10B.md:251}
+\item
+  \texttt{docs/08\_RNA\_velocity\_scVelo\_dynamical\_Figure\_10B.md:261}
+\item
+  \texttt{docs/09\_Monocle3\_pseudotime\_Figure\_10C.md:226}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:10}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:11}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:12}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:13}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:14}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:15}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:2}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:3}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:4}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:5}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:6}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:7}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:8}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv:9}
+\item
+  \texttt{results/tables/10\_scRNA\_reference\_integration/scRNA\_reference\_existing\_output\_record.txt:1}
+\item
+  \texttt{tests/python/test\_validate\_public\_readiness.py:37}
+\end{itemize}
+
+\subsubsection{CURRENT\_EMAIL\_ADDRESSES}\label{current_email_addresses}
+
+Email addresses are present; verify that each is intended for public
+release.
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{data/DATASETS.html:73}
+\item
+  \texttt{data/SOFTWARE\_REQUIREMENTS.html:73}
+\item
+  \texttt{docs/11\_TO\_GCN\_embryonic\_leaf.html:73}
+\item
+  \texttt{tests/python/test\_validate\_public\_readiness.py:51}
+\end{itemize}
+
+\subsubsection{HISTORY\_LARGE\_BLOBS}\label{history_large_blobs}
+
+Reachable history contains blobs of 10 MiB or larger.
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{docs/Tissue\_supergroups\_Figure\_7\_8\_4\_Seurat\_v5.html\ (27.8\ MiB)}
+\item
+  \texttt{results/figures/11\_scRNA\_SCINA\_annotation/scRNA\_reference\_SCINA\_celltype\_panel\_C.pdf\ (16.8\ MiB)}
+\item
+  \texttt{results/figures/12\_scRNA\_Visium\_mapping/selected\_celltypes/Figure\_C\_SPOTlight\_proportion\_UMAPs.pdf\ (10.5\ MiB)}
+\item
+  \texttt{results/figures/12\_scRNA\_Visium\_mapping/selected\_celltypes/SPOT\_Bundle\_sheath\_spatial\_maps\_by\_image.pdf\ (19.1\ MiB)}
+\item
+  \texttt{results/figures/12\_scRNA\_Visium\_mapping/selected\_celltypes/SPOT\_Mesophyll\_spatial\_maps\_by\_image.pdf\ (19.1\ MiB)}
+\item
+  \texttt{results/figures/12\_scRNA\_Visium\_mapping/selected\_celltypes/SPOT\_Shoot\_apical\_meristem\_spatial\_maps\_by\_image.pdf\ (19.0\ MiB)}
+\item
+  \texttt{results/figures/12\_scRNA\_Visium\_mapping/selected\_celltypes/SPOT\_Vascular\_tissue\_spatial\_maps\_by\_image.pdf\ (19.1\ MiB)}
+\item
+  \texttt{results/figures/Figure\_7\_8\_4/Figure\_7\_8\_4\_composite.png\ (10.1\ MiB)}
+\item
+  \texttt{results/tables/Figure\_13/pseudobulk\_TMM\_log2CPM.csv.gz\ (12.9\ MiB)}
+\end{itemize}
+
+\subsubsection{HISTORY\_PERSONAL\_PATHS}\label{history_personal_paths}
+
+Personal absolute filesystem paths are present; decide whether to
+replace them with variables or examples.
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{data/DATASETS.html@blob-bcbd364bc5c6:769}
+\item
+  \texttt{data/DATASETS.md@blob-09062cd43c67:119}
+\item
+  \texttt{data/DATASETS.md@blob-09062cd43c67:65}
+\item
+  \texttt{data/DATASETS.md@blob-0c220a24e301:119}
+\item
+  \texttt{data/DATASETS.md@blob-0c220a24e301:65}
+\item
+  \texttt{data/DATASETS.md@blob-710ca318ce99:118}
+\item
+  \texttt{data/DATASETS.md@blob-710ca318ce99:64}
+\item
+  \texttt{data/DATASETS.md@blob-ee1d139ff81e:101}
+\item
+  \texttt{docs/08\_RNA\_velocity\_scVelo\_dynamical\_Figure\_10B.md@blob-4c80332eb7a3:235}
+\item
+  \texttt{docs/08\_RNA\_velocity\_scVelo\_dynamical\_Figure\_10B.md@blob-4c80332eb7a3:245}
+\item
+  \texttt{docs/08\_RNA\_velocity\_scVelo\_dynamical\_Figure\_10B.md@blob-66530ac0d192:202}
+\item
+  \texttt{docs/08\_RNA\_velocity\_scVelo\_dynamical\_Figure\_10B.md@blob-66530ac0d192:212}
+\item
+  \texttt{docs/08\_RNA\_velocity\_scVelo\_dynamical\_Figure\_10B.md@blob-99146d079911:251}
+\item
+  \texttt{docs/08\_RNA\_velocity\_scVelo\_dynamical\_Figure\_10B.md@blob-99146d079911:261}
+\item
+  \texttt{docs/09\_Monocle3\_pseudotime\_Figure\_10C.md@blob-cb607a060ce2:226}
+\item
+  \texttt{docs/09\_Monocle3\_pseudotime\_Figure\_10C.md@blob-e0319ca4f910:197}
+\item
+  \texttt{docs/09\_Monocle3\_pseudotime\_Figure\_10C.md@blob-f2c7378a02cd:220}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:10}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:11}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:12}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:13}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:14}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:15}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:2}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:3}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:4}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:5}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:6}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:7}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:8}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-252900348de5:9}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:10}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:11}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:12}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:13}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:14}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:15}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:2}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:3}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:4}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:5}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:6}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:7}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:8}
+\item
+  \texttt{results/tables/08\_RNA\_velocity/loom\_metadata\_barcode\_matching.csv@blob-e888001e5386:9}
+\item
+  \texttt{results/tables/10\_scRNA\_reference\_integration/scRNA\_reference\_existing\_output\_record.txt@blob-c2be704f6978:1}
+\item
+  \texttt{results/tables/10\_scRNA\_reference\_integration/scRNA\_reference\_existing\_output\_record.txt@blob-e6245792b9ac:1}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:21}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:22}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:23}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:24}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:25}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:26}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:27}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:28}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:30}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:31}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:32}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:33}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:34}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:35}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:36}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-5af59bf72e5b:37}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:21}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:22}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:23}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:24}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:25}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:26}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:27}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:28}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:30}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:31}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:32}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:33}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:34}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:35}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:36}
+\item
+  \texttt{scripts/shell/01\_spaceranger\_processing/02\_spaceranger\_count.sh@blob-7498fd67b604:37}
+\item
+  \texttt{tests/python/test\_validate\_public\_readiness.py@blob-3f79bb905780:37}
+\end{itemize}
+
+\subsubsection{HISTORY\_EMAIL\_ADDRESSES}\label{history_email_addresses}
+
+Email addresses are present; verify that each is intended for public
+release.
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{data/DATASETS.html@blob-040a439cbcb5:73}
+\item
+  \texttt{data/DATASETS.html@blob-bcbd364bc5c6:73}
+\item
+  \texttt{data/DATASETS.html@blob-c2eecf8e0f99:73}
+\item
+  \texttt{data/SOFTWARE\_REQUIREMENTS.html@blob-a8bcba081d78:73}
+\item
+  \texttt{tests/python/test\_validate\_public\_readiness.py@blob-3f79bb905780:51}
+\end{itemize}
+
+\subsection{Pass}\label{pass}
+
+\subsubsection{WORKTREE\_CLEAN}\label{worktree_clean}
+
+The working tree is clean.
+
+\subsubsection{UPSTREAM\_SYNC}\label{upstream_sync}
+
+HEAD matches the recorded upstream branch.
+
+\subsubsection{README\_PRESENT}\label{readme_present}
+
+README.md is present.
+
+\subsubsection{README\_RELEASE\_REFERENCES}\label{readme_release_references}
+
+README records the public repository URL, Zenodo record, and publication
+DOI.
+
+\subsubsection{GITIGNORE\_SAFEGUARDS}\label{gitignore_safeguards}
+
+Large data, R history, and machine-specific paths are ignored.
+
+\subsubsection{CURRENT\_SECRET\_SCAN}\label{current_secret_scan}
+
+No supported high-confidence credential pattern was detected.
+
+\subsubsection{HISTORY\_SECRET\_SCAN}\label{history_secret_scan}
+
+No supported high-confidence credential pattern was detected.
+
+\end{document}
