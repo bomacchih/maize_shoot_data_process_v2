@@ -36,7 +36,36 @@ biologically.
 The source Seurat object must contain raw RNA count layers and a structural
 domain field named `domains`, `domain`, or `structural_domain`.
 
-## Step 1: prepare expression matrices
+## Step 0: export Seurat domain expression matrices
+
+To inspect the RNA expression input independently of the C++ preparation,
+run:
+
+```r
+source("scripts/R/11_TO_GCN/00_export_RNA_expression_by_domain_Seurat_v5.R")
+```
+
+The script reconstructs one joined raw RNA count layer, retains the SAM–P5
+spots, and explicitly runs both Seurat v5 functions with `group.by =
+"domains"`:
+
+- `AggregateExpression()` writes summed raw UMI counts for each domain;
+- `AverageExpression(layer = "counts")` writes mean raw UMI counts per spot
+  for each domain.
+
+It verifies numerically that each aggregated domain total divided by its spot
+count equals the corresponding average-expression value. Outputs are:
+
+- `RNA_AggregateExpression_sum_counts_by_domain.csv.gz`
+- `RNA_AverageExpression_mean_counts_by_domain.csv.gz`
+- `RNA_Aggregate_vs_Average_validation.csv`
+- `domain_spot_counts.csv`
+
+These files are written to `results/tables/11_TO_GCN/input/`. This export is a
+transparent inspection step; the next script independently prepares the exact
+headerless matrices required by the original TO-GCN C++ programs.
+
+## Step 1: prepare TO-GCN expression matrices
 
 Run from the repository root in RStudio:
 
@@ -160,6 +189,7 @@ result is written as
 
 The R scripts write complete session records to:
 
+- `results/sessionInfo/11_TO_GCN_domain_expression_export_sessionInfo.txt`
 - `results/sessionInfo/11_TO_GCN_prepare_sessionInfo.txt`
 - `results/sessionInfo/11_TO_GCN_postprocess_sessionInfo.txt`
 

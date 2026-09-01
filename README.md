@@ -38,7 +38,7 @@ The first five domains are used for developmental trajectory, RNA-velocity, and 
 | 8 | Compare stochastic and dynamical RNA velocity with scVelo | [`scripts/python/08_RNA_velocity/`](scripts/python/08_RNA_velocity/) |
 | 9 | Estimate pseudotime and trajectories with Monocle 3 | [`scripts/R/09_monocle3_pseudotime/`](scripts/R/09_monocle3_pseudotime/) |
 | 10 | Build and annotate the scRNA-seq reference; map cell types to Visium with Seurat and SPOTlight | [`scripts/R/10_scRNA_reference_integration/`](scripts/R/10_scRNA_reference_integration/) |
-| 11 | Reconstruct the embryonic-leaf TO-GCN, plot panels D/E, and prepare level-specific GO inputs | [`scripts/R/11_TO_GCN/`](scripts/R/11_TO_GCN/) and [`scripts/shell/11_TO_GCN/`](scripts/shell/11_TO_GCN/) |
+| 11 | Export domain-level RNA sums/means, reconstruct the embryonic-leaf TO-GCN, plot panels D/E, and prepare level-specific GO inputs | [`scripts/R/11_TO_GCN/`](scripts/R/11_TO_GCN/) and [`scripts/shell/11_TO_GCN/`](scripts/shell/11_TO_GCN/) |
 
 The numbered directories indicate the intended execution order. Within a directory, run scripts in filename order.
 
