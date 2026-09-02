@@ -9,6 +9,7 @@ file/line locations are recorded.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -43,6 +44,16 @@ SENSITIVE_DATA_SUFFIXES = (
 SENSITIVE_CREDENTIAL_SUFFIXES = (
     ".env", ".pem", ".p12", ".pfx", ".key", ".kdbx",
 )
+
+# Small, publication-ready reference artifacts may use a normally blocked data
+# format when their exact content has been reviewed and locked here. A changed
+# file, the same bytes at another path, or any other RDS file remains blocked.
+APPROVED_PUBLIC_DATA_FILES = {
+    "data/reference/scRNA_reference/marker_list2.rds": {
+        "sha256": "0b2491b19d3804d9eed8710f81d4eeecb69eb6e4cfc757d2cd61a2dc88f5ec6e",
+        "maximum_size_bytes": 64 * 1024,
+    },
+}
 
 SECRET_PATTERNS = {
     "PRIVATE_KEY": re.compile(
@@ -202,6 +213,40 @@ def is_text_path(path: str) -> bool:
 def has_sensitive_suffix(path: str) -> bool:
     lower = path.lower()
     return lower.endswith(SENSITIVE_DATA_SUFFIXES + SENSITIVE_CREDENTIAL_SUFFIXES)
+
+
+def is_approved_public_data_content(path: str, content: bytes) -> bool:
+    """Return whether reviewed public data exactly match the locked manifest."""
+    normalized_path = path.replace("\\", "/")
+    approval = APPROVED_PUBLIC_DATA_FILES.get(normalized_path)
+    if approval is None or len(content) > approval["maximum_size_bytes"]:
+        return False
+    return hashlib.sha256(content).hexdigest() == approval["sha256"]
+
+
+def is_approved_current_public_data_file(root: Path, path: str) -> bool:
+    try:
+        content = (root / path).read_bytes()
+    except OSError:
+        return False
+    return is_approved_public_data_content(path, content)
+
+
+def is_approved_history_data_blob(
+    root: Path,
+    git_executable: str,
+    object_id: str,
+    path: str,
+    size: int,
+) -> bool:
+    normalized_path = path.replace("\\", "/")
+    approval = APPROVED_PUBLIC_DATA_FILES.get(normalized_path)
+    if approval is None or size > approval["maximum_size_bytes"]:
+        return False
+    content = run_git(
+        root, git_executable, ["cat-file", "blob", object_id]
+    ).stdout
+    return is_approved_public_data_content(normalized_path, content)
 
 
 def is_placeholder_line(line: str) -> bool:
@@ -428,7 +473,21 @@ def check_current_files(
     paths: list[str],
     reporter: Reporter,
 ) -> None:
-    sensitive = sorted(path for path in paths if has_sensitive_suffix(path))
+    approved = sorted(
+        path for path in paths
+        if has_sensitive_suffix(path)
+        and is_approved_current_public_data_file(root, path)
+    )
+    sensitive = sorted(
+        path for path in paths
+        if has_sensitive_suffix(path) and path not in approved
+    )
+    if approved:
+        reporter.add(
+            "PASS", "APPROVED_PUBLIC_DATA_FILES",
+            "Reviewed public reference artifacts match their locked paths, sizes, and SHA-256 checksums.",
+            approved,
+        )
     if sensitive:
         reporter.add(
             "BLOCKER", "TRACKED_SENSITIVE_FILES",
@@ -571,7 +630,24 @@ def scan_history(
     maximum_text_blob_bytes: int,
 ) -> None:
     blobs, _ = history_blob_inventory(root, git_executable)
-    sensitive_paths = sorted({path for _, path, _ in blobs if has_sensitive_suffix(path)})
+    approved_blobs = {
+        (object_id, path)
+        for object_id, path, size in blobs
+        if has_sensitive_suffix(path)
+        and is_approved_history_data_blob(
+            root, git_executable, object_id, path, size
+        )
+    }
+    sensitive_paths = sorted({
+        path for object_id, path, _ in blobs
+        if has_sensitive_suffix(path) and (object_id, path) not in approved_blobs
+    })
+    if approved_blobs:
+        reporter.add(
+            "PASS", "APPROVED_HISTORY_DATA_FILES",
+            "Reviewed public reference artifacts in Git history match their locked paths, sizes, and SHA-256 checksums.",
+            sorted({path for _, path in approved_blobs}),
+        )
     if sensitive_paths:
         reporter.add(
             "BLOCKER", "HISTORY_SENSITIVE_FILES",

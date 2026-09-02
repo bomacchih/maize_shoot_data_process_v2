@@ -18,7 +18,8 @@ checks the current tracked tree and all reachable Git history for:
 - potential credentials and private/reviewer URLs;
 - personal absolute filesystem paths and public email addresses;
 - tracked or historical RDS, HDF5, loom, BAM, FASTQ, `.cloupe`, key, and
-  environment files;
+  environment files, except reviewed public reference artifacts locked to an
+  exact path, maximum size, and SHA-256 checksum in the audit script;
 - GitHub's 100 MiB file limit and files over 10 MiB that merit review;
 - `.gitignore` safeguards for large or machine-specific data;
 - repository/upstream state; and
@@ -28,7 +29,7 @@ checks the current tracked tree and all reachable Git history for:
 
 Automation cannot decide the following items:
 
-- Select a software/content license that all rights holders approve.
+- Confirm that all rights holders approve the selected `GPL-3.0-only` license.
 - Confirm that every author and contributor approves the public release.
 - Confirm that manuscript, reviewer, embargo, human-subject, and third-party
   data restrictions permit publication.
@@ -50,4 +51,3 @@ Do not make the repository public while the audit reports a `BLOCKER`.
 Warnings require a documented decision but do not necessarily prevent release.
 After addressing findings, commit the changes, push them, rerun the audit from
 a clean clone, and only then change repository visibility.
-

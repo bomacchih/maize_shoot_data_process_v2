@@ -243,6 +243,10 @@ Wu et al. *Plant Biotechnology Journal* (2026). [https://doi.org/10.1111/pbi.705
 
 When using this repository, cite both the Bio-protocol article after publication and the original study. Also cite the primary software used in the relevant analysis, including Seurat, Harmony, STUtility, scVelo, Monocle 3, SCINA, and SPOTlight.
 
+## License
+
+This repository is licensed under the [GNU General Public License v3.0 only](LICENSE) (`GPL-3.0-only`).
+
 ## Questions and issue reports
 
 When reporting a reproducibility problem, include the script name, command or R call, complete error message, relevant input-file layout, and `sessionInfo()` or Python package versions. Do not include reviewer URLs, secure tokens, credentials, or unpublished controlled-access data in a public issue.

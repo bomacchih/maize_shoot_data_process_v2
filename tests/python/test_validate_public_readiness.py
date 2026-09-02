@@ -54,5 +54,38 @@ class PublicReadinessTextScanTests(unittest.TestCase):
         self.assertNotIn("EMAIL_ADDRESS", findings)
 
 
+class PublicReadinessApprovedDataTests(unittest.TestCase):
+    def setUp(self):
+        self.repository_root = Path(__file__).resolve().parents[2]
+        self.relative_path = (
+            "data/reference/scRNA_reference/marker_list2.rds"
+        )
+        self.content = (
+            self.repository_root / self.relative_path
+        ).read_bytes()
+
+    def test_reviewed_marker_rds_is_approved(self):
+        self.assertTrue(
+            MODULE.is_approved_public_data_content(
+                self.relative_path, self.content
+            )
+        )
+
+    def test_changed_marker_rds_is_blocked(self):
+        self.assertFalse(
+            MODULE.is_approved_public_data_content(
+                self.relative_path, self.content + b"changed"
+            )
+        )
+
+    def test_same_content_at_another_path_is_blocked(self):
+        self.assertFalse(
+            MODULE.is_approved_public_data_content(
+                "data/reference/scRNA_reference/unreviewed.rds",
+                self.content,
+            )
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
