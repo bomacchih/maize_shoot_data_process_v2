@@ -4,7 +4,7 @@ Reproducible workflows for processing, integrating, and analyzing spatial transc
 
 The workflow covers 10x Genomics Visium processing, Seurat v5 quality control and integration, anatomical annotation, pseudobulk analysis, developmental expression trends, RNA velocity, Monocle 3 pseudotime, maize scRNA-seq reference construction, SCINA annotation, SPOTlight deconvolution, and time-ordered gene coexpression network (TO-GCN) reconstruction.
 
-> **Project status:** the repository is being prepared for manuscript revision and reproducible release. Scripts use project-relative paths, but some raw-data workflows still require external files or local configuration. Check [data/DATASETS.md](data/DATASETS.md) before running an analysis.
+> **Project status:** the repository is being prepared for reproducible release. Scripts use project-relative paths, but some raw-data workflows still require external files or local configuration. Check [data/DATASETS.md](data/DATASETS.md) before running an analysis.
 
 ## Study design
 
