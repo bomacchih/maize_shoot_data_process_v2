@@ -11,7 +11,7 @@
 # │   │       └── outs/
 # │   │           ├── filtered_feature_bc_matrix.h5
 # │   │           └── spatial/
-# │   │               ├── tissue_hires_image.png
+# │   │               ├── tissue_lowres_image.png
 # │   │               ├── tissue_positions_list.csv
 # │   │               └── scalefactors_json.json
 # │   └── processed/
@@ -34,7 +34,7 @@ se <- Load10X_Spatial(
     filename = "filtered_feature_bc_matrix.h5",
     assay = "RNA",
     slice = sample_id,
-    image.name = "tissue_hires_image.png"
+    image.name = "tissue_lowres_image.png"
 )
 
 se$sample_id <- sample_id
