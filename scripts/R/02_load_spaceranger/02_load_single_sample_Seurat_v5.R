@@ -24,7 +24,7 @@
 library(Seurat)
 
 # Manually enter one sample ID, for example UL01, VR01, or DQ08.
-sample_id <- "UL01"
+sample_id <- "VR03"
 
 # Space Ranger output directory for this capture area.
 data_dir <- file.path("data", "raw", sample_id, "outs")
