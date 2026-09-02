@@ -149,6 +149,36 @@ The postprocessing tables include TF-level assignments, counts per level,
 level-average expression profiles, and a comparison between fresh and archived
 assignments when both are available.
 
+### Plot the bundled TF expression and level tables
+
+The repository also includes the two raw tables used by the standalone TF
+heatmap:
+
+- `results/tables/11_TO_GCN/input/tf_genes.txt`: tab-separated expression for
+  1,309 TFs across SAM, P1_P2, P3, P4, and P5; and
+- `results/tables/11_TO_GCN/input/TF_level.csv`: 1,264 unique TF-to-level
+  assignments.
+
+The two files share 1,264 TF gene IDs. From the repository root, generate the
+heatmap and the ordered, gene-wise z-scored expression table with:
+
+```bash
+python scripts/python/show_cluster_expr.py \
+  results/tables/11_TO_GCN/input/tf_genes.txt \
+  results/tables/11_TO_GCN/input/TF_level.csv \
+  results/figures/11_TO_GCN/expression.png \
+  results/tables/11_TO_GCN/postprocess/rescaled_expr.csv
+```
+
+The level table contains source levels 2-14. By default,
+`--level-offset 1` subtracts one only when creating plot labels, so the figure
+shows L1-L13 without modifying the source CSV. Use `--level-offset 0` when the
+source numbering should be displayed unchanged. Within each source level,
+variable genes are ordered by average-linkage clustering of Pearson-correlation
+distance; constant profiles are placed afterward in deterministic gene-ID
+order. Z-scores are calculated separately for each gene across the five
+domains, and constant profiles are written as zeroes.
+
 ### Verification with the current deposited demonstration object
 
 The workflow was executed on the current local

@@ -15,3 +15,7 @@
 *.pdf binary
 *.xlsx binary
 *.html text eol=lf
+
+# Preserve the deposited raw TO-GCN example inputs byte-for-byte.
+results/tables/11_TO_GCN/input/tf_genes.txt -text whitespace=cr-at-eol
+results/tables/11_TO_GCN/input/TF_level.csv -text whitespace=cr-at-eol
