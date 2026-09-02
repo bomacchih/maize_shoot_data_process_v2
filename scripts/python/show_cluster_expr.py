@@ -272,7 +272,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         scaled_expression = row_zscore(ordered_expression)
 
         args.output_csv.parent.mkdir(parents=True, exist_ok=True)
-        scaled_expression.to_csv(args.output_csv)
+        scaled_expression.to_csv(args.output_csv, lineterminator="\n")
         plot_heatmap(
             scaled_expression,
             groups,

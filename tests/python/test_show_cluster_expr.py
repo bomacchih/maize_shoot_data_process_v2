@@ -208,6 +208,7 @@ class EndToEndTests(unittest.TestCase):
             self.assertTrue(output_png.is_file())
             self.assertGreater(output_png.stat().st_size, 0)
             self.assertTrue(output_csv.is_file())
+            self.assertNotIn(b"\r\n", output_csv.read_bytes())
             scaled = pd.read_csv(output_csv, index_col=0)
             self.assertEqual(
                 set(scaled.index),
