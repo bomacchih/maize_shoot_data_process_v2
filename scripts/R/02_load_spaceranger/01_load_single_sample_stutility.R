@@ -9,7 +9,7 @@
 # │   │       └── outs/
 # │   │           ├── filtered_feature_bc_matrix.h5
 # │   │           └── spatial/
-# │   │               ├── tissue_hires_image.png
+# │   │               ├── tissue_lowres_image.png
 # │   │               ├── tissue_positions_list.csv
 # │   │               └── scalefactors_json.json
 # │   └── processed/
@@ -25,13 +25,13 @@ library(Seurat)
 library(STutility)
 
 # Manually enter one sample ID, for example UL01, VR01, or DQ08.
-sample_id <- "UL01"
+sample_id <- "VR03"
 
 # Space Ranger output directory for this capture area.
 sample_dir <- file.path("data", "raw", sample_id, "outs")
 
 samples <- file.path(sample_dir, "filtered_feature_bc_matrix.h5")
-imgs <- file.path(sample_dir, "spatial", "tissue_hires_image.png")
+imgs <- file.path(sample_dir, "spatial", "tissue_lowres_image.png")
 spotfiles <- file.path(sample_dir, "spatial", "tissue_positions.csv")
 json <- file.path(sample_dir, "spatial", "scalefactors_json.json")
 

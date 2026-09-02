@@ -11,7 +11,7 @@
 # │   │       └── outs/
 # │   │           ├── filtered_feature_bc_matrix.h5
 # │   │           └── spatial/
-# │   │               ├── tissue_hires_image.png
+# │   │               ├── tissue_lowres_image.png
 # │   │               ├── tissue_positions_list.csv
 # │   │               └── scalefactors_json.json
 # │   └── processed/
@@ -24,7 +24,7 @@
 library(Seurat)
 
 # Manually enter one sample ID, for example UL01, VR01, or DQ08.
-sample_id <- "UL01"
+sample_id <- "VR03"
 
 # Space Ranger output directory for this capture area.
 data_dir <- file.path("data", "raw", sample_id, "outs")
@@ -34,7 +34,7 @@ se <- Load10X_Spatial(
     filename = "filtered_feature_bc_matrix.h5",
     assay = "RNA",
     slice = sample_id,
-    image.name = "tissue_hires_image.png"
+    image.name = "tissue_lowres_image.png"
 )
 
 se$sample_id <- sample_id
