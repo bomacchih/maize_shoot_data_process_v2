@@ -1,4 +1,4 @@
-# Maize shoot scRNA-seq reference: QC and Harmony integration
+# 10_Maize shoot scRNA-seq reference: QC and Harmony integration
 
 This workflow documents quality control and integration of the two maize shoot scRNA-seq reference libraries, SRR11943512 and SRR11943513. The processed Seurat reference and its lightweight plotting copy are stored as:
 
