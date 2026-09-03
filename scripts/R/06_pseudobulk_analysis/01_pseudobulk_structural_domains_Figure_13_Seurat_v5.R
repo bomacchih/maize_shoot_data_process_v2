@@ -23,11 +23,11 @@
 #   results/tables/Figure_13/domain_mean_TMM_log2CPM.csv.gz
 #   results/tables/Figure_13/replicate_PCA_coordinates.csv
 #   results/tables/Figure_13/domain_mean_PCA_coordinates.csv
-#   results/figures/Figure_13/Figure_13_A_domain_mean_PCA.png
-#   results/figures/Figure_13/Figure_13_B_domain_mean_hierarchical_clustering.png
-#   results/figures/Figure_13/Figure_13_composite.png
-#   results/figures/Figure_13/Figure_13_composite.pdf
-#   results/figures/Figure_13/pseudobulk_replicate_PCA_diagnostic.png
+#   results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_A_domain_mean_PCA.png
+#   results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_B_domain_mean_hierarchical_clustering.png
+#   results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_composite.png
+#   results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_composite.pdf
+#   results/figures/06_pseudobulk_structural_domains_Figure_13/pseudobulk_replicate_PCA_diagnostic.png
 #   results/sessionInfo/06_pseudobulk_analysis_sessionInfo.txt
 
 suppressPackageStartupMessages({
@@ -48,7 +48,9 @@ input_file <- file.path(
     "maize_shoot_14samples_SCT_harmony_seurat_v5.rds"
 )
 table_dir <- file.path("results", "tables", "Figure_13")
-figure_dir <- file.path("results", "figures", "Figure_13")
+figure_dir <- file.path(
+    "results", "figures", "06_pseudobulk_structural_domains_Figure_13"
+)
 log_dir <- file.path("results", "logs")
 session_dir <- file.path("results", "sessionInfo")
 

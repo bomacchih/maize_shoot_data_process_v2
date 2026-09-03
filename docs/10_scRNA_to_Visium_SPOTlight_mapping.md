@@ -134,7 +134,7 @@ This file must contain `gene_id` and `cell_type`. When present, the workflow cal
 
 The workflow generates:
 
-- Spatial scatter-pie plots for the four consecutive VR03 sections used in Figure B (`VR03_S1`–`VR03_S4`) in `results/figures/12_scRNA_Visium_mapping/section_scatterpies/`
+- Spatial scatter-pie plots for the four consecutive VR03 sections used in Figure B (`VR03_S1`–`VR03_S4`) in `results/figures/10_scRNA_Visium_mapping/section_scatterpies/`
 - Cell-type proportion maps on the exact SAM–P5 `umap.harmony` coordinates
 - Original-study threshold overlays on the UMAP
 
@@ -151,15 +151,15 @@ These thresholds are intended for visualization. They should not replace the 0.6
 
 The following committed plots were generated from `XGE202122_S5_subset_embleaf_harmony_join.rds`, which contains 6,392 Visium spots and previously estimated proportions for 12 cell types. They document the expected layout. After script 04 is rerun, script 05 preferentially uses `XGE202122_S5_subset_embleaf_celltype_mapped_SPOTlight_seurat_v5.rds`, containing label-transfer and deconvolution results recalculated on exactly this subset. If that recalculated output is absent, script 05 emits a warning before using the deposited prior proportions as a plotting fallback.
 
-![SPOTlight deconvolution across four VR03 sections](../results/figures/12_scRNA_Visium_mapping/selected_celltypes/Figure_B_VR03_section_scatterpies.png)
+![SPOTlight deconvolution across four VR03 sections](../results/figures/10_scRNA_Visium_mapping/selected_celltypes/Figure_B_VR03_section_scatterpies.png)
 
 **Figure B. SPOTlight deconvolution across four consecutive sections from sample VR03.** Sections are labeled S1–S4. Each Visium spot is shown as a pie chart; sectors represent the estimated proportions of bundle sheath, leaf epidermis, guard cell, leaf primordium, leaf rim, mesophyll, pavement cell A, shoot apical meristem, and shoot system epidermis. The spatial maps show coherent localization patterns, with vascular-associated types aligned with vein corridors, epidermal and rim types enriched in outer domains, and primordium-associated cells localized to developing leaf margins.
 
-![SPOTlight-estimated cell-type proportions on the Visium Harmony UMAP](../results/figures/12_scRNA_Visium_mapping/selected_celltypes/Figure_C_SPOTlight_proportion_UMAPs.png)
+![SPOTlight-estimated cell-type proportions on the Visium Harmony UMAP](../results/figures/10_scRNA_Visium_mapping/selected_celltypes/Figure_C_SPOTlight_proportion_UMAPs.png)
 
 **Figure C. SPOTlight-estimated cell-type proportions on the embryonic-leaf Harmony UMAP.** All panels use the exact `umap.harmony` coordinates for the 6,392 SAM–P5 spots. The continuous color scale ranges from light gray (0) to deeper red (higher proportion). Panels show `Vascular_tissue`, `Leaf_rim`, `Shoot_system_epidermis`, `Leaf_primordium`, `Pavement_cell_N`, `Leaf_guard_cell`, `Bundle_sheath`, `Mesophyll`, `Leaf_epidermis`, `Leaf_subsidiary_cell`, `Shoot_apical_meristem`, and `Pavement_cell_A`. Because the proportions at each 55-µm spot sum to 1, SPOTlight captures graded cell-type mixtures that complement the single best label assigned by Seurat.
 
-![Vascular and SAM threshold overlays](../results/figures/12_scRNA_Visium_mapping/selected_celltypes/selected_SPOTlight_thresholds_UMAP.png)
+![Vascular and SAM threshold overlays](../results/figures/10_scRNA_Visium_mapping/selected_celltypes/selected_SPOTlight_thresholds_UMAP.png)
 
 **Original-study threshold overlays.** Spots exceeding `SPOT_Vascular_tissue > 0.10` or `SPOT_Shoot_apical_meristem > 0.05` are highlighted in red on the Visium Harmony UMAP; all other spots are shown in gray.
 

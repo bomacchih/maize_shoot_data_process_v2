@@ -102,7 +102,7 @@ results/tables/Figure_13/pseudobulk_TMM_log2CPM.csv.gz
 
 PCA is first performed on all replicate-domain log2 CPM profiles. This diagnostic is used to determine whether replicates from the same structural domain show broadly consistent expression patterns and to identify sample-associated outliers.
 
-![Replicate-level pseudobulk PCA](../results/figures/Figure_13/pseudobulk_replicate_PCA_diagnostic.png)
+![Replicate-level pseudobulk PCA](../results/figures/06_pseudobulk_structural_domains_Figure_13/pseudobulk_replicate_PCA_diagnostic.png)
 
 The corresponding coordinates are saved as:
 
@@ -155,7 +155,7 @@ domain_pca <- prcomp(
 )
 ```
 
-![Figure 13A: PCA of domain-level mean pseudobulk profiles](../results/figures/Figure_13/Figure_13_A_domain_mean_PCA.png)
+![Figure 13A: PCA of domain-level mean pseudobulk profiles](../results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_A_domain_mean_PCA.png)
 
 The four developing-leaf domains are outlined for visual reference. The gray arrow indicates the proposed developmental progression from SAM toward the developing leaf profiles; it is an interpretive annotation and is not calculated as a trajectory.
 
@@ -183,7 +183,7 @@ domain_hclust <- hclust(
 )
 ```
 
-![Figure 13B: hierarchical clustering of domain-level mean profiles](../results/figures/Figure_13/Figure_13_B_domain_mean_hierarchical_clustering.png)
+![Figure 13B: hierarchical clustering of domain-level mean profiles](../results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_B_domain_mean_hierarchical_clustering.png)
 
 Branch height represents gene-expression dissimilarity. The analysis describes similarity among the seven domain means and does not provide an inferential test of differences between domains.
 
@@ -191,15 +191,15 @@ Branch height represents gene-expression dissimilarity. The analysis describes s
 
 ## Figure 13
 
-![Figure 13: pseudobulk gene-expression profiles of maize shoot domains](../results/figures/Figure_13/Figure_13_composite.png)
+![Figure 13: pseudobulk gene-expression profiles of maize shoot domains](../results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_composite.png)
 
 **Figure 13. Pseudobulk gene-expression profiles of maize shoot domains.** Raw UMI counts were aggregated by biological replicate and structural domain, normalized using TMM, and transformed to log2 counts per million. Equal-weight replicate means were then calculated for descriptive domain-level visualization. (A) PCA showing the relationships among the shoot apical meristem (SAM), developing leaf primordia (P1-P5), coleoptile, and coleoptile vein (co-v). The dashed outline identifies developing leaf profiles, and the gray arrow indicates the proposed developmental progression. (B) Complete-linkage hierarchical clustering of Euclidean distances among the same domain-level mean profiles; branch height represents gene-expression dissimilarity. These panels are descriptive and are not used for inferential testing. Adapted from Figure 3A-B of Wu et al. [1].
 
 The script exports both raster and vector versions:
 
 ```text
-results/figures/Figure_13/Figure_13_composite.png
-results/figures/Figure_13/Figure_13_composite.pdf
+results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_composite.png
+results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_composite.pdf
 ```
 
 ---
@@ -241,7 +241,7 @@ Correlation is calculated only across genes present in both datasets. Gene ident
 ```text
 results/
 ├── figures/
-│   └── Figure_13/
+│   └── 06_pseudobulk_structural_domains_Figure_13/
 │       ├── pseudobulk_replicate_PCA_diagnostic.png
 │       ├── Figure_13_A_domain_mean_PCA.png
 │       ├── Figure_13_B_domain_mean_hierarchical_clustering.png

@@ -347,7 +347,7 @@ plastid_gene_file <- file.path(
   project_root, "data", "reference", "maize_plastid_genes.txt"
 )
 figure_dir <- file.path(
-  project_root, "results", "figures", "12_scRNA_Visium_mapping"
+  project_root, "results", "figures", "10_scRNA_Visium_mapping"
 )
 table_dir <- file.path(
   project_root, "results", "tables", "12_scRNA_Visium_mapping"

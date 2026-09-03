@@ -137,7 +137,7 @@ annotated_rds <- file.path(
   project_root, "data", "processed", "sc_merged_filter_SCT2_inte_SCINA.rds"
 )
 figure_dir <- file.path(
-  project_root, "results", "figures", "11_scRNA_SCINA_annotation"
+  project_root, "results", "figures", "10_scRNA_SCINA_annotation"
 )
 table_dir <- file.path(
   project_root, "results", "tables", "11_scRNA_SCINA_annotation"

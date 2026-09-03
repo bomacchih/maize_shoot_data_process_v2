@@ -42,8 +42,8 @@ Important current files are:
 - `results/tables/12_scRNA_Visium_mapping/SPOTlight_subset_embleaf_spot_celltype_proportions.csv`
 - `results/tables/12_scRNA_Visium_mapping/SPOTlight_subset_embleaf_section_diagnostics.csv`
 - `results/tables/12_scRNA_Visium_mapping/SPOTlight_subset_embleaf_vs_Seurat_agreement_summary.csv`
-- `results/figures/12_scRNA_Visium_mapping/selected_celltypes/Figure_B_VR03_section_scatterpies.png`
-- `results/figures/12_scRNA_Visium_mapping/selected_celltypes/Figure_C_SPOTlight_proportion_UMAPs.png`
+- `results/figures/10_scRNA_Visium_mapping/selected_celltypes/Figure_B_VR03_section_scatterpies.png`
+- `results/figures/10_scRNA_Visium_mapping/selected_celltypes/Figure_C_SPOTlight_proportion_UMAPs.png`
 
 ## Annotation-field choice
 

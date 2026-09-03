@@ -68,7 +68,7 @@ coordinate_source_rds <- file.path(
   "XGE202122_S5_subset_embleaf_harmony_join.rds"
 )
 figure_dir <- file.path(
-  project_root, "results", "figures", "12_scRNA_Visium_mapping",
+  project_root, "results", "figures", "10_scRNA_Visium_mapping",
   "selected_celltypes"
 )
 session_dir <- file.path(project_root, "results", "sessionInfo")

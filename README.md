@@ -202,7 +202,7 @@ Scripts write reproducible products to consistent locations:
 
 ```text
 data/processed/   RDS, H5AD, and other reusable processed objects
-results/figures/  PNG and PDF figures
+results/figures/  PNG and PDF figures; see the [figure-folder index](results/figures/README.md)
 results/tables/   CSV and compressed matrix exports
 results/logs/ and results/sessionInfo/  Run summaries and environment records
 docs/             Human-readable Markdown and rendered HTML reports

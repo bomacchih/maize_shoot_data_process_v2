@@ -50,7 +50,7 @@ The original active identities are retained. A new annotated object is written t
 
 ## Figure C: UMAP validation
 
-![SCINA cell-type highlights on the Harmony UMAP](../results/figures/11_scRNA_SCINA_annotation/scRNA_reference_SCINA_celltype_panel_C.png)
+![SCINA cell-type highlights on the Harmony UMAP](../results/figures/10_scRNA_SCINA_annotation/scRNA_reference_SCINA_celltype_panel_C.png)
 
 **Figure C.** Harmony-corrected UMAP overlays validating the SCINA cell-type assignments. Each panel highlights one annotated cell type in red, while all other cells are shown in gray. The displayed categories include shoot system epidermis, pavement cells, leaf epidermis, mesophyll, leaf rim, shoot apical meristem, vascular tissue, bundle sheath, leaf primordium, guard cells, and subsidiary cells when present in the analyzed object.
 

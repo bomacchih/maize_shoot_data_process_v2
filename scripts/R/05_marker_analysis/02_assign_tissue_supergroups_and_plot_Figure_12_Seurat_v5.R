@@ -17,12 +17,12 @@
 #   results/tables/cluster_to_tissue_supergroup.csv
 #   results/tables/cluster_domain_counts.csv
 #   results/tables/top10_markers_per_cluster_for_annotation.csv (if available)
-#   results/figures/Figure_12/Figure_12_A_clusters_UMAP.png
-#   results/figures/Figure_12/Figure_12_B_cluster_domain_heatmap.png
-#   results/figures/Figure_12/Figure_12_C_supergroups_UMAP.png
-#   results/figures/Figure_12/Figure_12_D_VR03_section2_spatial.png
-#   results/figures/Figure_12/Figure_12_composite.png
-#   results/figures/Figure_12/Figure_12_composite.pdf
+#   results/figures/05_tissue_supergroups_Figure_12/Figure_12_A_clusters_UMAP.png
+#   results/figures/05_tissue_supergroups_Figure_12/Figure_12_B_cluster_domain_heatmap.png
+#   results/figures/05_tissue_supergroups_Figure_12/Figure_12_C_supergroups_UMAP.png
+#   results/figures/05_tissue_supergroups_Figure_12/Figure_12_D_VR03_section2_spatial.png
+#   results/figures/05_tissue_supergroups_Figure_12/Figure_12_composite.png
+#   results/figures/05_tissue_supergroups_Figure_12/Figure_12_composite.pdf
 #
 # Assignment source:
 # Supplementary Table 7-2, "The transfer of the unsupervised clusters to the
@@ -59,7 +59,9 @@ marker_file <- file.path(
     "markers_harmony_clusters_SCT_significant.csv"
 )
 table_dir <- file.path("results", "tables")
-figure_dir <- file.path("results", "figures", "Figure_12")
+figure_dir <- file.path(
+    "results", "figures", "05_tissue_supergroups_Figure_12"
+)
 
 dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)

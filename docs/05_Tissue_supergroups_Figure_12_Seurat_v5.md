@@ -63,12 +63,12 @@ The seven structural domains are `SAM`, `P1_P2`, `P3`, `P4`, `P5`, `coleoptile`,
 
 ### Output figures
 
-- [`Figure_12_A_clusters_UMAP.png`](../results/figures/Figure_12/Figure_12_A_clusters_UMAP.png)
-- [`Figure_12_B_cluster_domain_heatmap.png`](../results/figures/Figure_12/Figure_12_B_cluster_domain_heatmap.png)
-- [`Figure_12_C_supergroups_UMAP.png`](../results/figures/Figure_12/Figure_12_C_supergroups_UMAP.png)
-- [`Figure_12_D_VR03_section2_spatial.png`](../results/figures/Figure_12/Figure_12_D_VR03_section2_spatial.png)
-- [`Figure_12_composite.png`](../results/figures/Figure_12/Figure_12_composite.png)
-- [`Figure_12_composite.pdf`](../results/figures/Figure_12/Figure_12_composite.pdf)
+- [`Figure_12_A_clusters_UMAP.png`](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_A_clusters_UMAP.png)
+- [`Figure_12_B_cluster_domain_heatmap.png`](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_B_cluster_domain_heatmap.png)
+- [`Figure_12_C_supergroups_UMAP.png`](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_C_supergroups_UMAP.png)
+- [`Figure_12_D_VR03_section2_spatial.png`](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_D_VR03_section2_spatial.png)
+- [`Figure_12_composite.png`](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_composite.png)
+- [`Figure_12_composite.pdf`](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_composite.pdf)
 
 ---
 
@@ -196,7 +196,7 @@ The script does not save a duplicate copy of the approximately 2.17-GB integrate
 
 Panel A displays all tissue-covered spots using the existing `umap_harmony` reduction and colors them by `harmony_clusters`.
 
-![Panel A: UMAP of the 33 Harmony clusters](../results/figures/Figure_12/Figure_12_A_clusters_UMAP.png)
+![Panel A: UMAP of the 33 Harmony clusters](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_A_clusters_UMAP.png)
 
 The Figure 12 workflow uses the imported published cluster annotation rather than `harmony_clusters_recomputed`. Step 04 performs standard neighbor finding and clustering separately, but its recomputed labels are not automatically translated to the published cluster numbers.
 
@@ -220,7 +220,7 @@ cluster_domain_counts <- as.data.frame(table(
 ))
 ```
 
-![Panel B: distribution of clusters across structural domains](../results/figures/Figure_12/Figure_12_B_cluster_domain_heatmap.png)
+![Panel B: distribution of clusters across structural domains](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_B_cluster_domain_heatmap.png)
 
 Color intensity represents the number of spots. Structural domains are shown in developmental order, and clusters are ordered numerically from 0 at the bottom to 32 at the top.
 
@@ -232,7 +232,7 @@ This heatmap should be interpreted together with marker genes and histology. A c
 
 Panel C uses exactly the same UMAP coordinates as panel A but colors spots by `supergroup`.
 
-![Panel C: UMAP of tissue supergroups](../results/figures/Figure_12/Figure_12_C_supergroups_UMAP.png)
+![Panel C: UMAP of tissue supergroups](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_C_supergroups_UMAP.png)
 
 The following display controls are placed near the beginning of the plotting script:
 
@@ -278,7 +278,7 @@ pD <- SpatialDimPlot(
 )
 ```
 
-![Panel D: spatial supergroup mapping in VR03 section 2](../results/figures/Figure_12/Figure_12_D_VR03_section2_spatial.png)
+![Panel D: spatial supergroup mapping in VR03 section 2](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_D_VR03_section2_spatial.png)
 
 The combined Seurat object contains both low- and high-resolution scale information, but the stored low-resolution raster is correctly aligned with the spot coordinates. Selecting `image.scale = "hires"` causes visible image-spot misregistration in this object; therefore, panel D intentionally uses `lowres`.
 
@@ -286,7 +286,7 @@ The combined Seurat object contains both low- and high-resolution scale informat
 
 ## Combined Figure 12
 
-![Figure 12: unsupervised clustering and anatomical identification](../results/figures/Figure_12/Figure_12_composite.png)
+![Figure 12: unsupervised clustering and anatomical identification](../results/figures/05_tissue_supergroups_Figure_12/Figure_12_composite.png)
 
 The figure is exported as a 600-dpi PNG and a vector PDF. Individual panels are also saved so their sizes can be adjusted during manuscript assembly without rerunning the analysis.
 
