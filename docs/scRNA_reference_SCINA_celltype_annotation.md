@@ -1,4 +1,4 @@
-# Maize shoot scRNA-seq reference: SCINA cell-type annotation
+# 10.Maize shoot scRNA-seq reference: SCINA cell-type annotation
 
 This workflow assigns maize shoot scRNA-seq cell identities using SCINA v1.2.0 and validates the annotations on the Harmony UMAP. The analysis script is:
 
