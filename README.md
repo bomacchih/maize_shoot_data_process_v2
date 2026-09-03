@@ -219,10 +219,16 @@ Available reports include:
 - [07 — Developmental trends and GO enrichment](docs/07_Developmental_expression_trends_GO_Figure_14.md)
 - [08 — Seurat/Velocyto integration, stochastic-versus-dynamical scVelo comparison, and Figure 10B](docs/08_RNA_velocity_scVelo_dynamical_Figure_10B.md)
 - [09 — Monocle 3 UMAP transfer, interactive root selection, and Figures 10A/10C](docs/09_Monocle3_pseudotime_Figure_10C.md)
-- [scRNA-seq reference QC and Harmony](docs/scRNA_reference_QC_and_Harmony.md)
-- [SCINA cell-type annotation](docs/scRNA_reference_SCINA_celltype_annotation.md)
-- [scRNA-to-Visium SPOTlight mapping](docs/scRNA_to_Visium_SPOTlight_mapping.md)
+- [10 — scRNA-seq reference QC and Harmony](docs/10_scRNA_reference_QC_and_Harmony.md)
+- [10 — SCINA cell-type annotation](docs/10_scRNA_reference_SCINA_celltype_annotation.md)
+- [10 — scRNA-to-Visium SPOTlight mapping](docs/10_scRNA_to_Visium_SPOTlight_mapping.md)
+- [10 — scRNA reference and Visium mapping validation](docs/10_scRNA_reference_integration_validation.md)
 - [11 — Embryonic-leaf TO-GCN, panels D/E, and GO input](docs/11_TO_GCN_embryonic_leaf.md)
+
+The four scRNA-related reports use the shared `10_` filename prefix so they
+remain grouped with Step 10 in GitHub's alphabetical file listing. Together,
+they document reference construction, SCINA annotation, Visium mapping, and
+validation of the complete integration workflow.
 
 ## Reproducibility notes
 

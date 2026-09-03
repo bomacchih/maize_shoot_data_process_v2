@@ -4,7 +4,7 @@ Validation date: 2026-09-01
 
 This report records the current subset-based scRNA-to-Visium workflow. The
 canonical procedure and figures are documented in
-[`scRNA_to_Visium_SPOTlight_mapping.md`](scRNA_to_Visium_SPOTlight_mapping.md).
+[`10_scRNA_to_Visium_SPOTlight_mapping.md`](10_scRNA_to_Visium_SPOTlight_mapping.md).
 Older full-object checkpoints and tables may remain in `results/`, but they are
 legacy outputs and are not the inputs used by the current scripts.
 
