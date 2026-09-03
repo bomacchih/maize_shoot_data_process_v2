@@ -1,4 +1,4 @@
-# Mapping scRNA-seq cell types onto maize Visium sections
+# 10. Mapping scRNA-seq cell types onto maize Visium sections
 
 This workflow combines Seurat anchor transfer with section-wise SPOTlight deconvolution for the embryonic-leaf trajectory (SAM, P1_P2, P3, P4, and P5). It is implemented in:
 
