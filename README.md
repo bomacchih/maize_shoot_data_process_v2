@@ -33,8 +33,8 @@ The first five domains are used for developmental trajectory, RNA-velocity, and 
 | 3 | Add manually curated spot metadata | [`scripts/R/03_add_metadata_seurat5/`](scripts/R/03_add_metadata_seurat5/) |
 | 4 | QC, merge 14 samples, run SCTransform, PCA, Harmony, UMAP, and clustering | [`scripts/R/04_merge_integration/`](scripts/R/04_merge_integration/) |
 | 5 | Find cluster markers and assign 12 tissue supergroups | [`scripts/R/05_marker_analysis/`](scripts/R/05_marker_analysis/) |
-| 6 | Generate replicate-level pseudobulk profiles and Figure 13 | [`scripts/R/06_pseudobulk_analysis/`](scripts/R/06_pseudobulk_analysis/) |
-| 7 | Cluster developmental expression trends, analyze GO enrichment, and generate Figure 14 | [`scripts/R/07_developmental_trends_GO/`](scripts/R/07_developmental_trends_GO/) |
+| 6 | Generate replicate-level pseudobulk profiles | [`scripts/R/06_pseudobulk_analysis/`](scripts/R/06_pseudobulk_analysis/) |
+| 7 | Cluster developmental expression trends, analyze GO enrichment, and  | [`scripts/R/07_developmental_trends_GO/`](scripts/R/07_developmental_trends_GO/) |
 | 8 | Compare stochastic and dynamical RNA velocity with scVelo | [`scripts/python/08_RNA_velocity/`](scripts/python/08_RNA_velocity/) |
 | 9 | Estimate pseudotime and trajectories with Monocle 3 | [`scripts/R/09_monocle3_pseudotime/`](scripts/R/09_monocle3_pseudotime/) |
 | 10 | Build and annotate the scRNA-seq reference; map cell types to Visium with Seurat and SPOTlight | [`scripts/R/10_scRNA_reference_integration/`](scripts/R/10_scRNA_reference_integration/) |
