@@ -51,8 +51,7 @@ maize_shoot_data_process_v2/
 │   ├── DATASETS.md                 # Human-readable input and readiness inventory
 │   ├── dataset_inventory.csv       # Machine-readable dataset inventory
 │   ├── metadata/                   # Curated spot and section metadata
-│   ├── processed/                  # Large local outputs; excluded from Git
-│   ├── processed_need_to_download/ # Placeholder and download instructions
+│   ├── processed/                  # Large local outputs and download instructions
 │   ├── raw/                        # Raw/local inputs; large files excluded from Git
 │   └── reference/                  # Small gene and GO reference tables
 ├── docs/                           # Workflow reports and Markdown sources

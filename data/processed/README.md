@@ -5,9 +5,18 @@ Download the public files from:
 - Zenodo record: <https://zenodo.org/records/22058284>
 - DOI: <https://doi.org/10.5281/zenodo.22058284>
 
-Place the downloaded files directly in this directory, keeping their deposited
-filenames. The record was checked through the Zenodo API on 2026-08-28 and
-contains:
+Large processed objects are intentionally excluded from Git. Keep their
+deposited filenames and route the downloaded files as follows:
+
+- place Seurat RDS objects, Space Ranger web summaries, and `.cloupe` files in
+  `data/processed/`; and
+- place the 14 Velocyto `.loom` files in `data/raw/loom/`.
+
+Do not rename files unless the corresponding script configuration is also
+updated. See [`data/DATASETS.md`](../DATASETS.md) for the complete input and
+output inventory.
+
+The Zenodo record was checked through the API on 2026-08-28 and contains:
 
 - 14 Space Ranger `web_summary.html` files;
 - 14 Loupe Browser `.cloupe` files;
@@ -47,7 +56,8 @@ Seurat loading scripts. Those full inputs remain necessary only when rebuilding
 the per-sample Seurat objects from Space Ranger results. Most downstream
 workflows can start from the deposited `.rds` objects instead.
 
-The `.loom` files deposited here are the inputs for the RNA-velocity script.
+The `.loom` files placed in `data/raw/loom/` are the inputs for the
+RNA-velocity script.
 The combined scRNA reference RDS supports downstream SCINA annotation; the
 original SRR11943512 and SRR11943513 10x matrices are necessary only to rebuild
 that RDS from raw counts.
