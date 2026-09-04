@@ -78,7 +78,7 @@ Large sequencing files, Space Ranger outputs, loom files, Seurat objects, and ot
 | Napari interactive-viewer datasets | Zenodo [16933147](https://zenodo.org/records/16933147) |
 | RDS, loom, `.cloupe`, and web-summary datasets | Zenodo [22058284](https://zenodo.org/records/22058284) |
 
-See [data/DATASETS.md](data/DATASETS.md) for required filenames, expected locations, availability, external-data locations, and missing inputs. Reviewer links and private repository tokens must never be committed to Git.
+See [data/DATASETS.md](data/DATASETS.md) for required filenames, expected locations, availability, external-data locations, and missing inputs. 
 
 ## Software requirements
 
