@@ -1,0 +1,46 @@
+Package: maizeShootDataProcess
+Type: Project
+Title: Maize Shoot Spatial Transcriptomics Analysis
+Version: 0.1.0
+Description: Reproducible R, Python, and shell workflows for processing,
+    integrating, and analyzing spatial transcriptomes from developing maize
+    shoots. This DESCRIPTION file declares the R dependencies used to create
+    the project renv lockfile; the repository is not distributed as an R
+    package.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends:
+    R (>= 4.6.0)
+Imports:
+    dplyr,
+    edgeR,
+    ggrepel,
+    ggplot2,
+    glmGamPoi,
+    harmony,
+    igraph,
+    Matrix,
+    monocle3,
+    patchwork,
+    presto,
+    S4Vectors,
+    scales,
+    SCINA,
+    scDblFinder,
+    scran,
+    scrapper,
+    sctransform,
+    scuttle,
+    Seurat,
+    SeuratObject,
+    shiny,
+    SingleCellExperiment,
+    SpatialExperiment,
+    SPOTlight,
+    STutility,
+    SummarizedExperiment,
+    tidyr
+Suggests:
+    AnnotationDbi,
+    GO.db,
+    readxl

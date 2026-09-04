@@ -5,6 +5,10 @@
 *.py text eol=lf
 *.sh text eol=lf
 *.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.lock text eol=lf
 *.txt text eol=lf
 *.csv text eol=lf
 *.tsv text eol=lf
@@ -17,6 +21,8 @@
 *.xlsx binary
 *.html text eol=lf
 LICENSE text eol=lf
+DESCRIPTION text eol=lf
+.Rprofile text eol=lf
 
 # Preserve the deposited raw TO-GCN example inputs byte-for-byte.
 results/tables/11_TO_GCN/input/tf_genes.txt -text whitespace=cr-at-eol

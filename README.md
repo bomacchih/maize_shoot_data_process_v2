@@ -78,14 +78,14 @@ Large sequencing files, Space Ranger outputs, loom files, Seurat objects, and ot
 | Napari interactive-viewer datasets | Zenodo [16933147](https://zenodo.org/records/16933147) |
 | RDS, loom, `.cloupe`, and web-summary datasets | Zenodo [22058284](https://zenodo.org/records/22058284) |
 
-See [data/DATASETS.md](data/DATASETS.md) for required filenames, expected locations, availability, external-data locations, and missing inputs. 
+See [data/DATASETS.md](data/DATASETS.md) for required filenames, expected locations, availability, external-data locations, and missing inputs.
 
 ## Software requirements
 
-The primary analysis environment uses:
+The validated analysis environment uses:
 
-- R 4.x with Seurat v5-compatible packages
-- Python 3.10–3.12 for scVelo
+- R 4.6.1 with Seurat 5.5.1 and the package versions in `renv.lock`
+- Python 3.11.16 with scVelo 0.3.4 in the Conda environment specification
 - 10x Genomics Space Ranger for reference construction and Visium processing
 - Velocyto.py 0.17 series for generating spliced/unspliced loom files
 
@@ -93,18 +93,28 @@ Detailed requirements are recorded in:
 
 - [data/SOFTWARE_REQUIREMENTS.md](data/SOFTWARE_REQUIREMENTS.md) — package roles and audited versions
 - [data/R_packages.csv](data/R_packages.csv) — machine-readable R package inventory
-- [data/requirements-python.txt](data/requirements-python.txt) — Python dependencies
+- [environment/README.md](environment/README.md) — restoration and environment-maintenance instructions
+- [renv.lock](renv.lock) — exact R package sources and versions
+- [environment/python/environment.yml](environment/python/environment.yml) — portable Conda environment
+- [environment/python/environment-win-64.yml](environment/python/environment-win-64.yml) — fully resolved Windows x86-64 environment
+- [data/requirements-python.txt](data/requirements-python.txt) — pinned Python runtime dependencies for pip users
 
-Install Python dependencies in an isolated environment, for example:
+Restore the R project library from the repository root:
 
-```bash
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux/macOS: source .venv/bin/activate
-python -m pip install -r data/requirements-python.txt
+```r
+install.packages("renv")
+renv::restore()
+renv::status()
 ```
 
-Bioconductor and GitHub packages should be installed using the sources documented in [data/SOFTWARE_REQUIREMENTS.md](data/SOFTWARE_REQUIREMENTS.md). Record the final R and Python environments before release.
+Create and activate the portable Python environment:
+
+```bash
+conda env create --file environment/python/environment.yml
+conda activate maize-shoot-v2
+```
+
+The installed `renv/library/` and Conda environment directories are machine-specific and are not committed. See [environment/README.md](environment/README.md) for exact Windows restoration and environment-update guidance.
 
 ## Quick start from processed Seurat objects
 

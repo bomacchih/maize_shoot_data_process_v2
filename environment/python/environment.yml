@@ -1,0 +1,17 @@
+# Portable direct-dependency specification. Conda resolves platform builds.
+name: maize-shoot-v2
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11.16
+  - anndata=0.12.19
+  - h5py=3.16.0
+  - loompy=3.0.8
+  - matplotlib=3.11.1
+  - numpy=2.4.6
+  - pandas=2.3.3
+  - scanpy=1.11.5
+  - scikit-learn=1.9.0
+  - scipy=1.17.1
+  - scvelo=0.3.4
+  - umap-learn=0.5.12

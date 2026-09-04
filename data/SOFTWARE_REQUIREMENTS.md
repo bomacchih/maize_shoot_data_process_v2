@@ -24,19 +24,19 @@ This list was extracted from the scripts in this repository. The installed R ver
 | sctransform | 0.4.3 | SCTransform v2 normalization and SCT model handling |
 | dplyr | 1.2.1 | Table and metadata manipulation |
 | tidyr | 1.3.2 | Long/wide reshaping for developmental-trend analysis |
-| edgeR | 4.10.1 | TMM normalization and log2 CPM pseudobulk profiles |
+| edgeR | 4.10.3 | TMM normalization and log2 CPM pseudobulk profiles |
 | monocle3 | 1.4.27 | Pseudotime and trajectory analysis |
 | shiny | 1.14.0 | Interactive Monocle 3 root-principal-node selection |
 | SingleCellExperiment | 1.34.0 | scRNA/Monocle/SPOTlight data exchange |
 | SummarizedExperiment | 1.42.0 | Assay and column-metadata access |
-| S4Vectors | 0.50.1 | Bioconductor metadata containers used during mapping |
+| S4Vectors | 0.50.2 | Bioconductor metadata containers used during mapping |
 | igraph | 2.3.3 | Monocle principal-graph node handling |
 | scDblFinder | 1.26.7 | Doublet detection in scRNA-seq reference libraries |
 | glmGamPoi | 1.24.0 | SCTransform v2 fitting method |
 | SpatialExperiment | 1.22.0 | Spatial data containers for SPOTlight |
 | scuttle | 1.22.0 | scRNA-seq log normalization for SPOTlight reference preparation |
 | scran | 1.40.0 | HVG and marker scoring for SPOTlight |
-| presto | 1.0.0 | Sparse one-versus-all AUC marker scoring for SPOTlight reference preparation |
+| presto | 1.1.0 | Sparse one-versus-all AUC marker scoring for SPOTlight reference preparation |
 | SPOTlight | 1.16.0 | Visium spot cell-type deconvolution and scatter-pie plots |
 | SCINA | **1.2.0** | Cell-type annotation; the script explicitly validates against version 1.2.0 |
 | scales | 1.4.0 | Continuous color-scale bounds in SPOTlight UMAP plots |
@@ -97,4 +97,5 @@ Do not treat the audit versions as permanent requirements. After the full pipeli
 1. R and all R package versions with `sessionInfo()`.
 2. Python and package versions using the JSON file produced by the RNA-velocity script.
 3. Space Ranger and Velocyto versions in the shell-processing log.
-4. A lock file or environment specification—such as `renv.lock` for R and a pinned Python requirements/environment file—for the final release.
+4. Restore the R environment from the root `renv.lock` and the Python environment from `environment/python/environment.yml`.
+5. For exact Windows reproduction of the tested Python environment, use `environment/python/environment-win-64.yml`.

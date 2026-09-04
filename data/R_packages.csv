@@ -9,19 +9,19 @@ harmony,required,2.0.5,Batch integration
 sctransform,required_for_scRNA_reference,0.4.3,SCTransform v2 normalization and model handling
 dplyr,required,1.2.1,Metadata and table manipulation
 tidyr,required_for_developmental_trends,1.3.2,Table reshaping
-edgeR,required_for_pseudobulk,4.10.1,TMM normalization and log2 CPM
+edgeR,required_for_pseudobulk,4.10.3,TMM normalization and log2 CPM
 monocle3,required_for_pseudotime,1.4.27,Pseudotime and trajectory analysis
 shiny,required_for_interactive_monocle_root_selection,1.14.0,Interactive Monocle root-principal-node selection
 SingleCellExperiment,required,1.34.0,Single-cell data exchange
 SummarizedExperiment,required,1.42.0,Assay and metadata access
-S4Vectors,required_for_SPOTlight_mapping,0.50.1,Bioconductor metadata containers
+S4Vectors,required_for_SPOTlight_mapping,0.50.2,Bioconductor metadata containers
 igraph,required_for_monocle3,2.3.3,Principal graph handling
 scDblFinder,required_for_scRNA_reference,1.26.7,Doublet detection
 glmGamPoi,required_for_scRNA_reference,1.24.0,SCTransform v2 fitting
 SpatialExperiment,required_for_SPOTlight_mapping,1.22.0,Spatial experiment container
 scuttle,required_for_SPOTlight_mapping,1.22.0,Reference log normalization
 scran,required_for_SPOTlight_mapping,1.40.0,HVG and marker scoring
-presto,required_for_SPOTlight_mapping,1.0.0,Sparse one-versus-all AUC marker scoring
+presto,required_for_SPOTlight_mapping,1.1.0,Sparse one-versus-all AUC marker scoring
 SPOTlight,required_for_deconvolution,1.16.0,Cell-type deconvolution and scatter-pie plots
 SCINA,required_for_SCINA_annotation,1.2.0,Marker-based cell-type annotation
 scales,required_for_SPOTlight_plots,1.4.0,Continuous color-scale bounds
