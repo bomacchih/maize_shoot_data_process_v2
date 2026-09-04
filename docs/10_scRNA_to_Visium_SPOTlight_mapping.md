@@ -67,7 +67,7 @@ The scRNA count matrix is converted to a `SingleCellExperiment` and log-normaliz
 - At most 100 markers are retained per cell type.
 - The reference is downsampled reproducibly to no more than 100 cells per cell type.
 
-The retained markers and HVGs are written to `results/tables/12_scRNA_Visium_mapping/`.
+The retained markers and HVGs are written to `results/tables/10_scRNA_Visium_mapping/`.
 
 ## Section-wise soft deconvolution
 
@@ -87,8 +87,8 @@ Set `sections_to_run <- NULL` for all sections.
 
 After every completed section, the workflow saves the accumulating proportion matrix and section diagnostics to:
 
-- `results/tables/12_scRNA_Visium_mapping/SPOTlight_subset_embleaf_all_proportions_checkpoint.rds`
-- `results/tables/12_scRNA_Visium_mapping/SPOTlight_subset_embleaf_section_diagnostics_checkpoint.rds`
+- `results/tables/10_scRNA_Visium_mapping/SPOTlight_subset_embleaf_all_proportions_checkpoint.rds`
+- `results/tables/10_scRNA_Visium_mapping/SPOTlight_subset_embleaf_section_diagnostics_checkpoint.rds`
 
 The deconvolution results are also kept in the in-memory `all_proportions` matrix while the script is running. If a later post-processing or plotting step fails, source the script again with:
 

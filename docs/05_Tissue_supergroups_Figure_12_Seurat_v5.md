@@ -57,9 +57,12 @@ The seven structural domains are `SAM`, `P1_P2`, `P3`, `P4`, `P5`, `coleoptile`,
 
 ### Output tables
 
-- [`results/tables/cluster_to_tissue_supergroup.csv`](../results/tables/cluster_to_tissue_supergroup.csv)
-- [`results/tables/cluster_domain_counts.csv`](../results/tables/cluster_domain_counts.csv)
-- `results/tables/top10_markers_per_cluster_for_annotation.csv`, generated when the significant marker table is available
+- [`results/tables/05_tissue_supergroups_Figure_12/markers_harmony_clusters_SCT_all.csv`](../results/tables/05_tissue_supergroups_Figure_12/markers_harmony_clusters_SCT_all.csv)
+- [`results/tables/05_tissue_supergroups_Figure_12/markers_harmony_clusters_SCT_significant.csv`](../results/tables/05_tissue_supergroups_Figure_12/markers_harmony_clusters_SCT_significant.csv)
+- [`results/tables/05_tissue_supergroups_Figure_12/marker_genes_harmony_clusters_SCT_significant.txt`](../results/tables/05_tissue_supergroups_Figure_12/marker_genes_harmony_clusters_SCT_significant.txt)
+- [`results/tables/05_tissue_supergroups_Figure_12/cluster_to_tissue_supergroup.csv`](../results/tables/05_tissue_supergroups_Figure_12/cluster_to_tissue_supergroup.csv)
+- [`results/tables/05_tissue_supergroups_Figure_12/cluster_domain_counts.csv`](../results/tables/05_tissue_supergroups_Figure_12/cluster_domain_counts.csv)
+- [`results/tables/05_tissue_supergroups_Figure_12/top10_markers_per_cluster_for_annotation.csv`](../results/tables/05_tissue_supergroups_Figure_12/top10_markers_per_cluster_for_annotation.csv), generated when the significant marker table is available
 
 ### Output figures
 

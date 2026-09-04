@@ -69,8 +69,8 @@ where \(Y_{gs}\) is the raw UMI count for gene *g* in tissue spot *s*. Spots and
 
 The script exports:
 
-- [`results/tables/Figure_13/pseudobulk_library_metadata.csv`](../results/tables/Figure_13/pseudobulk_library_metadata.csv), listing the biological replicate, domain, number of contributing spots, library size, and normalization factor for every pseudobulk library;
-- `results/tables/Figure_13/pseudobulk_raw_counts.csv.gz`, containing replicate-domain raw counts.
+- [`results/tables/06_pseudobulk_structural_domains_Figure_13/pseudobulk_library_metadata.csv`](../results/tables/06_pseudobulk_structural_domains_Figure_13/pseudobulk_library_metadata.csv), listing the biological replicate, domain, number of contributing spots, library size, and normalization factor for every pseudobulk library;
+- `results/tables/06_pseudobulk_structural_domains_Figure_13/pseudobulk_raw_counts.csv.gz`, containing replicate-domain raw counts.
 
 ---
 
@@ -93,7 +93,7 @@ pseudobulk_log2cpm <- edgeR::cpm(
 The normalized replicate-domain profiles are exported as:
 
 ```text
-results/tables/Figure_13/pseudobulk_TMM_log2CPM.csv.gz
+results/tables/06_pseudobulk_structural_domains_Figure_13/pseudobulk_TMM_log2CPM.csv.gz
 ```
 
 ---
@@ -107,7 +107,7 @@ PCA is first performed on all replicate-domain log2 CPM profiles. This diagnosti
 The corresponding coordinates are saved as:
 
 ```text
-results/tables/Figure_13/replicate_PCA_coordinates.csv
+results/tables/06_pseudobulk_structural_domains_Figure_13/replicate_PCA_coordinates.csv
 ```
 
 Replicate dispersion should be inspected before domain means are interpreted. A single sample that is separated from all other replicates may indicate differences in tissue composition, section placement, library quality, or residual technical variation.
@@ -138,7 +138,7 @@ Each available biological replicate receives equal weight in its domain mean, re
 The domain means are exported as:
 
 ```text
-results/tables/Figure_13/domain_mean_TMM_log2CPM.csv.gz
+results/tables/06_pseudobulk_structural_domains_Figure_13/domain_mean_TMM_log2CPM.csv.gz
 ```
 
 ---
@@ -162,7 +162,7 @@ The four developing-leaf domains are outlined for visual reference. The gray arr
 The PCA coordinates and exact variance-explained values are saved in:
 
 ```text
-results/tables/Figure_13/domain_mean_PCA_coordinates.csv
+results/tables/06_pseudobulk_structural_domains_Figure_13/domain_mean_PCA_coordinates.csv
 ```
 
 ---
@@ -229,7 +229,7 @@ spearman_correlations <- cor(
 The optional result is written to:
 
 ```text
-results/tables/Figure_13/spatial_domain_vs_scRNAseq_Spearman_correlations.csv
+results/tables/06_pseudobulk_structural_domains_Figure_13/spatial_domain_vs_scRNAseq_Spearman_correlations.csv
 ```
 
 Correlation is calculated only across genes present in both datasets. Gene identifiers and expression units should be harmonized before interpreting the result.
@@ -248,7 +248,7 @@ results/
 │       ├── Figure_13_composite.png
 │       └── Figure_13_composite.pdf
 ├── tables/
-│   └── Figure_13/
+│   └── 06_pseudobulk_structural_domains_Figure_13/
 │       ├── pseudobulk_library_metadata.csv
 │       ├── pseudobulk_raw_counts.csv.gz
 │       ├── pseudobulk_TMM_log2CPM.csv.gz

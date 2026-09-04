@@ -10,9 +10,9 @@
 #   data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
 #
 # Outputs:
-#   results/tables/markers_harmony_clusters_SCT_all.csv
-#   results/tables/markers_harmony_clusters_SCT_significant.csv
-#   results/tables/marker_genes_harmony_clusters_SCT_significant.txt
+#   results/tables/05_tissue_supergroups_Figure_12/markers_harmony_clusters_SCT_all.csv
+#   results/tables/05_tissue_supergroups_Figure_12/markers_harmony_clusters_SCT_significant.csv
+#   results/tables/05_tissue_supergroups_Figure_12/marker_genes_harmony_clusters_SCT_significant.txt
 #   results/logs/markers_harmony_clusters_SCT_summary.txt
 #
 # This is an exploratory spot-level marker screen for cluster characterization,
@@ -38,7 +38,9 @@ input_file <- file.path(
     "processed",
     "maize_shoot_14samples_SCT_harmony_seurat_v5.rds"
 )
-table_dir <- file.path("results", "tables")
+table_dir <- file.path(
+    "results", "tables", "05_tissue_supergroups_Figure_12"
+)
 log_dir <- file.path("results", "logs")
 
 # Marker-screen parameters retained from the original analysis script:

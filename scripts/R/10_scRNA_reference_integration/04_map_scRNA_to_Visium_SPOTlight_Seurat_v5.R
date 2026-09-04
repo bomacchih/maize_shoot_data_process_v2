@@ -350,7 +350,7 @@ figure_dir <- file.path(
   project_root, "results", "figures", "10_scRNA_Visium_mapping"
 )
 table_dir <- file.path(
-  project_root, "results", "tables", "12_scRNA_Visium_mapping"
+  project_root, "results", "tables", "10_scRNA_Visium_mapping"
 )
 proportion_checkpoint_rds <- file.path(
   table_dir, "SPOTlight_subset_embleaf_all_proportions_checkpoint.rds"

@@ -57,9 +57,10 @@ results/
 │       ├── QC_features_vs_counts.png
 │       └── QC_sample_domain_spot_counts.png
 └── tables/
-    ├── QC_sample_summary.csv
-    ├── QC_gene_summary.csv
-    └── QC_sample_domain_spot_counts.csv
+    └── 04_QC/
+        ├── QC_sample_summary.csv
+        ├── QC_gene_summary.csv
+        └── QC_sample_domain_spot_counts.csv
 ```
 
 `QC_spot_gene_histograms.png` contains:
@@ -113,7 +114,7 @@ ggplot(sample_domain_counts, aes(sample_id, domains, fill = n_spots)) +
 
 ![Retained spots by sample and anatomical domain](../results/figures/04_QC/QC_sample_domain_spot_counts.png)
 
-**Figure 4. Retained spot counts across samples and anatomical domains.** Each tile gives the number of curated tissue spots retained for one sample-domain combination. The numerical values are also written to `results/tables/QC_sample_domain_spot_counts.csv`.
+**Figure 4. Retained spot counts across samples and anatomical domains.** Each tile gives the number of curated tissue spots retained for one sample-domain combination. The numerical values are also written to `results/tables/04_QC/QC_sample_domain_spot_counts.csv`.
 
 ## 2. Apply the gene-level QC rule and integrate datasets
 
@@ -221,7 +222,7 @@ PCA outputs are:
 ```text
 results/
 ├── figures/04_SCT_Harmony_integration/PCA_elbow_plot.png
-├── tables/PCA_variance_explained.csv
+├── tables/04_SCT_Harmony_integration/PCA_variance_explained.csv
 └── logs/PCA_selection.txt
 ```
 
@@ -254,7 +255,7 @@ Cluster numbers are arbitrary analysis labels. Resolution 2 does not guarantee 3
 The script records the two annotations without automatically translating between them:
 
 ```text
-results/tables/harmony_clusters_recomputed_vs_published.csv
+results/tables/04_SCT_Harmony_integration/harmony_clusters_recomputed_vs_published.csv
 results/logs/Harmony_recomputed_clustering.txt
 ```
 

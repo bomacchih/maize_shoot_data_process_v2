@@ -10,13 +10,13 @@
 #   data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
 #
 # Optional upstream marker table:
-#   results/tables/markers_harmony_clusters_SCT_significant.csv
+#   results/tables/05_tissue_supergroups_Figure_12/markers_harmony_clusters_SCT_significant.csv
 #   Generate it with 01_find_markers_harmony_clusters_SCT_Seurat_v5.R.
 #
 # Outputs:
-#   results/tables/cluster_to_tissue_supergroup.csv
-#   results/tables/cluster_domain_counts.csv
-#   results/tables/top10_markers_per_cluster_for_annotation.csv (if available)
+#   results/tables/05_tissue_supergroups_Figure_12/cluster_to_tissue_supergroup.csv
+#   results/tables/05_tissue_supergroups_Figure_12/cluster_domain_counts.csv
+#   results/tables/05_tissue_supergroups_Figure_12/top10_markers_per_cluster_for_annotation.csv (if available)
 #   results/figures/05_tissue_supergroups_Figure_12/Figure_12_A_clusters_UMAP.png
 #   results/figures/05_tissue_supergroups_Figure_12/Figure_12_B_cluster_domain_heatmap.png
 #   results/figures/05_tissue_supergroups_Figure_12/Figure_12_C_supergroups_UMAP.png
@@ -56,9 +56,12 @@ input_file <- file.path(
 marker_file <- file.path(
     "results",
     "tables",
+    "05_tissue_supergroups_Figure_12",
     "markers_harmony_clusters_SCT_significant.csv"
 )
-table_dir <- file.path("results", "tables")
+table_dir <- file.path(
+    "results", "tables", "05_tissue_supergroups_Figure_12"
+)
 figure_dir <- file.path(
     "results", "figures", "05_tissue_supergroups_Figure_12"
 )

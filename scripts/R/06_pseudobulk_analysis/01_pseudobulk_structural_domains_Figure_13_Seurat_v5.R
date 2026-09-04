@@ -17,12 +17,12 @@
 #   data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
 #
 # Main outputs:
-#   results/tables/Figure_13/pseudobulk_library_metadata.csv
-#   results/tables/Figure_13/pseudobulk_raw_counts.csv.gz
-#   results/tables/Figure_13/pseudobulk_TMM_log2CPM.csv.gz
-#   results/tables/Figure_13/domain_mean_TMM_log2CPM.csv.gz
-#   results/tables/Figure_13/replicate_PCA_coordinates.csv
-#   results/tables/Figure_13/domain_mean_PCA_coordinates.csv
+#   results/tables/06_pseudobulk_structural_domains_Figure_13/pseudobulk_library_metadata.csv
+#   results/tables/06_pseudobulk_structural_domains_Figure_13/pseudobulk_raw_counts.csv.gz
+#   results/tables/06_pseudobulk_structural_domains_Figure_13/pseudobulk_TMM_log2CPM.csv.gz
+#   results/tables/06_pseudobulk_structural_domains_Figure_13/domain_mean_TMM_log2CPM.csv.gz
+#   results/tables/06_pseudobulk_structural_domains_Figure_13/replicate_PCA_coordinates.csv
+#   results/tables/06_pseudobulk_structural_domains_Figure_13/domain_mean_PCA_coordinates.csv
 #   results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_A_domain_mean_PCA.png
 #   results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_B_domain_mean_hierarchical_clustering.png
 #   results/figures/06_pseudobulk_structural_domains_Figure_13/Figure_13_composite.png
@@ -47,7 +47,9 @@ input_file <- file.path(
     "processed",
     "maize_shoot_14samples_SCT_harmony_seurat_v5.rds"
 )
-table_dir <- file.path("results", "tables", "Figure_13")
+table_dir <- file.path(
+    "results", "tables", "06_pseudobulk_structural_domains_Figure_13"
+)
 figure_dir <- file.path(
     "results", "figures", "06_pseudobulk_structural_domains_Figure_13"
 )

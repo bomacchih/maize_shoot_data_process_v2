@@ -140,7 +140,7 @@ figure_dir <- file.path(
   project_root, "results", "figures", "10_scRNA_SCINA_annotation"
 )
 table_dir <- file.path(
-  project_root, "results", "tables", "11_scRNA_SCINA_annotation"
+  project_root, "results", "tables", "10_scRNA_SCINA_annotation"
 )
 session_dir <- file.path(project_root, "results", "sessionInfo")
 

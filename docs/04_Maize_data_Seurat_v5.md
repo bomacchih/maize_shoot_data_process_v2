@@ -369,14 +369,14 @@ ggplot(sample_domain_counts, aes(sample_id, domains, fill = n_spots)) +
 ![Retained spots by sample and anatomical domain](../results/figures/04_QC/QC_sample_domain_spot_counts.png)
 
 The corresponding numerical table is available at
-[`results/tables/QC_sample_domain_spot_counts.csv`](../results/tables/QC_sample_domain_spot_counts.csv).
+[`results/tables/04_QC/QC_sample_domain_spot_counts.csv`](../results/tables/04_QC/QC_sample_domain_spot_counts.csv).
 
 ### QC summary tables
 
 The complete QC script writes:
 
-- [`results/tables/QC_sample_summary.csv`](../results/tables/QC_sample_summary.csv), containing sample-level spot and QC summaries;
-- [`results/tables/QC_gene_summary.csv`](../results/tables/QC_gene_summary.csv), containing total reads and detected-spot counts for each gene.
+- [`results/tables/04_QC/QC_sample_summary.csv`](../results/tables/04_QC/QC_sample_summary.csv), containing sample-level spot and QC summaries;
+- [`results/tables/04_QC/QC_gene_summary.csv`](../results/tables/04_QC/QC_gene_summary.csv), containing total reads and detected-spot counts for each gene.
 
 Run the QC workflow from the repository root:
 
@@ -445,7 +445,7 @@ In the plot, the blue dotted line marks the automated geometric elbow candidate 
 
 The variance values and selection record are available in:
 
-- [`results/tables/PCA_variance_explained.csv`](../results/tables/PCA_variance_explained.csv)
+- [`results/tables/04_SCT_Harmony_integration/PCA_variance_explained.csv`](../results/tables/04_SCT_Harmony_integration/PCA_variance_explained.csv)
 - [`results/logs/PCA_selection.txt`](../results/logs/PCA_selection.txt)
 
 The PCA is then finalized with 30 components.

@@ -58,7 +58,7 @@ The currently embedded Figure C was generated from the validated `celltype_scina
 
 ## Output tables
 
-The workflow writes the following records to `results/tables/11_scRNA_SCINA_annotation/`:
+The workflow writes the following records to `results/tables/10_scRNA_SCINA_annotation/`:
 
 - `SCINA_marker_signatures_retained.csv` when SCINA is run
 - `SCINA_shared_markers_removed.csv` when SCINA is run

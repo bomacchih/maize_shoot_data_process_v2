@@ -14,9 +14,9 @@
 #   results/figures/04_QC/QC_violin_by_sample.png
 #   results/figures/04_QC/QC_features_vs_counts.png
 #   results/figures/04_QC/QC_sample_domain_spot_counts.png
-#   results/tables/QC_sample_summary.csv
-#   results/tables/QC_gene_summary.csv
-#   results/tables/QC_sample_domain_spot_counts.csv
+#   results/tables/04_QC/QC_sample_summary.csv
+#   results/tables/04_QC/QC_gene_summary.csv
+#   results/tables/04_QC/QC_sample_domain_spot_counts.csv
 
 suppressPackageStartupMessages({
     library(Seurat)
@@ -238,8 +238,9 @@ rm(seurat_list)
 gc()
 
 figure_dir <- file.path("results", "figures", "04_QC")
+table_dir <- file.path("results", "tables", "04_QC")
 dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
-dir.create(file.path("results", "tables"), recursive = TRUE, showWarnings = FALSE)
+dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 
 spot_qc <- combined[[]]
 spot_qc$spot_barcode <- rownames(spot_qc)
@@ -259,7 +260,7 @@ sample_summary <- do.call(rbind, lapply(sample_ids, function(sample_id) {
 }))
 write.csv(
     sample_summary,
-    file.path("results", "tables", "QC_sample_summary.csv"),
+    file.path(table_dir, "QC_sample_summary.csv"),
     row.names = FALSE
 )
 
@@ -287,7 +288,7 @@ gene_qc <- data.frame(
 gene_qc$pass_minimum_100_reads <- gene_qc$total_umi >= 100
 write.csv(
     gene_qc,
-    file.path("results", "tables", "QC_gene_summary.csv"),
+    file.path(table_dir, "QC_gene_summary.csv"),
     row.names = FALSE
 )
 
@@ -413,7 +414,7 @@ stopifnot(
 )
 write.csv(
     sample_domain_counts,
-    file.path("results", "tables", "QC_sample_domain_spot_counts.csv"),
+    file.path(table_dir, "QC_sample_domain_spot_counts.csv"),
     row.names = FALSE
 )
 

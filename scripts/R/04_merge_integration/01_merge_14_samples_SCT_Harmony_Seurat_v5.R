@@ -43,7 +43,8 @@
 #   results/figures/04_SCT_Harmony_integration/PCA_Harmony_before_after_UMAP.png
 #   results/figures/04_SCT_Harmony_integration/Harmony_UMAP_by_domain.png
 #   results/figures/04_SCT_Harmony_integration/Harmony_UMAP_domains_by_sample.png
-#   results/tables/harmony_clusters_recomputed_vs_published.csv
+#   results/tables/04_SCT_Harmony_integration/PCA_variance_explained.csv
+#   results/tables/04_SCT_Harmony_integration/harmony_clusters_recomputed_vs_published.csv
 #   results/logs/Harmony_recomputed_clustering.txt
 
 suppressPackageStartupMessages({
@@ -376,16 +377,19 @@ automatic_elbow_pc <- which.max(elbow_distance)
 stopifnot(n_pcs_use >= 2L, n_pcs_use <= max_pcs_to_test)
 selection_method <- "Bio-protocol setting"
 
-dir.create(file.path("results", "tables"), recursive = TRUE, showWarnings = FALSE)
+table_dir <- file.path(
+    "results", "tables", "04_SCT_Harmony_integration"
+)
 figure_dir <- file.path(
     "results", "figures", "04_SCT_Harmony_integration"
 )
+dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(file.path("results", "logs"), recursive = TRUE, showWarnings = FALSE)
 
 write.csv(
     pca_table,
-    file = file.path("results", "tables", "PCA_variance_explained.csv"),
+    file = file.path(table_dir, "PCA_variance_explained.csv"),
     row.names = FALSE
 )
 
@@ -531,9 +535,7 @@ cluster_comparison <- as.data.frame(
 write.csv(
     cluster_comparison,
     file = file.path(
-        "results",
-        "tables",
-        "harmony_clusters_recomputed_vs_published.csv"
+        table_dir, "harmony_clusters_recomputed_vs_published.csv"
     ),
     row.names = FALSE
 )
