@@ -20,5 +20,4 @@ tutorial text.
 | 10 | `10_scRNA_Visium_mapping/` | Seurat transfer and SPOTlight mapping to Visium |
 | 11 | `11_TO_GCN/` | TO-GCN expression, network, and profile panels |
 
-The workflow-step prefix identifies where an output is generated. It is not a
-replacement for manuscript figure numbers such as Figure 12 or Figure 13.
+The workflow-step prefix identifies where an output is generated. 
