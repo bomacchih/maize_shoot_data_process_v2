@@ -7,6 +7,8 @@ tutorial text.
 
 | Workflow step | Folder | Contents |
 | --- | --- | --- |
+| 04 | `04_QC/` | Spot- and gene-level QC diagnostics for the 14 Visium datasets |
+| 04 | `04_SCT_Harmony_integration/` | PCA selection and before/after Harmony integration diagnostics |
 | 05 | `05_tissue_supergroups_Figure_12/` | Current tissue-supergroup and anatomical annotation panels for Figure 12 |
 | 05 | `05_tissue_supergroups_legacy_Figure_7_8_4/` | Earlier copies retained for provenance; current documentation uses the Figure 12 folder |
 | 06 | `06_pseudobulk_structural_domains_Figure_13/` | Structural-domain pseudobulk diagnostics and Figure 13 |

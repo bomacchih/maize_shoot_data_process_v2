@@ -10,10 +10,10 @@
 #   data/reference/maize_plastid_genes.txt
 #
 # Outputs:
-#   results/figures/QC_spot_gene_histograms.png
-#   results/figures/QC_violin_by_sample.png
-#   results/figures/QC_features_vs_counts.png
-#   results/figures/QC_sample_domain_spot_counts.png
+#   results/figures/04_QC/QC_spot_gene_histograms.png
+#   results/figures/04_QC/QC_violin_by_sample.png
+#   results/figures/04_QC/QC_features_vs_counts.png
+#   results/figures/04_QC/QC_sample_domain_spot_counts.png
 #   results/tables/QC_sample_summary.csv
 #   results/tables/QC_gene_summary.csv
 #   results/tables/QC_sample_domain_spot_counts.csv
@@ -237,7 +237,8 @@ message(
 rm(seurat_list)
 gc()
 
-dir.create(file.path("results", "figures"), recursive = TRUE, showWarnings = FALSE)
+figure_dir <- file.path("results", "figures", "04_QC")
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(file.path("results", "tables"), recursive = TRUE, showWarnings = FALSE)
 
 spot_qc <- combined[[]]
@@ -330,7 +331,7 @@ p_d <- ggplot(gene_qc, aes(x = detected_spots)) +
 qc_histograms <- (p_a | p_b) / (p_c | p_d) +
     plot_annotation(tag_levels = "A")
 ggsave(
-    file.path("results", "figures", "QC_spot_gene_histograms.png"),
+    file.path(figure_dir, "QC_spot_gene_histograms.png"),
     qc_histograms, width = 12, height = 10, dpi = 300, bg = "white"
 )
 
@@ -357,7 +358,7 @@ qc_violin <- ggplot(qc_long, aes(x = sample_id, y = value)) +
     theme_classic(base_size = 10) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggsave(
-    file.path("results", "figures", "QC_violin_by_sample.png"),
+    file.path(figure_dir, "QC_violin_by_sample.png"),
     qc_violin, width = 12, height = 8, dpi = 300, bg = "white"
 )
 
@@ -374,7 +375,7 @@ qc_scatter <- ggplot(
     ) +
     theme_classic(base_size = 11)
 ggsave(
-    file.path("results", "figures", "QC_features_vs_counts.png"),
+    file.path(figure_dir, "QC_features_vs_counts.png"),
     qc_scatter, width = 8, height = 6, dpi = 300, bg = "white"
 )
 
@@ -442,7 +443,7 @@ qc_sample_domain_heatmap <- ggplot(
         plot.title = element_text(face = "bold")
     )
 ggsave(
-    file.path("results", "figures", "QC_sample_domain_spot_counts.png"),
+    file.path(figure_dir, "QC_sample_domain_spot_counts.png"),
     qc_sample_domain_heatmap,
     width = 10,
     height = 5.5,

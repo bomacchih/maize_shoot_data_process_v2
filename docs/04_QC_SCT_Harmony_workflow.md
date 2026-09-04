@@ -51,10 +51,11 @@ The script produces:
 ```text
 results/
 ├── figures/
-│   ├── QC_spot_gene_histograms.png
-│   ├── QC_violin_by_sample.png
-│   ├── QC_features_vs_counts.png
-│   └── QC_sample_domain_spot_counts.png
+│   └── 04_QC/
+│       ├── QC_spot_gene_histograms.png
+│       ├── QC_violin_by_sample.png
+│       ├── QC_features_vs_counts.png
+│       └── QC_sample_domain_spot_counts.png
 └── tables/
     ├── QC_sample_summary.csv
     ├── QC_gene_summary.csv
@@ -72,19 +73,19 @@ results/
 
 ### QC distributions across spots and genes
 
-![QC distributions across tissue spots and genes](../results/figures/QC_spot_gene_histograms.png)
+![QC distributions across tissue spots and genes](../results/figures/04_QC/QC_spot_gene_histograms.png)
 
 **Figure 1. Quality-control distributions across tissue spots and genes.** (A) Number of unique genes detected per tissue spot. (B) Total mapped UMI counts per tissue spot. (C) Total mapped UMI counts per gene on a log10 scale. (D) Number of tissue spots in which each gene was detected.
 
 ### QC metrics for individual capture areas
 
-![Violin plots of QC metrics for the 14 capture areas](../results/figures/QC_violin_by_sample.png)
+![Violin plots of QC metrics for the 14 capture areas](../results/figures/04_QC/QC_violin_by_sample.png)
 
 **Figure 2. Spot-level QC metrics across the 14 capture areas.** Violin plots show the distributions of detected genes (`nFeature_RNA`), total UMI counts (`nCount_RNA`), mitochondrial-read percentages (`percent.mito`), and plastid-read percentages (`percent.pltd`) for each sample.
 
 ### Relationship between detected genes and UMI counts
 
-![Relationship between detected genes and total UMI counts](../results/figures/QC_features_vs_counts.png)
+![Relationship between detected genes and total UMI counts](../results/figures/04_QC/QC_features_vs_counts.png)
 
 **Figure 3. Relationship between library complexity and detected features.** Each point represents one tissue-covered spot. The plot is used to identify spots with unusually low gene detection, low UMI counts, or atypical count-to-feature relationships.
 
@@ -110,7 +111,7 @@ ggplot(sample_domain_counts, aes(sample_id, domains, fill = n_spots)) +
   theme_classic()
 ```
 
-![Retained spots by sample and anatomical domain](../results/figures/QC_sample_domain_spot_counts.png)
+![Retained spots by sample and anatomical domain](../results/figures/04_QC/QC_sample_domain_spot_counts.png)
 
 **Figure 4. Retained spot counts across samples and anatomical domains.** Each tile gives the number of curated tissue spots retained for one sample-domain combination. The numerical values are also written to `results/tables/QC_sample_domain_spot_counts.csv`.
 
@@ -219,25 +220,25 @@ PCA outputs are:
 
 ```text
 results/
-├── figures/PCA_elbow_plot.png
+├── figures/04_SCT_Harmony_integration/PCA_elbow_plot.png
 ├── tables/PCA_variance_explained.csv
 └── logs/PCA_selection.txt
 ```
 
-![PCA elbow plot used to select the retained dimensions](../results/figures/PCA_elbow_plot.png)
+![PCA elbow plot used to select the retained dimensions](../results/figures/04_SCT_Harmony_integration/PCA_elbow_plot.png)
 
 **Figure 5. PCA elbow diagnostic.** Variance explained is shown for PCs 1-50. The blue dotted line marks the automatically detected strongest elbow, whereas the red dashed line marks PC 30, the number of PCs retained to reproduce the Bio-protocol workflow.
 
 ## Before and after Harmony integration
 
-`results/figures/PCA_Harmony_before_after_UMAP.png` compares:
+`results/figures/04_SCT_Harmony_integration/PCA_Harmony_before_after_UMAP.png` compares:
 
 - A: UMAP constructed from the uncorrected PCA space.
 - B: UMAP constructed from the SCTransform-normalized, Harmony-corrected space.
 
 Both panels are colored by `sample_id`. Better mixing after Harmony is consistent with reduced sample-associated variation, but biological and anatomical structure should also be checked before accepting the integration.
 
-![UMAP before and after SCTransform and Harmony integration](../results/figures/PCA_Harmony_before_after_UMAP.png)
+![UMAP before and after SCTransform and Harmony integration](../results/figures/04_SCT_Harmony_integration/PCA_Harmony_before_after_UMAP.png)
 
 **Figure 6. Sample distributions before and after Harmony integration.** (A) UMAP generated from the uncorrected PCA representation after SCTransform normalization. (B) UMAP generated from the Harmony-integrated representation using PCs 1-30. Spots are colored by capture-area identity. Increased mixing of samples after integration is consistent with reduced sample-associated effects.
 
@@ -290,8 +291,8 @@ DimPlot(
 
 Running the complete integration script writes these diagnostics to:
 
-- `results/figures/Harmony_UMAP_by_domain.png`, containing all retained spots in the shared corrected embedding;
-- `results/figures/Harmony_UMAP_domains_by_sample.png`, containing the common embedding split by `sample_id` while retaining the same domain colors and coordinate system.
+- `results/figures/04_SCT_Harmony_integration/Harmony_UMAP_by_domain.png`, containing all retained spots in the shared corrected embedding;
+- `results/figures/04_SCT_Harmony_integration/Harmony_UMAP_domains_by_sample.png`, containing the common embedding split by `sample_id` while retaining the same domain colors and coordinate system.
 
 These figures should be interpreted together with spatial location and marker-gene expression. They will be embedded here after the resource-intensive integration workflow has been rerun and the generated files have been verified.
 

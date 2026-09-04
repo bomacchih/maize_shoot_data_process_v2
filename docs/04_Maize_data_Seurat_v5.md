@@ -315,7 +315,7 @@ The QC script produces four histograms:
 - total mapped counts per gene on a log10 scale;
 - number of tissue spots in which each gene was detected.
 
-![Spot- and gene-level QC histograms](../results/figures/QC_spot_gene_histograms.png)
+![Spot- and gene-level QC histograms](../results/figures/04_QC/QC_spot_gene_histograms.png)
 
 The current verified run contains **20,090 curated tissue spots** and **40,109 genes before gene-level filtering**.
 
@@ -323,7 +323,7 @@ The current verified run contains **20,090 curated tissue spots** and **40,109 g
 
 Violin plots show the distributions of detected genes, total counts, mitochondrial-read percentage, and plastid-read percentage for each of the 14 samples.
 
-![QC metrics for the 14 maize shoot samples](../results/figures/QC_violin_by_sample.png)
+![QC metrics for the 14 maize shoot samples](../results/figures/04_QC/QC_violin_by_sample.png)
 
 Most spots have low organellar-read fractions. In the verified curated dataset, the overall median mitochondrial percentage was approximately **0.0191%**, and the median plastid percentage was **0%**. The maximum mitochondrial value was approximately **3.74%**, and the maximum plastid value was approximately **0.91%**.
 
@@ -340,7 +340,7 @@ FeatureScatter(
 )
 ```
 
-![Relationship between detected genes and total counts](../results/figures/QC_features_vs_counts.png)
+![Relationship between detected genes and total counts](../results/figures/04_QC/QC_features_vs_counts.png)
 
 The positive relationship between mapped counts and detected genes is expected. Strongly separated sample-specific trends should be investigated before integration.
 
@@ -366,7 +366,7 @@ ggplot(sample_domain_counts, aes(sample_id, domains, fill = n_spots)) +
   theme_classic()
 ```
 
-![Retained spots by sample and anatomical domain](../results/figures/QC_sample_domain_spot_counts.png)
+![Retained spots by sample and anatomical domain](../results/figures/04_QC/QC_sample_domain_spot_counts.png)
 
 The corresponding numerical table is available at
 [`results/tables/QC_sample_domain_spot_counts.csv`](../results/tables/QC_sample_domain_spot_counts.csv).
@@ -439,7 +439,7 @@ combined <- RunPCA(
 
 Fifty PCs are initially calculated so that the variance-explained curve can be inspected. After curated spot selection, the automated geometric elbow candidate is PC5, but the Bio-protocol workflow retains **30 PCs** to preserve lower-variance biological structure across the anatomically diverse domains and to match the original analysis setting.
 
-![PCA elbow plot](../results/figures/PCA_elbow_plot.png)
+![PCA elbow plot](../results/figures/04_SCT_Harmony_integration/PCA_elbow_plot.png)
 
 In the plot, the blue dotted line marks the automated geometric elbow candidate and the red dashed line marks the 30-PC setting used for PCA, UMAP, and Harmony integration.
 
@@ -515,7 +515,7 @@ combined <- RunUMAP(
 
 ### Before and after integration
 
-![UMAP before and after SCTransform and Harmony integration](../results/figures/PCA_Harmony_before_after_UMAP.png)
+![UMAP before and after SCTransform and Harmony integration](../results/figures/04_SCT_Harmony_integration/PCA_Harmony_before_after_UMAP.png)
 
 Before integration, several samples occupy distinct regions of the PCA-based UMAP. After SCTransform normalization and Harmony integration, spots from different samples are more evenly represented across the shared embedding. The corrected embedding should be evaluated together with spatial location, structural-domain annotations, and marker-gene expression to ensure that biological differences were not removed.
 
@@ -554,8 +554,8 @@ DimPlot(
 
 Running the complete integration script writes:
 
-- `results/figures/Harmony_UMAP_by_domain.png`;
-- `results/figures/Harmony_UMAP_domains_by_sample.png`.
+- `results/figures/04_SCT_Harmony_integration/Harmony_UMAP_by_domain.png`;
+- `results/figures/04_SCT_Harmony_integration/Harmony_UMAP_domains_by_sample.png`.
 
 These files will be embedded here after the resource-intensive integration
 workflow has been rerun and the resulting figures have been verified.

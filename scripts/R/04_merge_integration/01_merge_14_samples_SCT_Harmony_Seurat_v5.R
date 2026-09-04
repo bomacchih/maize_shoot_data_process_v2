@@ -39,10 +39,10 @@
 #
 # Main outputs:
 #   data/processed/maize_shoot_14samples_SCT_harmony_seurat_v5.rds
-#   results/figures/PCA_elbow_plot.png
-#   results/figures/PCA_Harmony_before_after_UMAP.png
-#   results/figures/Harmony_UMAP_by_domain.png
-#   results/figures/Harmony_UMAP_domains_by_sample.png
+#   results/figures/04_SCT_Harmony_integration/PCA_elbow_plot.png
+#   results/figures/04_SCT_Harmony_integration/PCA_Harmony_before_after_UMAP.png
+#   results/figures/04_SCT_Harmony_integration/Harmony_UMAP_by_domain.png
+#   results/figures/04_SCT_Harmony_integration/Harmony_UMAP_domains_by_sample.png
 #   results/tables/harmony_clusters_recomputed_vs_published.csv
 #   results/logs/Harmony_recomputed_clustering.txt
 
@@ -377,7 +377,10 @@ stopifnot(n_pcs_use >= 2L, n_pcs_use <= max_pcs_to_test)
 selection_method <- "Bio-protocol setting"
 
 dir.create(file.path("results", "tables"), recursive = TRUE, showWarnings = FALSE)
-dir.create(file.path("results", "figures"), recursive = TRUE, showWarnings = FALSE)
+figure_dir <- file.path(
+    "results", "figures", "04_SCT_Harmony_integration"
+)
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(file.path("results", "logs"), recursive = TRUE, showWarnings = FALSE)
 
 write.csv(
@@ -407,7 +410,7 @@ elbow_plot <- ElbowPlot(combined, ndims = max_pcs_to_test) +
     )
 
 ggplot2::ggsave(
-    filename = file.path("results", "figures", "PCA_elbow_plot.png"),
+    filename = file.path(figure_dir, "PCA_elbow_plot.png"),
     plot = elbow_plot,
     width = 7,
     height = 5,
@@ -598,7 +601,7 @@ integration_plot <- before_integration | after_integration
 integration_plot <- integration_plot + plot_annotation(tag_levels = "A")
 ggplot2::ggsave(
     filename = file.path(
-        "results", "figures", "PCA_Harmony_before_after_UMAP.png"
+        figure_dir, "PCA_Harmony_before_after_UMAP.png"
     ),
     plot = integration_plot,
     width = 13,
@@ -627,7 +630,7 @@ harmony_by_domain <- DimPlot(
         plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")
     )
 ggplot2::ggsave(
-    filename = file.path("results", "figures", "Harmony_UMAP_by_domain.png"),
+    filename = file.path(figure_dir, "Harmony_UMAP_by_domain.png"),
     plot = harmony_by_domain,
     width = 8,
     height = 6,
@@ -657,7 +660,7 @@ harmony_domains_by_sample <- (
     )
 ggplot2::ggsave(
     filename = file.path(
-        "results", "figures", "Harmony_UMAP_domains_by_sample.png"
+        figure_dir, "Harmony_UMAP_domains_by_sample.png"
     ),
     plot = harmony_domains_by_sample,
     width = 16,
