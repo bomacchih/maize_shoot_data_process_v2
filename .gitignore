@@ -55,3 +55,6 @@ results/tables/11_TO_GCN/original_TO_GCN/C1+.csv
 
 # Machine-specific analysis paths
 config/local_paths.yaml
+
+# Local release-management notes
+docs/PUBLIC_RELEASE_CHECKLIST.md

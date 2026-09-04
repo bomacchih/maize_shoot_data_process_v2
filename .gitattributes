@@ -23,6 +23,7 @@
 LICENSE text eol=lf
 DESCRIPTION text eol=lf
 .Rprofile text eol=lf
+.gitignore text eol=lf
 
 # Preserve the deposited raw TO-GCN example inputs byte-for-byte.
 results/tables/11_TO_GCN/input/tf_genes.txt -text whitespace=cr-at-eol
